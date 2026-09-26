@@ -10,8 +10,11 @@ export interface SmoothedSample {
   enough: boolean;
 }
 
-/** Медиана за окно. Один выброс не сдвигает устойчивую позу. */
-export function smoothFeatures(history: TimedSample[], nowMs: number, windowMs = 300, minimumSamples = 4): SmoothedSample {
+/**
+ * Short median window removes single-frame jitter without erasing transient
+ * checkpoints. Stability for static poses is handled separately by holdMs.
+ */
+export function smoothFeatures(history: TimedSample[], nowMs: number, windowMs = 100, minimumSamples = 3): SmoothedSample {
   const recent = history.filter((sample) => nowMs - sample.timeMs <= windowMs && nowMs >= sample.timeMs);
   const usable = recent.filter((sample) => poseUsable(sample.features));
   if (usable.length < minimumSamples) return { features: null, enough: false };
