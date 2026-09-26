@@ -5,7 +5,7 @@ cameraView: side
 category: meisterhau
 unvalidated: true
 limitations:
-  - Клинок на target-картинке пока только визуальный ориентир: matcher проверяет тело, руки и ноги, но не траекторию клинка.
+  - "Клинок на target-картинке пока только визуальный ориентир: matcher проверяет тело, руки и ноги, но не траекторию клинка."
 checkpoints:
   - id: guard
     title: Vom Tag
