@@ -12,11 +12,11 @@ const stable: FeatureMap = {
 
 describe("temporal median", () => {
   it("ignores a single noisy frame", () => {
-    const history: TimedSample[] = [0, 40, 80, 120, 160].map((timeMs, index) => ({
+    const history: TimedSample[] = [0, 25, 50, 75, 100].map((timeMs, index) => ({
       timeMs,
       features: index === 3 ? { ...stable, foot_distance: 9 } : { ...stable },
     }));
-    const smoothed = smoothFeatures(history, 160, 300, 4);
+    const smoothed = smoothFeatures(history, 100, 100, 3);
     expect(smoothed.enough).toBe(true);
     expect(smoothed.features?.foot_distance).toBeCloseTo(0.8, 5);
   });
@@ -27,6 +27,21 @@ describe("temporal median", () => {
       { timeMs: 30, features: { ...stable } },
       { timeMs: 60, features: null },
     ];
-    expect(smoothFeatures(history, 60, 300, 4).enough).toBe(false);
+    expect(smoothFeatures(history, 60, 100, 3).enough).toBe(false);
+  });
+
+  it("keeps a brief dynamic checkpoint visible instead of averaging it away", () => {
+    const phaseA = { ...stable, foot_distance: 0.9 };
+    const phaseB = { ...stable, foot_distance: 0.2 };
+    const history: TimedSample[] = [
+      { timeMs: 0, features: phaseA },
+      { timeMs: 30, features: phaseA },
+      { timeMs: 60, features: phaseB },
+      { timeMs: 90, features: phaseB },
+      { timeMs: 120, features: phaseB },
+    ];
+    const smoothed = smoothFeatures(history, 120, 80, 3);
+    expect(smoothed.enough).toBe(true);
+    expect(smoothed.features?.foot_distance).toBeCloseTo(0.2, 5);
   });
 });
