@@ -57,6 +57,22 @@ export const POSE_PRESETS: Record<string, TargetPose> = {
   "stance-right": ready("right", 0.9),
   "stance-wide-left": ready("left", 1.25),
   "stance-wide-right": ready("right", 1.25),
+  "advance-front-out": (() => {
+    const value = ready("left", 0.9);
+    value.landmarks.left_ankle.x = 0.75;
+    value.landmarks.left_knee.x = 0.4;
+    value.landmarks.left_heel.x = 0.69;
+    value.landmarks.left_foot_index.x = 0.89;
+    return value;
+  })(),
+  "retreat-rear-out": (() => {
+    const value = ready("left", 0.9);
+    value.landmarks.right_ankle.x = -0.75;
+    value.landmarks.right_knee.x = -0.4;
+    value.landmarks.right_heel.x = -0.81;
+    value.landmarks.right_foot_index.x = -0.61;
+    return value;
+  })(),
   "stance-compact-left": ready("left", 0.65),
   "stance-cross": (() => {
     const value = ready("left", 0.18);
