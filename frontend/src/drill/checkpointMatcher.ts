@@ -1,10 +1,32 @@
+import { liveFeatures } from "../live/features";
+import type { LandmarkMap } from "../live/landmarks";
+import { targetPoseFor } from "./posePresets";
 import { isTargetConstraint, type Checkpoint, type CheckpointMatch, type FeatureConstraint, type FeatureMatch } from "./types";
 
 export interface MatcherState {
   validSince: number | null;
 }
 
-/** Ограничения текущего кадра. `passed` становится true только после holdMs. */
+const constraintCache = new WeakMap<Checkpoint, Record<string, FeatureConstraint>>();
+
+export function checkpointConstraints(checkpoint: Checkpoint): Record<string, FeatureConstraint> {
+  const cached = constraintCache.get(checkpoint);
+  if (cached) return cached;
+  const constraints: Record<string, FeatureConstraint> = { ...(checkpoint.constraints ?? {}) };
+  const targetPose = checkpoint.targetPose ?? targetPoseFor(checkpoint.targetPoseId);
+  if (targetPose && checkpoint.featureTolerances) {
+    const targetFeatures = liveFeatures(targetPose.landmarks as LandmarkMap, 0);
+    for (const [name, tolerance] of Object.entries(checkpoint.featureTolerances)) {
+      const target = targetFeatures[name as keyof typeof targetFeatures];
+      if (typeof target === "number" && Number.isFinite(target)) {
+        constraints[name] = { target, tolerance };
+      }
+    }
+  }
+  constraintCache.set(checkpoint, constraints);
+  return constraints;
+}
+
 export function matchCheckpoint(
   features: Record<string, number> | null,
   checkpoint: Checkpoint,
@@ -13,7 +35,8 @@ export function matchCheckpoint(
   enoughSamples: boolean,
 ): { match: CheckpointMatch; state: MatcherState } {
   const evaluated = evaluateConstraints(features, checkpoint);
-  const met = enoughSamples && features != null && Object.values(evaluated.features).every((item) => item.passed);
+  const rows = Object.values(evaluated.features);
+  const met = rows.length > 0 && enoughSamples && features != null && rows.every((item) => item.passed);
   if (!met) {
     return { match: { ...evaluated, passed: false }, state: { validSince: null } };
   }
@@ -23,17 +46,19 @@ export function matchCheckpoint(
 }
 
 export function evaluateConstraints(features: Record<string, number> | null, checkpoint: Checkpoint): CheckpointMatch {
+  const constraints = checkpointConstraints(checkpoint);
   const rows: Record<string, FeatureMatch> = {};
-  const scores: number[] = [];
-  for (const [name, constraint] of Object.entries(checkpoint.constraints)) {
+  let weightedScore = 0;
+  let weightSum = 0;
+  for (const [name, constraint] of Object.entries(constraints)) {
     const value = features?.[name];
     const row = scoreFeature(value, constraint);
     const weight = checkpoint.weights?.[name] ?? 1;
     rows[name] = row;
-    scores.push(row.closeness * weight);
+    weightedScore += row.closeness * weight;
+    weightSum += weight;
   }
-  const weightSum = Object.keys(checkpoint.constraints).reduce((sum, name) => sum + (checkpoint.weights?.[name] ?? 1), 0);
-  const confidence = weightSum > 0 ? Math.min(1, Math.max(0, scores.reduce((sum, score) => sum + score, 0) / weightSum)) : 0;
+  const confidence = weightSum > 0 ? Math.min(1, Math.max(0, weightedScore / weightSum)) : 0;
   return { passed: false, confidence, features: rows };
 }
 
@@ -43,7 +68,9 @@ function scoreFeature(value: number | undefined, constraint: FeatureConstraint):
   }
   if (isTargetConstraint(constraint)) {
     const delta = value - constraint.target;
-    const closeness = constraint.tolerance <= 0 ? (delta === 0 ? 1 : 0) : Math.max(0, 1 - Math.abs(delta) / constraint.tolerance);
+    const closeness = constraint.tolerance <= 0
+      ? (delta === 0 ? 1 : 0)
+      : Math.max(0, 1 - Math.abs(delta) / (2 * constraint.tolerance));
     return {
       passed: Math.abs(delta) <= constraint.tolerance,
       value,
