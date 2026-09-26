@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { matchCheckpoint } from "./checkpointMatcher";
+import { checkpointConstraints, matchCheckpoint } from "./checkpointMatcher";
 import type { Checkpoint } from "./types";
 
 const checkpoint: Checkpoint = {
@@ -34,5 +34,27 @@ describe("checkpoint constraints", () => {
     expect(early.match.passed).toBe(false);
     const ready = matchCheckpoint({ foot_distance: 0.8, pelvis_height: 1 }, checkpoint, started.state, 1300, true);
     expect(ready.match.passed).toBe(true);
+  });
+
+  it("derives machine constraints from the same pose preset used by the target image", () => {
+    const target: Checkpoint = {
+      id: "guard",
+      title: "Vom Tag",
+      holdMs: 100,
+      targetPoseId: "vom-tag",
+      featureTolerances: {
+        hand_center_y: 0.2,
+        foot_distance: 0.25,
+      },
+    };
+    const constraints = checkpointConstraints(target);
+    expect("target" in constraints.hand_center_y).toBe(true);
+    expect("target" in constraints.foot_distance).toBe(true);
+  });
+
+  it("keeps confidence non-zero at a valid tolerance boundary", () => {
+    const result = matchCheckpoint({ foot_distance: 0.9, pelvis_height: 1 }, checkpoint, { validSince: 0 }, 300, true);
+    expect(result.match.features.foot_distance.passed).toBe(true);
+    expect(result.match.confidence).toBeGreaterThan(0);
   });
 });
