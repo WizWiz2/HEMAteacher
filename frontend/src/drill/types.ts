@@ -10,13 +10,33 @@ export interface RangeConstraint {
 
 export type FeatureConstraint = TargetConstraint | RangeConstraint;
 
+export interface TargetLandmark {
+  x: number;
+  y: number;
+  z: number;
+  visibility: number;
+}
+
+export interface TargetPose {
+  landmarks: Record<string, TargetLandmark>;
+  sword?: {
+    grip: { x: number; y: number };
+    tip: { x: number; y: number };
+  };
+}
+
 export interface Checkpoint {
   id: string;
   title: string;
   illustrationUrl?: string;
+  targetPoseId?: string;
+  targetPose?: TargetPose;
   holdMs: number;
-  constraints: Record<string, FeatureConstraint>;
+  smoothingMs?: number;
+  constraints?: Record<string, FeatureConstraint>;
+  featureTolerances?: Record<string, number>;
   weights?: Record<string, number>;
+  cue?: string;
 }
 
 export interface Drill {
@@ -24,7 +44,9 @@ export interface Drill {
   name: string;
   description: string;
   cameraView: "side";
+  category?: "footwork" | "guards" | "meisterhau";
   unvalidated?: boolean;
+  limitations?: string[];
   checkpoints: Checkpoint[];
   transitions?: unknown[];
 }
