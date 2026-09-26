@@ -1,0 +1,7 @@
+id: retreat
+name: Шаг назад
+description: >
+  Короткий retreat: задняя нога забирает дистанцию, передняя подтягивается,
+  стойка сохраняется. Камера сбоку, всё тело в кадре, телефон не двигается.
+camera_view: side
+analysis_profile: footwork_v1

@@ -1,0 +1,7 @@
+id: cross-step
+name: Cross step
+description: >
+  Нога пересекает линию другой ноги. Паттерн чувствителен к ракурсу:
+  держите камеру строго сбоку и не выходите из кадра корпусом или стопой.
+camera_view: side
+analysis_profile: footwork_v1

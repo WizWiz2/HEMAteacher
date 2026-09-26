@@ -1,0 +1,197 @@
+# Профиль сравнения footwork. Пороги — в единицах признака (см. docs/FEATURES.md).
+# greater / less — необязательные шаблоны. Иначе собирается нейтральная фраза
+# «отличается от эталона», без оценки «правильности» техники.
+id: footwork_v1
+
+scale:
+  strategy: torso_length
+  scope: sequence
+
+dtw_features:
+  - left_ankle_x
+  - left_ankle_y
+  - right_ankle_x
+  - right_ankle_y
+  - foot_distance
+  - pelvis_height
+
+phases:
+  preparation: "В начале движения"
+  stride: "В середине шага"
+  landing: "В момент приземления"
+  completion: "В завершении шага"
+  overall: "На протяжении шага"
+
+features:
+  foot_distance:
+    weight: 1.0
+    warning_threshold: 0.12
+    major_threshold: 0.22
+    unit: torso_lengths
+    label: расстояние между стопами
+    greater: "{phase} расстояние между стопами больше, чем в эталоне, примерно на {magnitude}."
+    less: "{phase} расстояние между стопами меньше, чем в эталоне, примерно на {magnitude}."
+
+  left_ankle_x:
+    weight: 0.85
+    warning_threshold: 0.12
+    major_threshold: 0.22
+    unit: torso_lengths
+    label: положение левой стопы вперёд
+    greater: "{phase} левая стопа ушла дальше вперёд относительно таза, чем в эталоне, примерно на {magnitude}."
+    less: "{phase} левая стопа осталась сзади относительно эталона, примерно на {magnitude}."
+
+  right_ankle_x:
+    weight: 0.85
+    warning_threshold: 0.12
+    major_threshold: 0.22
+    unit: torso_lengths
+    label: положение правой стопы вперёд
+    greater: "{phase} правая стопа ушла дальше вперёд относительно таза, чем в эталоне, примерно на {magnitude}."
+    less: "{phase} правая стопа осталась сзади относительно эталона, примерно на {magnitude}."
+
+  pelvis_height:
+    weight: 0.7
+    warning_threshold: 0.08
+    major_threshold: 0.14
+    unit: torso_lengths
+    label: высота таза над стопами
+    greater: "{phase} таз выше над стопами, чем в эталоне, примерно на {magnitude}. По сравнению с эталоном корпус сильнее выпрямляется."
+    less: "{phase} таз ниже над стопами, чем в эталоне, примерно на {magnitude}."
+
+  pelvis_bounce:
+    weight: 0.65
+    warning_threshold: 0.035
+    major_threshold: 0.07
+    unit: torso_lengths
+    label: вертикальное колебание таза
+    source: pelvis_height
+    reduce: std
+    greater: "На протяжении шага высота таза гуляет сильнее, чем в эталоне (разброс больше примерно на {magnitude})."
+    less: "На протяжении шага высота таза держится ровнее, чем в эталоне."
+
+  left_knee_angle:
+    weight: 0.6
+    warning_threshold: 12
+    major_threshold: 22
+    unit: degrees
+    label: угол левого колена
+    greater: "{phase} левое колено разогнуто сильнее, чем в эталоне, примерно на {magnitude}."
+    less: "{phase} левое колено согнуто сильнее, чем в эталоне, примерно на {magnitude}."
+
+  right_knee_angle:
+    weight: 0.6
+    warning_threshold: 12
+    major_threshold: 22
+    unit: degrees
+    label: угол правого колена
+    greater: "{phase} правое колено разогнуто сильнее, чем в эталоне, примерно на {magnitude}."
+    less: "{phase} правое колено согнуто сильнее, чем в эталоне, примерно на {magnitude}."
+
+  torso_angle:
+    weight: 0.75
+    warning_threshold: 8
+    major_threshold: 15
+    unit: degrees
+    label: наклон корпуса
+    greater: "{phase} корпус сильнее наклонён вперёд, чем в эталоне, примерно на {magnitude}."
+    less: "{phase} корпус сильнее отклонён назад, чем в эталоне, примерно на {magnitude}."
+
+  left_hip_angle:
+    weight: 0.4
+    warning_threshold: 12
+    major_threshold: 22
+    unit: degrees
+    label: угол в левом тазобедренном
+    greater: "{phase} левое бедро разогнуто сильнее, чем в эталоне, примерно на {magnitude}."
+    less: "{phase} левое бедро согнуто сильнее, чем в эталоне, примерно на {magnitude}."
+
+  right_hip_angle:
+    weight: 0.4
+    warning_threshold: 12
+    major_threshold: 22
+    unit: degrees
+    label: угол в правом тазобедренном
+    greater: "{phase} правое бедро разогнуто сильнее, чем в эталоне, примерно на {magnitude}."
+    less: "{phase} правое бедро согнуто сильнее, чем в эталоне, примерно на {magnitude}."
+
+  knee_over_foot_left:
+    weight: 0.35
+    warning_threshold: 0.1
+    major_threshold: 0.18
+    unit: torso_lengths
+    label: вынос левого колена относительно стопы
+    greater: "{phase} левое колено заметно впереди стопы по сравнению с эталоном ({magnitude})."
+    less: "{phase} левое колено заметно сзади стопы по сравнению с эталоном ({magnitude})."
+
+  knee_over_foot_right:
+    weight: 0.35
+    warning_threshold: 0.1
+    major_threshold: 0.18
+    unit: torso_lengths
+    label: вынос правого колена относительно стопы
+    greater: "{phase} правое колено заметно впереди стопы по сравнению с эталоном ({magnitude})."
+    less: "{phase} правое колено заметно сзади стопы по сравнению с эталоном ({magnitude})."
+
+  left_leg_extension:
+    weight: 0.3
+    warning_threshold: 0.08
+    major_threshold: 0.15
+    unit: torso_lengths
+    label: длина левой ноги от таза до стопы
+    greater: "{phase} левая нога выпрямлена дальше, чем в эталоне, примерно на {magnitude}."
+    less: "{phase} левая нога собрана короче, чем в эталоне, примерно на {magnitude}."
+
+  right_leg_extension:
+    weight: 0.3
+    warning_threshold: 0.08
+    major_threshold: 0.15
+    unit: torso_lengths
+    label: длина правой ноги от таза до стопы
+    greater: "{phase} правая нога выпрямлена дальше, чем в эталоне, примерно на {magnitude}."
+    less: "{phase} правая нога собрана короче, чем в эталоне, примерно на {magnitude}."
+
+  lateral_foot_distance:
+    weight: 0.2
+    warning_threshold: 0.12
+    major_threshold: 0.22
+    unit: torso_lengths
+    label: боковой разнос стоп
+    greater: "{phase} стопы разведены в стороны сильнее, чем в эталоне, примерно на {magnitude}. Оценка глубины с одной камеры неточная."
+    less: "{phase} стопы уже по глубине кадра, чем в эталоне, примерно на {magnitude}. Оценка глубины с одной камеры неточная."
+
+  left_heel_x:
+    weight: 0.15
+    warning_threshold: 0.14
+    major_threshold: 0.26
+    unit: torso_lengths
+    label: положение левой пятки
+    greater: "{phase} левая пятка дальше впереди, чем в эталоне, примерно на {magnitude}."
+    less: "{phase} левая пятка дальше сзади, чем в эталоне, примерно на {magnitude}."
+
+  right_heel_x:
+    weight: 0.15
+    warning_threshold: 0.14
+    major_threshold: 0.26
+    unit: torso_lengths
+    label: положение правой пятки
+    greater: "{phase} правая пятка дальше впереди, чем в эталоне, примерно на {magnitude}."
+    less: "{phase} правая пятка дальше сзади, чем в эталоне, примерно на {magnitude}."
+
+  left_toe_x:
+    weight: 0.15
+    warning_threshold: 0.14
+    major_threshold: 0.26
+    unit: torso_lengths
+    label: положение носка левой стопы
+    greater: "{phase} носок левой стопы дальше впереди, чем в эталоне, примерно на {magnitude}."
+    less: "{phase} носок левой стопы дальше сзади, чем в эталоне, примерно на {magnitude}."
+
+  right_toe_x:
+    weight: 0.15
+    warning_threshold: 0.14
+    major_threshold: 0.26
+    unit: torso_lengths
+    label: положение носка правой стопы
+    greater: "{phase} носок правой стопы дальше впереди, чем в эталоне, примерно на {magnitude}."
+    less: "{phase} носок правой стопы дальше сзади, чем в эталоне, примерно на {magnitude}."

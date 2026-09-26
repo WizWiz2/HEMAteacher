@@ -1,0 +1,7 @@
+id: passing-step-forward
+name: Passing step вперёд
+description: >
+  Задняя нога проходит мимо передней и принимает вес впереди.
+  Снимайте строго сбоку. В кадре один человек целиком, фон попроще, без меча.
+camera_view: side
+analysis_profile: footwork_v1

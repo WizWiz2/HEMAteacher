@@ -1,0 +1,7 @@
+id: passing-step-backward
+name: Passing step назад
+description: >
+  Передняя нога проходит назад мимо опорной, и стойка меняется.
+  Камера сбоку, телефон на месте, обе стопы видны всё движение.
+camera_view: side
+analysis_profile: footwork_v1

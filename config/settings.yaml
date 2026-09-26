@@ -1,0 +1,50 @@
+# Пороги качества, видео и сегментации. Веса признаков — в data/profiles.
+log_level: INFO
+
+video:
+  max_mb: 80
+  max_duration_s: 20
+  min_duration_s: 0.45
+  transcode: true
+
+pose:
+  num_poses: 2
+  min_pose_detection_confidence: 0.5
+  min_pose_presence_confidence: 0.5
+  min_tracking_confidence: 0.5
+  max_frame_width: 960
+  model_path: backend/models/pose_landmarker_full.task
+
+pose_quality:
+  minimum_valid_frame_ratio: 0.85
+  minimum_landmark_visibility: 0.5
+  max_foot_outside_ratio: 0.2
+  max_body_outside_ratio: 0.2
+  outside_frame_margin: 0.015
+  max_second_person_ratio: 0.12
+  # Для ракурса side: ширина плеч / длина корпуса в кадре. Спереди плечи широкие.
+  side_view_max_shoulder_ratio: 0.62
+  max_view_ratio_swing: 0.45
+  # Минимальный путь стопы в длинах корпуса, иначе движения почти нет.
+  minimum_travel: 0.2
+  # Минимальная длина корпуса в долях кадра (после приведения к пикселям / max(w,h)).
+  min_scale_fraction: 0.04
+  max_gap_frames: 4
+
+processing:
+  smooth_window: 3
+
+orientation:
+  # auto — развернуть человека лицом в +X по положению носа.
+  # none — не отзеркаливать. force — отзеркалить всегда.
+  mirror: auto
+
+segmentation:
+  # Доля от 95-го перцентиля скорости стопы и абсолютный пол в длинах корпуса в секунду.
+  speed_percentile: 95
+  relative_speed: 0.22
+  minimum_speed: 0.25
+
+comparison:
+  # Короткие фазы не выкидываем, но их вклад в приоритет ограничен снизу.
+  min_duration_fraction: 0.05

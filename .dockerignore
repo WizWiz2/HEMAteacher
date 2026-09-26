@@ -1,0 +1,12 @@
+.git
+**/__pycache__
+**/.pytest_cache
+**/.venv
+**/node_modules
+**/dist
+data/sessions
+data/references
+data/*.sqlite
+backend/models/*.task
+result
+debug

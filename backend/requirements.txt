@@ -1,0 +1,11 @@
+fastapi>=0.115
+uvicorn[standard]>=0.32
+python-multipart>=0.0.12
+pydantic>=2.9
+numpy>=1.26
+opencv-python-headless>=4.10,<5
+PyYAML>=6.0
+pytest>=8.0
+httpx>=0.27
+# Колёса mediapipe есть для Python 3.9–3.12, не для 3.13.
+mediapipe>=0.10.18
