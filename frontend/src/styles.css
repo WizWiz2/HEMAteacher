@@ -280,9 +280,115 @@ details summary { cursor: pointer; color: var(--text); min-height: 44px; display
 
 .preview-live { width: 100%; border-radius: 16px; background: #000; max-height: 70vh; }
 
+.drill-stage {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.live-frame video {
+  aspect-ratio: 3 / 4;
+  object-fit: contain;
+  background: #000;
+}
+
+.target-card, .target-fallback {
+  margin: 0;
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.target-card img, .target-fallback {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 16px 16px 0 0;
+  background: #100e0c;
+}
+
+.target-fallback { align-items: center; justify-content: center; color: var(--muted); }
+
+.target-card figcaption {
+  padding: 8px 10px 12px;
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+}
+
+.confidence {
+  margin: 0;
+  text-align: center;
+  font-size: 2.4rem;
+  font-variant-numeric: tabular-nums;
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+}
+
+.cues { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cues li, .cue {
+  background: var(--bg-raise);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.cues .ok { color: var(--info); }
+.cues .bad { color: var(--text); }
+.cue.wait { color: var(--muted); }
+
+.dots { display: flex; gap: 8px; justify-content: center; }
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+}
+.dot.done { background: var(--brass); border-color: var(--brass); }
+.dot.current { background: transparent; border-color: var(--text); box-shadow: 0 0 0 3px rgba(214, 161, 92, 0.35); }
+
+.elapsed {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.drill-shell.pulse { outline: 3px solid var(--brass); border-radius: 18px; }
+
+.result-banner {
+  background: #243028;
+  border-radius: 16px;
+  padding: 14px;
+}
+
 @media (min-width: 800px) {
   .cards { grid-template-columns: 1fr 1fr; }
   .stage-grid.split { grid-template-columns: 1fr 1fr; }
   .overlay-board { aspect-ratio: 16 / 10; }
   h1 { font-size: 2.1rem; }
 }
+
+
+.target-pose-svg {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  display: block;
+  border-radius: 16px 16px 0 0;
+}
+.target-card figcaption { display: grid; gap: 4px; }
+.target-cue { color: var(--muted); font-size: 0.82rem; line-height: 1.3; }
+.pose-match {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  align-items: baseline;
+  color: var(--muted);
+}
+.pose-match strong {
+  color: var(--text);
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 2rem;
+  font-variant-numeric: tabular-nums;
+}
+.drill-limit { margin: -6px 0 0; font-size: 0.86rem; }

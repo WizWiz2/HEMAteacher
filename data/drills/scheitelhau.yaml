@@ -1,0 +1,50 @@
+id: scheitelhau
+name: Scheitelhau
+description: "Прототип Scheitelhau: высокая линия и длинный выход сверху."
+cameraView: side
+category: meisterhau
+unvalidated: true
+limitations:
+  - "Клинок на target-картинке пока только визуальный ориентир: matcher проверяет тело, руки и ноги, но не траекторию клинка."
+checkpoints:
+  - id: guard
+    title: Vom Tag
+    targetPoseId: vom-tag
+    holdMs: 350
+    featureTolerances:
+      hand_center_x: 0.28
+      hand_center_y: 0.24
+      hand_distance: 0.22
+      left_elbow_angle: 32
+      right_elbow_angle: 32
+      foot_distance: 0.30
+      pelvis_height: 0.25
+      torso_angle: 15
+  - id: drop
+    title: Верхняя линия
+    targetPoseId: scheitel-extend
+    holdMs: 80
+    smoothingMs: 80
+    featureTolerances:
+      hand_center_x: 0.28
+      hand_center_y: 0.24
+      hand_distance: 0.22
+      left_elbow_angle: 32
+      right_elbow_angle: 32
+      foot_distance: 0.30
+      pelvis_height: 0.25
+      torso_angle: 15
+  - id: finish
+    title: Длинный выход
+    targetPoseId: scheitel-finish
+    holdMs: 280
+    featureTolerances:
+      hand_center_x: 0.28
+      hand_center_y: 0.24
+      hand_distance: 0.22
+      left_elbow_angle: 32
+      right_elbow_angle: 32
+      foot_distance: 0.30
+      pelvis_height: 0.25
+      torso_angle: 15
+transitions: []

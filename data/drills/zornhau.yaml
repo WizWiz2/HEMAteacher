@@ -1,0 +1,64 @@
+id: zornhau
+name: Zornhau
+description: Прототип Zornhau с проходным шагом. Нужен для проверки игрового loop, а не как окончательная реконструкция техники.
+cameraView: side
+category: meisterhau
+unvalidated: true
+limitations:
+  - "Клинок на target-картинке пока только визуальный ориентир: matcher проверяет тело, руки и ноги, но не траекторию клинка."
+checkpoints:
+  - id: guard
+    title: Vom Tag
+    targetPoseId: vom-tag
+    holdMs: 350
+    featureTolerances:
+      hand_center_x: 0.28
+      hand_center_y: 0.24
+      hand_distance: 0.22
+      left_elbow_angle: 32
+      right_elbow_angle: 32
+      foot_distance: 0.30
+      pelvis_height: 0.25
+      torso_angle: 15
+  - id: init
+    title: Начало рубки
+    targetPoseId: zorn-init
+    holdMs: 70
+    smoothingMs: 80
+    featureTolerances:
+      hand_center_x: 0.28
+      hand_center_y: 0.24
+      hand_distance: 0.22
+      left_elbow_angle: 32
+      right_elbow_angle: 32
+      foot_distance: 0.30
+      pelvis_height: 0.25
+      torso_angle: 15
+  - id: extend
+    title: Выход в удар
+    targetPoseId: zorn-extend
+    holdMs: 80
+    smoothingMs: 80
+    featureTolerances:
+      hand_center_x: 0.28
+      hand_center_y: 0.24
+      hand_distance: 0.22
+      left_elbow_angle: 32
+      right_elbow_angle: 32
+      foot_distance: 0.30
+      pelvis_height: 0.25
+      torso_angle: 15
+  - id: finish
+    title: Завершение
+    targetPoseId: zorn-finish
+    holdMs: 280
+    featureTolerances:
+      hand_center_x: 0.28
+      hand_center_y: 0.24
+      hand_distance: 0.22
+      left_elbow_angle: 32
+      right_elbow_angle: 32
+      foot_distance: 0.30
+      pelvis_height: 0.25
+      torso_angle: 15
+transitions: []

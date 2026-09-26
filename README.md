@@ -5,9 +5,36 @@
 
 Это не тренер и не оценка «правильной» техники HEMA. Это вторая пара глаз: сравнение с конкретной записью.
 
+> **Architecture direction:** the primary MVP flow is being changed to live checkpoint-based drills. See [CR-001 — Live Checkpoint Drills](docs/CR-001-LIVE-CHECKPOINT-DRILLS.md). The existing offline video-analysis flow remains as a secondary feature.
+
+## Live drills
+
+Главный MVP-flow теперь работает без загрузки видео: камера и MediaPipe Pose Landmarker работают прямо в браузере, а упражнение проходит как последовательность checkpoint'ов.
+
+В репозитории есть прототипный beginner-набор:
+- advance;
+- retreat;
+- passing step forward;
+- passing step backward;
+- четыре базовые позиции (Vom Tag, Ochs, Pflug, Alber);
+- пять Meisterhäue: Zornhau, Krumphau, Zwerchhau, Schielhau, Scheitelhau.
+
+Для каждого checkpoint используется один machine-readable target pose. Из него одновременно:
+- строится визуальный SVG-эталон для пользователя;
+- вычисляются target-features для matcher.
+
+Поэтому картинка и алгоритм не могут ожидать разные позы. Материал помечен как `unvalidated`: его должен прожарить HEMA-тренер до использования как учебного стандарта. Клинок пока только визуальный ориентир; matcher проверяет тело, руки и ноги.
+
+См. [Training content](docs/TRAINING-CONTENT.md).
+
+
 ## Quick start
 
-Нужны Docker и Docker Compose.
+Двойной щелчок по `start.bat` в корне репозитория. Скрипт проверяет Python и Node.js, при необходимости ставит их через winget, создаёт окружение, докачивает модель позы и открывает http://127.0.0.1:5173/ . Окна «HEMA API» и «HEMA Web» должны остаться открытыми.
+
+На Python 3.13 живая тренировка работает. Подробный разбор загруженного видео на сервере требует Python 3.12: у MediaPipe нет колёс для 3.13. Тогда либо поставьте 3.12 и запустите `start.bat` ещё раз после удаления папки `.venv`, либо используйте Docker.
+
+Тот же запуск через Docker:
 
 ```bash
 docker compose up --build

@@ -1,0 +1,50 @@
+id: passing-step-backward
+name: Проходной шаг назад
+description: Передняя нога проходит назад, после чего стойка меняет ведущую ногу.
+cameraView: side
+category: footwork
+unvalidated: true
+checkpoints:
+  - id: start
+    title: Старт
+    targetPoseId: stance-right
+    holdMs: 350
+    featureTolerances:
+      left_ankle_x: 0.28
+      right_ankle_x: 0.28
+      foot_distance: 0.24
+      pelvis_height: 0.22
+      torso_angle: 14
+  - id: cross
+    title: Стопы проходят рядом
+    targetPoseId: stance-cross
+    holdMs: 60
+    smoothingMs: 70
+    featureTolerances:
+      left_ankle_x: 0.28
+      right_ankle_x: 0.28
+      foot_distance: 0.24
+      pelvis_height: 0.22
+      torso_angle: 14
+  - id: reach
+    title: Нога уходит назад
+    targetPoseId: stance-wide-left
+    holdMs: 80
+    smoothingMs: 80
+    featureTolerances:
+      left_ankle_x: 0.28
+      right_ankle_x: 0.28
+      foot_distance: 0.24
+      pelvis_height: 0.22
+      torso_angle: 14
+  - id: settle
+    title: Новая стойка
+    targetPoseId: stance-left
+    holdMs: 320
+    featureTolerances:
+      left_ankle_x: 0.28
+      right_ankle_x: 0.28
+      foot_distance: 0.24
+      pelvis_height: 0.22
+      torso_angle: 14
+transitions: []
