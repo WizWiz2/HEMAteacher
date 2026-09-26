@@ -34,7 +34,8 @@ export function DrillPage() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const live = useLivePose(facing, (sample) => onSample(sample));
+  const smoothingMs = drill?.checkpoints[runtime.checkpointIndex]?.smoothingMs ?? 100;
+  const live = useLivePose(facing, (sample) => onSample(sample), smoothingMs);
 
   function onSample(sample: LiveSample) {
     const current = drillRef.current;
@@ -43,9 +44,7 @@ export function DrillPage() {
     if (next.state === "calibrating") {
       if (sample.usable) {
         qualitySince.current ??= sample.timeMs;
-        if (sample.timeMs - qualitySince.current >= 300) {
-          next = stepDrill(next, current, { type: "quality", ok: true });
-        }
+        if (sample.timeMs - qualitySince.current >= 300) next = stepDrill(next, current, { type: "quality", ok: true });
       } else {
         qualitySince.current = null;
       }
@@ -54,10 +53,7 @@ export function DrillPage() {
       const beforeIndex = next.checkpointIndex;
       const beforeState = next.state;
       next = stepDrill(next, current, {
-        type: "sample",
-        timeMs: sample.timeMs,
-        features: sample.smoothed,
-        enoughSamples: sample.enough,
+        type: "sample", timeMs: sample.timeMs, features: sample.smoothed, enoughSamples: sample.enough,
       });
       if (next.checkpointIndex !== beforeIndex || (beforeState !== next.state && next.state === "completed")) {
         chime();
@@ -84,15 +80,8 @@ export function DrillPage() {
   return (
     <main className={`stack drill-shell ${flash ? "pulse" : ""}`}>
       {!drill && <p className="muted">Открываю упражнение…</p>}
-      {drill && (
-        <div className="card-top">
-          <h1>{drill.name}</h1>
-          <span className="badge">{runtime.state === "completed" ? total : runtime.checkpointIndex + 1} / {total}</span>
-        </div>
-      )}
-      {drill?.unvalidated && (
-        <p className="callout">Черновой учебный материал: позы и допуски ещё должен проверить тренер.</p>
-      )}
+      {drill && <div className="card-top"><h1>{drill.name}</h1><span className="badge">{runtime.state === "completed" ? total : runtime.checkpointIndex + 1} / {total}</span></div>}
+      {drill?.unvalidated && <p className="callout">Черновой учебный материал: позы и допуски ещё должен проверить тренер.</p>}
       {drill?.limitations?.map((item) => <p className="muted drill-limit" key={item}>{item}</p>)}
       <div className="row">
         <button type="button" className={facing === "left" ? "ghost active" : "ghost"} onClick={() => setFacing("left")}>Лицом ←</button>
@@ -103,15 +92,8 @@ export function DrillPage() {
         {checkpoint && <TargetPose checkpoint={checkpoint} facing={facing} />}
       </div>
       {live.error && <p className="error">{live.error}</p>}
-      {runtime.state === "calibrating" && (
-        <p className="cue wait">Встань боком: в кадре голова и обе стопы. Телефон не двигай.</p>
-      )}
-      {runtime.state !== "calibrating" && (
-        <div className="pose-match">
-          <span>Совпадение позы</span>
-          <strong>{Math.round((runtime.match?.confidence ?? 0) * 100)}%</strong>
-        </div>
-      )}
+      {runtime.state === "calibrating" && <p className="cue wait">Встань боком: в кадре голова и обе стопы. Телефон не двигай.</p>}
+      {runtime.state !== "calibrating" && <div className="pose-match"><span>Совпадение позы</span><strong>{Math.round((runtime.match?.confidence ?? 0) * 100)}%</strong></div>}
       <LiveFeedback match={runtime.match} enough={runtime.state !== "calibrating" && runtime.match != null} />
       {drill && <CheckpointProgress count={drill.checkpoints.length} index={runtime.checkpointIndex} completed={runtime.state === "completed"} />}
       <p className="elapsed">{formatElapsed(elapsed)}</p>
