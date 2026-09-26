@@ -5,22 +5,22 @@ const CUES: Record<string, { high: string; low: string }> = {
   pelvis_height: { high: "↓ Опусти таз", low: "↑ Приподними таз" },
   torso_angle: { high: "↶ Корпус назад", low: "↷ Корпус вперёд" },
   left_ankle_x: { high: "Левая стопа ближе", low: "Левая стопа дальше вперёд" },
-  right_ankle_x: { high: "Правая стопа ближе", low: "→ Правая стопа дальше" },
+  right_ankle_x: { high: "Правая стопа ближе", low: "Правая стопа дальше вперёд" },
   left_ankle_y: { high: "Левая стопа ниже", low: "Левая стопа выше" },
   right_ankle_y: { high: "Правая стопа ниже", low: "Правая стопа выше" },
   left_knee_angle: { high: "Согни левое колено", low: "Разогни левое колено" },
   right_knee_angle: { high: "Согни правое колено", low: "Разогни правое колено" },
   knee_over_foot_left: { high: "Левое колено назад", low: "Левое колено вперёд" },
   knee_over_foot_right: { high: "Правое колено назад", low: "Правое колено вперёд" },
+  hand_center_x: { high: "Руки чуть назад", low: "Руки дальше вперёд" },
+  hand_center_y: { high: "Руки ниже", low: "Руки выше" },
+  hand_distance: { high: "Сведи кисти", low: "Разведи кисти" },
+  left_elbow_angle: { high: "Согни левый локоть", low: "Разогни левый локоть" },
+  right_elbow_angle: { high: "Согни правый локоть", low: "Разогни правый локоть" },
 };
 
-export interface LiveCue {
-  name: string;
-  ok: boolean;
-  text: string;
-}
+export interface LiveCue { name: string; ok: boolean; text: string; }
 
-/** Не больше трёх строк. Сначала самые большие промахи относительно цели. */
 export function liveCues(match: CheckpointMatch | null, limit = 3): LiveCue[] {
   if (!match) return [];
   const rows = Object.entries(match.features).map(([name, feature]) => ({
@@ -36,15 +36,12 @@ export function liveCues(match: CheckpointMatch | null, limit = 3): LiveCue[] {
 
 function passLabel(name: string): string {
   const labels: Record<string, string> = {
-    foot_distance: "Расстояние стоп",
-    pelvis_height: "Высота таза",
-    torso_angle: "Корпус",
-    left_ankle_x: "Левая стопа",
-    right_ankle_x: "Правая стопа",
-    left_knee_angle: "Левое колено",
-    right_knee_angle: "Правое колено",
-    knee_over_foot_left: "Левое колено над стопой",
-    knee_over_foot_right: "Правое колено над стопой",
+    foot_distance: "Расстояние стоп", pelvis_height: "Высота таза", torso_angle: "Корпус",
+    left_ankle_x: "Левая стопа", right_ankle_x: "Правая стопа",
+    left_knee_angle: "Левое колено", right_knee_angle: "Правое колено",
+    knee_over_foot_left: "Левое колено над стопой", knee_over_foot_right: "Правое колено над стопой",
+    hand_center_x: "Руки по дистанции", hand_center_y: "Высота рук", hand_distance: "Кисти",
+    left_elbow_angle: "Левый локоть", right_elbow_angle: "Правый локоть",
   };
   return labels[name] ?? name;
 }
