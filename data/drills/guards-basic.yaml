@@ -1,0 +1,66 @@
+id: guards-basic
+name: Четыре базовые позиции
+description: Ознакомительный drill по Vom Tag, Ochs, Pflug и Alber.
+cameraView: side
+category: guards
+unvalidated: true
+limitations:
+  - Клинок на target-картинке пока только визуальный ориентир: matcher проверяет тело, руки и ноги, но не траекторию клинка.
+checkpoints:
+  - id: vom-tag
+    title: Vom Tag
+    targetPoseId: vom-tag
+    holdMs: 450
+    cue: Высокая готовая позиция.
+    featureTolerances:
+      hand_center_x: 0.28
+      hand_center_y: 0.24
+      hand_distance: 0.22
+      left_elbow_angle: 32
+      right_elbow_angle: 32
+      foot_distance: 0.30
+      pelvis_height: 0.25
+      torso_angle: 15
+  - id: ochs
+    title: Ochs
+    targetPoseId: ochs
+    holdMs: 450
+    cue: Руки высоко, острие визуально направлено вперёд.
+    featureTolerances:
+      hand_center_x: 0.28
+      hand_center_y: 0.24
+      hand_distance: 0.22
+      left_elbow_angle: 32
+      right_elbow_angle: 32
+      foot_distance: 0.30
+      pelvis_height: 0.25
+      torso_angle: 15
+  - id: pflug
+    title: Pflug
+    targetPoseId: pflug
+    holdMs: 450
+    cue: Руки ниже, острие визуально вперёд.
+    featureTolerances:
+      hand_center_x: 0.28
+      hand_center_y: 0.24
+      hand_distance: 0.22
+      left_elbow_angle: 32
+      right_elbow_angle: 32
+      foot_distance: 0.30
+      pelvis_height: 0.25
+      torso_angle: 15
+  - id: alber
+    title: Alber
+    targetPoseId: alber
+    holdMs: 450
+    cue: Низкая позиция; клинок пока не проверяется.
+    featureTolerances:
+      hand_center_x: 0.28
+      hand_center_y: 0.24
+      hand_distance: 0.22
+      left_elbow_angle: 32
+      right_elbow_angle: 32
+      foot_distance: 0.30
+      pelvis_height: 0.25
+      torso_angle: 15
+transitions: []
