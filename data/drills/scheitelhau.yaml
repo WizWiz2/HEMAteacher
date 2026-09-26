@@ -1,6 +1,6 @@
 id: scheitelhau
 name: Scheitelhau
-description: Прототип Scheitelhau: высокая линия и длинный выход сверху.
+description: "Прототип Scheitelhau: высокая линия и длинный выход сверху."
 cameraView: side
 category: meisterhau
 unvalidated: true
