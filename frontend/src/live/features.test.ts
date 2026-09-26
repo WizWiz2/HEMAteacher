@@ -14,21 +14,23 @@ describe("joint angles and distances", () => {
     expect(angleDegrees(point(0, 2), point(0, 1), point(0, 0))).toBeCloseTo(180, 4);
   });
 
-  it("reads foot distance and knee angle from a normalized pose", () => {
+  it("reads foot and arm features from a normalized pose", () => {
     const landmarks: LandmarkMap = {
-      left_hip: point(0, 0),
-      right_hip: point(0, 0, 0.1),
-      left_shoulder: point(0, 1),
-      right_shoulder: point(0, 1, 0.1),
-      left_knee: point(0, -1),
-      left_ankle: point(1, -1),
-      right_knee: point(0.2, -0.5),
-      right_ankle: point(-0.4, -1),
+      left_hip: point(0, 0), right_hip: point(0, 0, 0.1),
+      left_shoulder: point(0, 1), right_shoulder: point(0, 1, 0.1),
+      left_knee: point(0, -1), left_ankle: point(1, -1),
+      right_knee: point(0.2, -0.5), right_ankle: point(-0.4, -1),
+      left_elbow: point(0.2, 0.8), right_elbow: point(0.2, 0.8, 0.1),
+      left_wrist: point(0.45, 0.6), right_wrist: point(0.49, 0.6, 0.1),
     };
     const features = liveFeatures(landmarks);
     expect(features.left_knee_angle).toBeCloseTo(90, 4);
-    expect(features.foot_distance).toBeCloseTo(Math.hypot(1 - -0.4, -1 - -1), 4);
+    expect(features.foot_distance).toBeCloseTo(1.4, 4);
     expect(features.pelvis_height).toBeCloseTo(1, 4);
+    expect(features.hand_center_x).toBeCloseTo(0.47, 4);
+    expect(features.hand_center_y).toBeCloseTo(0.6, 4);
+    expect(features.left_elbow_angle).toBeTypeOf("number");
+    expect(features.right_elbow_angle).toBeTypeOf("number");
   });
 });
 
@@ -60,17 +62,11 @@ function rawPose(input: { hipX: number; hipY: number; torso: number; face: Facin
     visibility: 1,
   });
   return {
-    timestampMs: 0,
-    width: 1,
-    height: 1,
+    timestampMs: 0, width: 1, height: 1,
     landmarks: {
-      left_hip: project(0, 0, -0.1),
-      right_hip: project(0, 0, 0.1),
-      left_shoulder: project(0, 1, -0.1),
-      right_shoulder: project(0, 1, 0.1),
-      nose: project(0.2, 1.25),
-      left_ankle: project(0.3, -1),
-      right_ankle: project(-0.3, -1),
+      left_hip: project(0, 0, -0.1), right_hip: project(0, 0, 0.1),
+      left_shoulder: project(0, 1, -0.1), right_shoulder: project(0, 1, 0.1),
+      nose: project(0.2, 1.25), left_ankle: project(0.3, -1), right_ankle: project(-0.3, -1),
     },
   };
 }
