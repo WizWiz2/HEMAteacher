@@ -1,0 +1,55 @@
+# Черновик для демо живого прохода. Числа не проверял тренер.
+# transitions появятся в следующем CR и пока не читаются движком.
+id: passing-step-demo
+name: Passing step — черновик
+description: >
+  Боком к камере, без оружия. Шесть контрольных точек от стойки до новой стойки.
+  Допуски широкие и не являются описанием правильной техники.
+cameraView: side
+unvalidated: true
+transitions: []
+checkpoints:
+  - id: stance
+    title: Исходная стойка
+    illustrationUrl: /drills/stance.svg
+    holdMs: 400
+    constraints:
+      foot_distance: { target: 0.75, tolerance: 0.45 }
+      pelvis_height: { target: 1.0, tolerance: 0.35 }
+      torso_angle: { target: 6, tolerance: 18 }
+  - id: load
+    title: Подсед
+    illustrationUrl: /drills/load.svg
+    holdMs: 80
+    constraints:
+      pelvis_height: { target: 0.9, tolerance: 0.35 }
+      right_knee_angle: { target: 150, tolerance: 40 }
+  - id: feet-cross
+    title: Стопы рядом
+    illustrationUrl: /drills/pass.svg
+    holdMs: 80
+    constraints:
+      foot_distance: { target: 0.35, tolerance: 0.3 }
+      torso_angle: { target: 8, tolerance: 18 }
+  - id: reach
+    title: Передняя стопа
+    illustrationUrl: /drills/reach.svg
+    holdMs: 100
+    constraints:
+      right_ankle_x: { target: 0.45, tolerance: 0.45 }
+      left_ankle_x: { min: -0.8, max: 0.25 }
+  - id: plant
+    title: Новая стойка
+    illustrationUrl: /drills/plant.svg
+    holdMs: 300
+    constraints:
+      foot_distance: { target: 0.8, tolerance: 0.45 }
+      pelvis_height: { target: 1.0, tolerance: 0.35 }
+  - id: settle
+    title: Замер
+    illustrationUrl: /drills/settle.svg
+    holdMs: 400
+    constraints:
+      foot_distance: { target: 0.75, tolerance: 0.45 }
+      torso_angle: { target: 5, tolerance: 18 }
+      pelvis_height: { target: 1.0, tolerance: 0.35 }

@@ -16,6 +16,7 @@ from app.domain.models import ComparisonResult, MotionSequence
 from app.logging_config import get_logger
 from app.services.pipeline import analyze_attempt_video, load_movement_profile
 from app.services.video.io import VideoError
+from app.storage.drills import UnknownDrill, get_drill, list_drills
 from app.storage.library import UnknownMovement, get_movement, list_movements, reference_paths
 from app.storage.sessions import SessionStore
 
@@ -35,6 +36,20 @@ def _store(request: Request) -> SessionStore:
 @router.get("/health")
 def health() -> dict:
     return {"status": "ok"}
+
+
+@router.get("/drills")
+def drills(request: Request):
+    return [item.model_dump(exclude_none=True) for item in list_drills(_settings(request))]
+
+
+@router.get("/drills/{drill_id}")
+def drill_detail(drill_id: str, request: Request):
+    try:
+        drill = get_drill(_settings(request), drill_id)
+    except UnknownDrill:
+        raise HTTPException(status_code=404, detail="Упражнение не найдено") from None
+    return drill.model_dump(exclude_none=True)
 
 
 @router.get("/movements")

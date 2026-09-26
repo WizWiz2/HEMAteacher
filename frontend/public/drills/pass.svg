@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 200">
+  <rect width="120" height="200" fill="#1a1714"/>
+  <g fill="none" stroke="#d6a15c" stroke-width="4" stroke-linecap="round">
+    <circle cx="62" cy="30" r="10"/>
+    <path d="M62 40 L60 92 L58 148 M60 92 L78 120 L70 156 M62 58 L44 84 M62 58 L84 78"/>
+  </g>
+  <text x="8" y="190" fill="#b7ad9e" font-size="10">черновик</text>
+</svg>

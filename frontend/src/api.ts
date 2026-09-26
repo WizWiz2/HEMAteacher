@@ -1,3 +1,4 @@
+import type { Drill } from "./drill/types";
 import type { ComparisonResult, MovementDetail, MovementSummary, PoseSequence, SessionInfo } from "./types";
 
 async function readError(response: Response): Promise<string> {
@@ -15,6 +16,14 @@ async function getJson<T>(url: string): Promise<T> {
   const response = await fetch(url);
   if (!response.ok) throw new Error(await readError(response));
   return response.json() as Promise<T>;
+}
+
+export function listDrills(): Promise<Drill[]> {
+  return getJson("/api/v1/drills");
+}
+
+export function getDrill(id: string): Promise<Drill> {
+  return getJson(`/api/v1/drills/${id}`);
 }
 
 export function listMovements(): Promise<MovementSummary[]> {

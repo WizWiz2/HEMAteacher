@@ -18,6 +18,20 @@ def test_library_lists_configured_footwork():
     assert "passing" in detail.json()["name"].lower() or "Passing" in detail.json()["name"]
 
 
+def test_drill_checkpoint_count_comes_from_data():
+    client = TestClient(create_app())
+    listing = client.get("/api/v1/drills")
+    assert listing.status_code == 200
+    drill = next(item for item in listing.json() if item["id"] == "passing-step-demo")
+    detail = client.get("/api/v1/drills/passing-step-demo")
+    assert detail.status_code == 200
+    body = detail.json()
+    assert body["cameraView"] == "side"
+    assert body["unvalidated"] is True
+    assert len(body["checkpoints"]) == len(drill["checkpoints"]) >= 5
+    assert len({item["id"] for item in body["checkpoints"]}) == len(body["checkpoints"])
+
+
 def test_unknown_movement_is_404():
     client = TestClient(create_app())
     assert client.get("/api/v1/movements/not-a-thing").status_code == 404
