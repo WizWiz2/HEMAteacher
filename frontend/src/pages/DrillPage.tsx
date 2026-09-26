@@ -87,41 +87,33 @@ export function DrillPage() {
       {drill && (
         <div className="card-top">
           <h1>{drill.name}</h1>
-          <span className="badge">
-            {runtime.state === "completed" ? total : runtime.checkpointIndex + 1} / {total}
-          </span>
+          <span className="badge">{runtime.state === "completed" ? total : runtime.checkpointIndex + 1} / {total}</span>
         </div>
       )}
       {drill?.unvalidated && (
-        <p className="callout">Черновик. Числа и картинки не проверены тренером и не описывают правильную технику.</p>
+        <p className="callout">Черновой учебный материал: позы и допуски ещё должен проверить тренер.</p>
       )}
+      {drill?.limitations?.map((item) => <p className="muted drill-limit" key={item}>{item}</p>)}
       <div className="row">
-        <button type="button" className={facing === "left" ? "ghost active" : "ghost"} onClick={() => setFacing("left")}>
-          Лицом ←
-        </button>
-        <button type="button" className={facing === "right" ? "ghost active" : "ghost"} onClick={() => setFacing("right")}>
-          Лицом →
-        </button>
+        <button type="button" className={facing === "left" ? "ghost active" : "ghost"} onClick={() => setFacing("left")}>Лицом ←</button>
+        <button type="button" className={facing === "right" ? "ghost active" : "ghost"} onClick={() => setFacing("right")}>Лицом →</button>
       </div>
       <div className="drill-stage">
         <LivePoseCanvas videoRef={live.videoRef} canvasRef={live.canvasRef} />
-        {checkpoint && <TargetPose title={checkpoint.title} illustrationUrl={checkpoint.illustrationUrl} />}
+        {checkpoint && <TargetPose checkpoint={checkpoint} facing={facing} />}
       </div>
       {live.error && <p className="error">{live.error}</p>}
       {runtime.state === "calibrating" && (
         <p className="cue wait">Встань боком: в кадре голова и обе стопы. Телефон не двигай.</p>
       )}
-      <p className="confidence" aria-label="Совпадение с контрольной точкой">
-        {Math.round((runtime.match?.confidence ?? 0) * 100)}%
-      </p>
-      <LiveFeedback match={runtime.match} enough={runtime.state !== "calibrating" && (runtime.match != null)} />
-      {drill && (
-        <CheckpointProgress
-          count={drill.checkpoints.length}
-          index={runtime.checkpointIndex}
-          completed={runtime.state === "completed"}
-        />
+      {runtime.state !== "calibrating" && (
+        <div className="pose-match">
+          <span>Совпадение позы</span>
+          <strong>{Math.round((runtime.match?.confidence ?? 0) * 100)}%</strong>
+        </div>
       )}
+      <LiveFeedback match={runtime.match} enough={runtime.state !== "calibrating" && runtime.match != null} />
+      {drill && <CheckpointProgress count={drill.checkpoints.length} index={runtime.checkpointIndex} completed={runtime.state === "completed"} />}
       <p className="elapsed">{formatElapsed(elapsed)}</p>
       {runtime.state === "completed" && <DrillResultPage elapsedMs={elapsed} onRetry={retry} />}
       <Link className="muted" to="/">К списку</Link>
