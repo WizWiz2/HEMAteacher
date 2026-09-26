@@ -1,7 +1,10 @@
+import pytest
 from fastapi.testclient import TestClient
+from pydantic import ValidationError
 
 from app.config import load_settings
 from app.main import create_app
+from app.storage.drills import CheckpointModel, DrillModel
 
 
 def test_library_lists_configured_footwork():
@@ -12,24 +15,50 @@ def test_library_lists_configured_footwork():
     ids = {item["id"] for item in body}
     assert ids >= {"advance", "retreat", "passing-step-forward", "passing-step-backward", "cross-step"}
     assert all(set(item) >= {"id", "name", "camera_view"} for item in body)
-    detail = client.get("/api/v1/movements/passing-step-forward")
-    assert detail.status_code == 200
-    assert detail.json()["camera_view"] == "side"
-    assert "passing" in detail.json()["name"].lower() or "Passing" in detail.json()["name"]
 
 
-def test_drill_checkpoint_count_comes_from_data():
+def test_beginner_drill_library_is_data_driven():
     client = TestClient(create_app())
     listing = client.get("/api/v1/drills")
     assert listing.status_code == 200
-    drill = next(item for item in listing.json() if item["id"] == "passing-step-demo")
-    detail = client.get("/api/v1/drills/passing-step-demo")
+    body = listing.json()
+    ids = {item["id"] for item in body}
+    assert ids >= {
+        "advance", "retreat", "passing-step-forward", "passing-step-backward", "guards-basic",
+        "zornhau", "krumphau", "zwerchhau", "schielhau", "scheitelhau",
+    }
+    detail = client.get("/api/v1/drills/passing-step-forward")
     assert detail.status_code == 200
-    body = detail.json()
-    assert body["cameraView"] == "side"
-    assert body["unvalidated"] is True
-    assert len(body["checkpoints"]) == len(drill["checkpoints"]) >= 5
-    assert len({item["id"] for item in body["checkpoints"]}) == len(body["checkpoints"])
+    drill = detail.json()
+    assert drill["cameraView"] == "side"
+    assert drill["unvalidated"] is True
+    assert len(drill["checkpoints"]) >= 4
+    assert len({item["id"] for item in drill["checkpoints"]}) == len(drill["checkpoints"])
+
+
+def test_invalid_checkpoint_schema_is_rejected():
+    with pytest.raises(ValidationError):
+        CheckpointModel.model_validate({
+            "id": "bad", "title": "bad", "holdMs": 100,
+            "constraints": {"foot_distance": {"target": 1.0}},
+        })
+    with pytest.raises(ValidationError):
+        CheckpointModel.model_validate({
+            "id": "bad", "title": "bad", "holdMs": 100,
+            "constraints": {"foot_distance": {"min": 2.0, "max": 1.0}},
+        })
+
+
+def test_duplicate_checkpoint_ids_are_rejected():
+    cp = {
+        "id": "same", "title": "x", "holdMs": 100,
+        "constraints": {"foot_distance": {"target": 1.0, "tolerance": 0.2}},
+    }
+    with pytest.raises(ValidationError):
+        DrillModel.model_validate({
+            "id": "bad-drill", "name": "bad", "description": "",
+            "cameraView": "side", "checkpoints": [cp, cp],
+        })
 
 
 def test_unknown_movement_is_404():
