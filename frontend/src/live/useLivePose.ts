@@ -86,16 +86,17 @@ function draw(canvas: HTMLCanvasElement, video: HTMLVideoElement, raw: RawPose) 
   const dpr = window.devicePixelRatio || 1;
   const width = Math.max(1, rect.width);
   const height = Math.max(1, rect.height);
-  canvas.width = Math.round(width * dpr);
-  canvas.height = Math.round(height * dpr);
+  const pixelWidth = Math.round(width * dpr);
+  const pixelHeight = Math.round(height * dpr);
+  if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+    canvas.width = pixelWidth;
+    canvas.height = pixelHeight;
+  }
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, width, height);
-  const pose: PoseFrame = {
-    timestamp_ms: raw.timestampMs,
-    landmarks: raw.landmarks,
-  };
+  const pose: PoseFrame = { timestamp_ms: raw.timestampMs, landmarks: raw.landmarks };
   const box = contentBox(video);
   ctx.strokeStyle = "#e2c48a";
   ctx.fillStyle = "#e2c48a";
@@ -106,16 +107,11 @@ function draw(canvas: HTMLCanvasElement, video: HTMLVideoElement, raw: RawPose) 
     points.set(name, [box.x + landmark.x * box.w, box.y + landmark.y * box.h]);
   }
   const edges: Array<[string, string]> = [
-    ["left_shoulder", "right_shoulder"],
-    ["left_shoulder", "left_hip"],
-    ["right_shoulder", "right_hip"],
-    ["left_hip", "right_hip"],
-    ["left_hip", "left_knee"],
-    ["left_knee", "left_ankle"],
-    ["right_hip", "right_knee"],
-    ["right_knee", "right_ankle"],
-    ["left_shoulder", "nose"],
-    ["right_shoulder", "nose"],
+    ["left_shoulder", "right_shoulder"], ["left_shoulder", "left_hip"], ["right_shoulder", "right_hip"],
+    ["left_hip", "right_hip"], ["left_shoulder", "left_elbow"], ["left_elbow", "left_wrist"],
+    ["right_shoulder", "right_elbow"], ["right_elbow", "right_wrist"], ["left_hip", "left_knee"],
+    ["left_knee", "left_ankle"], ["right_hip", "right_knee"], ["right_knee", "right_ankle"],
+    ["left_ankle", "left_foot_index"], ["right_ankle", "right_foot_index"],
   ];
   ctx.beginPath();
   for (const [start, end] of edges) {
