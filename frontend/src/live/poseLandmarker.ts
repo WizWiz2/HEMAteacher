@@ -7,13 +7,20 @@ export interface LivePoseDetector {
   onPose(callback: (frame: RawPose) => void): void;
 }
 
+type FrameVideo = HTMLVideoElement & {
+  requestVideoFrameCallback?: (callback: (now: number, metadata: unknown) => void) => number;
+  cancelVideoFrameCallback?: (id: number) => void;
+};
+
 export class MediaPipeLivePose implements LivePoseDetector {
   private landmarker: PoseLandmarker | null = null;
   private callback: ((frame: RawPose) => void) | null = null;
   private raf = 0;
+  private videoCallback = 0;
   private running = false;
   private lastVideoTime = -1;
   private lastTimestamp = -1;
+  private video: FrameVideo | null = null;
 
   onPose(callback: (frame: RawPose) => void): void {
     this.callback = callback;
@@ -42,20 +49,35 @@ export class MediaPipeLivePose implements LivePoseDetector {
     }
     this.running = true;
     this.lastVideoTime = -1;
-    const tick = () => {
-      if (!this.running) return;
-      const frame = this.read(video);
-      if (frame) this.callback?.(frame);
-      this.raf = requestAnimationFrame(tick);
-    };
-    this.raf = requestAnimationFrame(tick);
+    this.video = video as FrameVideo;
+    this.schedule();
   }
 
   stop(): void {
     this.running = false;
     cancelAnimationFrame(this.raf);
+    if (this.video?.cancelVideoFrameCallback && this.videoCallback) {
+      this.video.cancelVideoFrameCallback(this.videoCallback);
+    }
     this.landmarker?.close();
     this.landmarker = null;
+    this.video = null;
+  }
+
+  private schedule(): void {
+    if (!this.running || !this.video) return;
+    if (this.video.requestVideoFrameCallback) {
+      this.videoCallback = this.video.requestVideoFrameCallback(() => this.tick());
+    } else {
+      this.raf = requestAnimationFrame(() => this.tick());
+    }
+  }
+
+  private tick(): void {
+    if (!this.running || !this.video) return;
+    const frame = this.read(this.video);
+    if (frame) this.callback?.(frame);
+    this.schedule();
   }
 
   private read(video: HTMLVideoElement): RawPose | null {
