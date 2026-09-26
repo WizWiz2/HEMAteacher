@@ -5,6 +5,8 @@
 
 Это не тренер и не оценка «правильной» техники HEMA. Это вторая пара глаз: сравнение с конкретной записью.
 
+> **Architecture direction:** the primary MVP flow is being changed to live checkpoint-based drills. See [CR-001 — Live Checkpoint Drills](docs/CR-001-LIVE-CHECKPOINT-DRILLS.md). The existing offline video-analysis flow remains as a secondary feature.
+
 ## Quick start
 
 Нужны Docker и Docker Compose.
