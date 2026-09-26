@@ -1,6 +1,5 @@
 import { angleDegrees, xyDistance, type LandmarkMap, type Vec3 } from "./landmarks";
 
-/** Тот же смысл, что у backend/app/services/features/footwork.py. Единица — длина корпуса, +X вперёд, +Y вверх. */
 export const LIVE_FEATURES = [
   "left_ankle_x",
   "left_ankle_y",
@@ -13,6 +12,15 @@ export const LIVE_FEATURES = [
   "torso_angle",
   "knee_over_foot_left",
   "knee_over_foot_right",
+  "left_wrist_x",
+  "left_wrist_y",
+  "right_wrist_x",
+  "right_wrist_y",
+  "hand_center_x",
+  "hand_center_y",
+  "hand_distance",
+  "left_elbow_angle",
+  "right_elbow_angle",
 ] as const;
 
 export type LiveFeatureName = (typeof LIVE_FEATURES)[number];
@@ -34,6 +42,10 @@ export function liveFeatures(landmarks: LandmarkMap, minVisibility = MIN_VISIBIL
   const rightKnee = point("right_knee");
   const leftShoulder = point("left_shoulder");
   const rightShoulder = point("right_shoulder");
+  const leftElbow = point("left_elbow");
+  const rightElbow = point("right_elbow");
+  const leftWrist = point("left_wrist");
+  const rightWrist = point("right_wrist");
 
   const features: FeatureMap = {};
   if (leftAnkle) {
@@ -56,6 +68,29 @@ export function liveFeatures(landmarks: LandmarkMap, minVisibility = MIN_VISIBIL
     const hip = mid(leftHip, rightHip);
     const shoulder = mid(leftShoulder, rightShoulder);
     features.torso_angle = (Math.atan2(shoulder.x - hip.x, shoulder.y - hip.y) * 180) / Math.PI;
+  }
+  if (leftWrist) {
+    features.left_wrist_x = leftWrist.x;
+    features.left_wrist_y = leftWrist.y;
+  }
+  if (rightWrist) {
+    features.right_wrist_x = rightWrist.x;
+    features.right_wrist_y = rightWrist.y;
+  }
+  if (leftWrist && rightWrist) {
+    features.hand_center_x = (leftWrist.x + rightWrist.x) / 2;
+    features.hand_center_y = (leftWrist.y + rightWrist.y) / 2;
+    features.hand_distance = Math.hypot(
+      leftWrist.x - rightWrist.x,
+      leftWrist.y - rightWrist.y,
+      leftWrist.z - rightWrist.z,
+    );
+  }
+  if (leftShoulder && leftElbow && leftWrist) {
+    features.left_elbow_angle = angleDegrees(leftShoulder, leftElbow, leftWrist);
+  }
+  if (rightShoulder && rightElbow && rightWrist) {
+    features.right_elbow_angle = angleDegrees(rightShoulder, rightElbow, rightWrist);
   }
   return features;
 }
