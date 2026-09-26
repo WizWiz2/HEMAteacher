@@ -51,14 +51,19 @@ const ready = (front: "left" | "right" = "left", stance = 0.9) => pose({
   front, stance, hand: [0.42, 0.62], leftElbow: [0.18, 0.72], rightElbow: [0.2, 0.68],
   sword: [[0.42, 0.62], [1.25, 1.2]],
 });
+const footwork = (front: "left" | "right" = "left", stance = 0.9) => {
+  const value = ready(front, stance);
+  delete value.sword;
+  return value;
+};
 
 export const POSE_PRESETS: Record<string, TargetPose> = {
-  "stance-left": ready("left", 0.9),
-  "stance-right": ready("right", 0.9),
-  "stance-wide-left": ready("left", 1.25),
-  "stance-wide-right": ready("right", 1.25),
+  "stance-left": footwork("left", 0.9),
+  "stance-right": footwork("right", 0.9),
+  "stance-wide-left": footwork("left", 1.25),
+  "stance-wide-right": footwork("right", 1.25),
   "advance-front-out": (() => {
-    const value = ready("left", 0.9);
+    const value = footwork("left", 0.9);
     value.landmarks.left_ankle.x = 0.75;
     value.landmarks.left_knee.x = 0.4;
     value.landmarks.left_heel.x = 0.69;
@@ -73,9 +78,9 @@ export const POSE_PRESETS: Record<string, TargetPose> = {
     value.landmarks.right_foot_index.x = -0.61;
     return value;
   })(),
-  "stance-compact-left": ready("left", 0.65),
+  "stance-compact-left": footwork("left", 0.65),
   "stance-cross": (() => {
-    const value = ready("left", 0.18);
+    const value = footwork("left", 0.18);
     value.landmarks.left_ankle.x = 0.05;
     value.landmarks.right_ankle.x = -0.05;
     return value;
