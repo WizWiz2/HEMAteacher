@@ -16,15 +16,17 @@ export interface LiveSample {
   usable: boolean;
 }
 
-export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => void) {
+export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => void, smoothingMs = 100) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const onSampleRef = useRef(onSample);
   const facingRef = useRef(facing);
+  const smoothingMsRef = useRef(smoothingMs);
   const [error, setError] = useState<string | null>(null);
   const [live, setLive] = useState(false);
   onSampleRef.current = onSample;
   facingRef.current = facing;
+  smoothingMsRef.current = smoothingMs;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -40,7 +42,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
       const normalized = smoothedScale ? normalizePose(raw, facingRef.current, smoothedScale) : null;
       const features = normalized ? liveFeatures(normalized.landmarks) : null;
       history = trimHistory([...history, { timeMs: raw.timestampMs, features }], raw.timestampMs);
-      const smoothed = smoothFeatures(history, raw.timestampMs);
+      const smoothed = smoothFeatures(history, raw.timestampMs, smoothingMsRef.current);
       draw(canvas, video, raw);
       onSampleRef.current({
         timeMs: raw.timestampMs,
