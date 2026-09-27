@@ -262,6 +262,16 @@ export function DrillPage() {
           <section className="drill-stage">
             <div className="camera-pane">
               <LivePoseCanvas videoRef={live.videoRef} canvasRef={live.canvasRef} />
+              {!live.live && (
+                <div className="camera-start">
+                  <button type="button" onClick={() => void live.start()} disabled={live.phase !== "idle"}>
+                    {live.phase === "requesting" ? "Разреши доступ к камере…" : live.error ? "Повторить запуск" : "Включить камеру"}
+                  </button>
+                  {live.error && <p role="alert" className="camera-start-error">{live.error}</p>}
+                  {live.error && <a className="camera-direct-link" href={window.location.href} target="_blank" rel="noopener noreferrer">Открыть сайт напрямую ↗</a>}
+                </div>
+              )}
+              {live.live && live.phase === "loading" && <span className="camera-loading">Камера работает · загружаю распознавание позы…</span>}
               {checkpoint && (
                 <div className="mobile-target-peek" aria-label="Эталон текущей позиции">
                   <TargetPose checkpoint={checkpoint} facing={facing} />
@@ -291,8 +301,6 @@ export function DrillPage() {
               </div>
             )}
           </section>
-
-          {live.error && <p className="error">{live.error}</p>}
 
           <section className="drill-foot manuscript-panel">
             <div>

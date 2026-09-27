@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { PoseFrame } from "../types";
 import type { TargetPose, TrackingMode, WeaponMarkers, WeaponTrackingMode } from "../drill/types";
 import { assessFraming, type FramingAssessment } from "./framing";
@@ -38,17 +38,37 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
   const optionsRef = useRef(options);
   const [error, setError] = useState<string | null>(null);
   const [live, setLive] = useState(false);
+  const [phase, setPhase] = useState<"idle" | "requesting" | "loading" | "ready">("idle");
+  const streamRef = useRef<MediaStream | null>(null);
+  const detectorRef = useRef<MediaPipeLivePose | null>(null);
+  const requestId = useRef(0);
+  const busy = useRef(false);
   onSampleRef.current = onSample;
   facingRef.current = facing;
   optionsRef.current = options;
 
-  useEffect(() => {
+  const start = useCallback(async () => {
+    if (busy.current) return;
+    busy.current = true;
+    const currentRequest = ++requestId.current;
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    if (!video || !canvas) return;
-    let stream: MediaStream | null = null;
-    let stopped = false;
+    if (!video || !canvas) {
+      busy.current = false;
+      setError("Экран камеры ещё не готов. Попробуй ещё раз.");
+      return;
+    }
+    setError(null);
+    setLive(false);
+    setPhase("requesting");
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      busy.current = false;
+      setPhase("idle");
+      setError("Браузер не даёт доступ к камере. Открой сайт напрямую по HTTPS в Safari или Chrome.");
+      return;
+    }
     const detector = new MediaPipeLivePose();
+    detectorRef.current = detector;
     const scale = new TorsoScale();
     const markerCanvas = document.createElement("canvas");
     let history: TimedSample[] = [];
@@ -86,31 +106,56 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
       });
     });
 
-    const boot = async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
-        });
-        if (stopped) { stream.getTracks().forEach((track) => track.stop()); return; }
-        video.srcObject = stream;
-        await video.play();
-        await detector.start(video);
-        setLive(true);
-      } catch (reason) {
-        setError(reason instanceof Error ? reason.message : "Камера или модель позы не запустились");
-      }
-    };
-    void boot();
-
-    return () => {
-      stopped = true;
+    try {
+      // Request the camera while the user's tap is still being handled.
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      });
+      if (currentRequest !== requestId.current) { stream.getTracks().forEach((track) => track.stop()); return; }
+      streamRef.current = stream;
+      video.srcObject = stream;
+      await video.play();
+      if (currentRequest !== requestId.current) return;
+      setLive(true);
+      setPhase("loading");
+      await detector.start(video);
+      if (currentRequest !== requestId.current) return;
+      setPhase("ready");
+    } catch (reason) {
+      if (currentRequest !== requestId.current) return;
+      setError(cameraError(reason));
+      setLive(false);
+      setPhase("idle");
       detector.stop();
-      stream?.getTracks().forEach((track) => track.stop());
-    };
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      video.srcObject = null;
+    } finally {
+      if (currentRequest === requestId.current) busy.current = false;
+    }
   }, []);
 
-  return { videoRef, canvasRef, error, live };
+  useEffect(() => () => {
+    requestId.current++;
+    detectorRef.current?.stop();
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+  }, []);
+
+  return { videoRef, canvasRef, error, live, phase, start };
+}
+
+function cameraError(reason: unknown): string {
+  if (reason instanceof DOMException) {
+    if (reason.name === "NotAllowedError" || reason.name === "SecurityError")
+      return "Доступ к камере запрещён. Разреши камеру для этого сайта в настройках браузера и открой его напрямую, если сейчас он внутри ChatGPT.";
+    if (reason.name === "NotFoundError" || reason.name === "OverconstrainedError")
+      return "Камера не найдена. Проверь, что устройство позволяет её использовать.";
+    if (reason.name === "NotReadableError" || reason.name === "AbortError")
+      return "Камера занята другим приложением или не отвечает. Закрой его и попробуй ещё раз.";
+  }
+  return `Камера или распознавание позы не запустились: ${reason instanceof Error ? reason.message : "неизвестная ошибка"}`;
 }
 
 function draw(canvas: HTMLCanvasElement, video: HTMLVideoElement, raw: RawPose, weapon: WeaponMarkers | null, targetPose: TargetPose | null, facing: Facing, torsoScale: number | null) {
