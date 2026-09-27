@@ -36,3 +36,9 @@ def test_static_drill_catalog_matches_yaml_source():
 
 def test_static_movement_catalog_matches_yaml_source():
     assert _load_json("movements.json") == _load_yaml_dir("movements")
+
+
+def test_static_profile_matches_yaml_source():
+    expected = _canonical(yaml.safe_load((ROOT / "data" / "profiles" / "footwork_v1.yaml").read_text(encoding="utf-8")))
+    actual = _canonical(json.loads((ROOT / "frontend" / "public" / "content" / "footwork_v1.json").read_text(encoding="utf-8")))
+    assert actual == expected
