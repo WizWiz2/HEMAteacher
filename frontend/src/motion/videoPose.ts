@@ -3,6 +3,7 @@ import { LANDMARK_NAMES } from "../live/landmarks";
 import type { Landmark, PoseSequence } from "../types";
 
 let sharedLandmarker: Promise<PoseLandmarker> | null = null;
+let lastInferenceTimestamp = -1;
 
 export interface ExtractPoseOptions {
   sampleFps?: number;
@@ -34,8 +35,10 @@ export async function extractPoseFromVideo(blob: Blob, options: ExtractPoseOptio
     for(let index=0;index<total;index++){
       const seconds=Math.min(duration-.001,index*step);
       await seek(video,Math.max(0,seconds));
-      const timestamp=Math.max(index,Math.round(seconds*1000));
-      const result=landmarker.detectForVideo(video,timestamp);
+      const videoTimestamp=Math.max(index,Math.round(seconds*1000));
+      const inferenceTimestamp=Math.max(lastInferenceTimestamp+1,Math.round(performance.now()));
+      lastInferenceTimestamp=inferenceTimestamp;
+      const result=landmarker.detectForVideo(video,inferenceTimestamp);
       const landmarks:Record<string,Landmark>={};
       const pose=result.landmarks?.[0];
       if(pose){
@@ -45,7 +48,7 @@ export async function extractPoseFromVideo(blob: Blob, options: ExtractPoseOptio
           landmarks[name]={x:point.x,y:point.y,z:point.z,visibility:point.visibility??0};
         });
       }
-      frames.push({timestamp_ms:timestamp,landmarks});
+      frames.push({timestamp_ms:videoTimestamp,landmarks});
       options.onProgress?.((index+1)/total);
       if(index%6===0) await nextTask();
     }
