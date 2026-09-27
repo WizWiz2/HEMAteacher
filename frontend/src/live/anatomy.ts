@@ -29,10 +29,7 @@ const METRICS: Metric[] = [
 
 export class BodyProfileCalibrator {
   private readonly values = new Map<Metric, number[]>();
-  private frames = 0;
-
   push(pose: RawPose): void {
-    this.frames += 1;
     const measured = measureBodyRatios(pose);
     for (const metric of METRICS) {
       const value = measured[metric];
@@ -46,7 +43,6 @@ export class BodyProfileCalibrator {
 
   reset(): void {
     this.values.clear();
-    this.frames = 0;
   }
 
   ready(mode: TrackingMode, minimumSamples = 12): boolean {
@@ -71,7 +67,7 @@ export class BodyProfileCalibrator {
     for (const metric of METRICS) {
       const values = this.values.get(metric) ?? [];
       if (values.length < 4) continue;
-      patch[metric] = median(values);
+      (patch as Partial<Record<Metric, number>>)[metric] = median(values);
       sampleCount = Math.max(sampleCount, values.length);
     }
     if (sampleCount === 0 && !previous) return null;
@@ -247,8 +243,9 @@ function mirrorMissingBilateral(profile: BodyProfile): void {
   ];
   for (const [left, right] of pairs) {
     const a = profile[left], b = profile[right];
-    if (typeof a === "number" && typeof b !== "number") profile[right] = a;
-    if (typeof b === "number" && typeof a !== "number") profile[left] = b;
+    const writable = profile as BodyProfile & Record<Metric, number | undefined>;
+    if (typeof a === "number" && typeof b !== "number") writable[right] = a;
+    if (typeof b === "number" && typeof a !== "number") writable[left] = b;
   }
 }
 
@@ -262,7 +259,7 @@ function blendProfiles(previous: BodyProfile, current: BodyProfile, alpha: numbe
   for (const metric of METRICS) {
     const a = previous[metric], b = current[metric];
     if (typeof b !== "number") continue;
-    result[metric] = typeof a === "number" ? a * (1 - alpha) + b * alpha : b;
+    (result as BodyProfile & Record<Metric, number | undefined>)[metric] = typeof a === "number" ? a * (1 - alpha) + b * alpha : b;
   }
   return result;
 }
