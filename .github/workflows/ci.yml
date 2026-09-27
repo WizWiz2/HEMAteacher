@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: ["main", "docs/cr-live-checkpoint-drills"]
+    branches: ["main"]
   pull_request:
 
 jobs:
@@ -14,6 +14,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: "pip"
+      - run: python -m py_compile launcher.py
       - run: python -m pip install -r backend/requirements.txt -r backend/requirements-test.txt
       - run: python -m pytest
         working-directory: backend
@@ -38,28 +39,24 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Validate PowerShell launcher syntax
+      - name: Validate Python launcher
+        shell: cmd
+        run: python -m py_compile launcher.py
+      - name: Validate launcher CLI
+        shell: cmd
+        run: python launcher.py --help
+      - name: Ensure PowerShell launcher is gone
         shell: powershell
         run: |
-          $tokens = $null
-          $errors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile(
-            (Resolve-Path .\start.ps1),
-            [ref]$tokens,
-            [ref]$errors
-          ) | Out-Null
-          if ($errors.Count -gt 0) {
-            $errors | ForEach-Object { Write-Error $_.Message }
-            exit 1
+          if (Test-Path .\start.ps1) {
+            throw "start.ps1 must not exist"
           }
-      - name: Verify npm.cmd starts through Start-Process
-        shell: powershell
-        run: |
-          $npm = Get-Command npm.cmd -ErrorAction Stop
-          $process = Start-Process -FilePath $npm.Source -ArgumentList @("--version") -NoNewWindow -Wait -PassThru
-          if ($process.ExitCode -ne 0) {
-            throw "npm.cmd exited with code $($process.ExitCode)"
+          if (-not (Select-String -Path .\start.bat -Pattern "launcher.py" -Quiet)) {
+            throw "start.bat does not invoke launcher.py"
           }
