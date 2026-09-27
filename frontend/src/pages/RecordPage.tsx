@@ -24,6 +24,7 @@ export function RecordPage() {
   const [stage, setStage] = useState<AnalysisStage | null>(null);
   const [progress, setProgress] = useState(0);
   const secure = window.isSecureContext && !!navigator.mediaDevices?.getUserMedia;
+  const browserRecorderAvailable = secure && typeof MediaRecorder !== "undefined";
 
   useEffect(() => { getMovement(id).then(setMovement).catch((reason: Error) => setError(reason.message)); }, [id]);
   useEffect(() => {
@@ -43,10 +44,28 @@ export function RecordPage() {
 
   async function enableCamera(){
     setError(null);
+    if (!window.isSecureContext) {
+      setError("Live-камера браузера требует HTTPS или localhost. На телефоне используй «Снять камерой устройства» — ролик всё равно анализируется локально.");
+      return;
+    }
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError("Этот браузер не даёт live-доступ к камере. Используй «Снять камерой устройства».");
+      return;
+    }
     try{
-      const media=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}}});
+      const media=await navigator.mediaDevices.getUserMedia({
+        audio:false,
+        video:{
+          facingMode:{ideal:"environment"},
+          width:{ideal:1280},
+          height:{ideal:720},
+        },
+      });
       setStream(media);
-    }catch{setError("Камера не открылась. Разреши доступ или загрузи готовый файл.");}
+    }catch(reason){
+      const detail = reason instanceof DOMException ? ` (${reason.name})` : "";
+      setError(`Live-камера не открылась${detail}. На телефоне используй «Снять камерой устройства» — это надёжнее Safari.`);
+    }
   }
 
   function startRecording(){
@@ -105,18 +124,47 @@ export function RecordPage() {
         <li>Одна попытка на ролик; оптимально 2–10 секунд.</li>
       </ul>
       {error&&<p className="error">{error}</p>}
-      {secure&&!blob&&(
+
+      {!blob && (
+        <section className="record-source-grid">
+          <label className="button record-primary">
+            Снять камерой устройства
+            <input
+              type="file"
+              accept="video/*"
+              capture="environment"
+              hidden
+              disabled={busy}
+              onChange={(event)=>onFile(event.target.files?.[0]??null)}
+            />
+          </label>
+
+          <label className="button ghost">
+            Выбрать готовое видео
+            <input type="file" accept="video/*" hidden disabled={busy} onChange={(event)=>onFile(event.target.files?.[0]??null)} />
+          </label>
+
+          {browserRecorderAvailable && !stream && (
+            <button type="button" className="ghost" onClick={()=>void enableCamera()}>
+              Live-камера в браузере
+            </button>
+          )}
+
+          {!secure && (
+            <p className="muted record-source-note">
+              Live-камера браузера отключена: для неё нужен HTTPS или localhost. Нативная камера устройства выше работает без этого ограничения.
+            </p>
+          )}
+        </section>
+      )}
+
+      {stream&&!blob&&(
         <div className="stack">
-          {!stream&&<button type="button" onClick={()=>void enableCamera()}>Включить камеру</button>}
-          {stream&&<video ref={liveRef} className="preview-live" playsInline muted autoPlay />}
-          {stream&&!recording&&<button type="button" onClick={startRecording}>Начать запись</button>}
+          <video ref={liveRef} className="preview-live" playsInline muted autoPlay />
+          {!recording&&<button type="button" onClick={startRecording}>Начать запись</button>}
           {recording&&<button type="button" onClick={stopRecording}>Остановить ({seconds} с)</button>}
         </div>
       )}
-      <label className="button ghost">
-        Загрузить видео
-        <input type="file" accept="video/*" hidden disabled={busy} onChange={(event)=>onFile(event.target.files?.[0]??null)} />
-      </label>
       {previewUrl&&(
         <div className="stack">
           <video className="preview-live" src={previewUrl} controls playsInline />
