@@ -1,4 +1,5 @@
 import { angleDegrees, xyDistance, type LandmarkMap, type Vec3 } from "./landmarks";
+import type { TrackingMode } from "../drill/types";
 
 export const LIVE_FEATURES = [
   "left_ankle_x",
@@ -95,11 +96,12 @@ export function liveFeatures(landmarks: LandmarkMap, minVisibility = MIN_VISIBIL
   return features;
 }
 
-export function poseUsable(features: FeatureMap | null): boolean {
+export function poseUsable(features: FeatureMap | null, mode: TrackingMode = "full_body"): boolean {
   if (!features) return false;
-  return ["left_ankle_x", "right_ankle_x", "pelvis_height", "torso_angle"].every((name) =>
-    Number.isFinite(features[name as LiveFeatureName]),
-  );
+  const required: LiveFeatureName[] = mode === "upper_body"
+    ? ["torso_angle", "hand_center_x", "hand_center_y", "hand_distance", "left_elbow_angle", "right_elbow_angle"]
+    : ["left_ankle_x", "right_ankle_x", "pelvis_height", "torso_angle"];
+  return required.every((name) => Number.isFinite(features[name]));
 }
 
 function mid(a: Vec3, b: Vec3): Vec3 {
