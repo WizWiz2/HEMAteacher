@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { deleteLocalSession, getLocalSession, getReference, type LocalReference, type LocalSession } from "../motion/storage";
+import { normalizeSequence } from "../motion/normalize";
 import { drawImageSkeleton, drawNormalizedSkeleton, fitCanvas, frameAt } from "../skeleton";
 import type { AlignmentPair, ComparisonResult, PoseSequence, TimelineMarker } from "../types";
 
@@ -61,6 +62,7 @@ function ResultView({ session, reference }: { session: LocalSession; reference: 
   const result = session.result;
   const attemptUrl = useMemo(() => URL.createObjectURL(session.video), [session.video]);
   const referenceUrl = useMemo(() => reference ? URL.createObjectURL(reference.video) : null, [reference]);
+  const referenceNormalized = useMemo(() => reference ? normalizeSequence(reference.pose) : null, [reference]);
   useEffect(() => () => {
     URL.revokeObjectURL(attemptUrl);
     if (referenceUrl) URL.revokeObjectURL(referenceUrl);
@@ -99,7 +101,7 @@ function ResultView({ session, reference }: { session: LocalSession; reference: 
           attemptSrc={attemptUrl}
           referencePose={reference.pose}
           attemptPose={session.pose}
-          referenceNorm={null}
+          referenceNorm={referenceNormalized}
           attemptNorm={session.normalizedPose}
           alignment={result.alignment}
           markers={result.timeline_markers}
