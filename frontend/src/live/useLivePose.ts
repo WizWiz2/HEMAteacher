@@ -128,9 +128,6 @@ function draw(canvas: HTMLCanvasElement, video: HTMLVideoElement, raw: RawPose, 
 
   const pose: PoseFrame = { timestamp_ms: raw.timestampMs, landmarks: raw.landmarks };
   const box = contentBox(video);
-  ctx.strokeStyle = "#b31f19";
-  ctx.fillStyle = "#b31f19";
-  ctx.lineWidth = 2.5;
   const points = new Map<string, [number, number]>();
   for (const [name, landmark] of Object.entries(pose.landmarks)) {
     if (landmark.visibility < 0.25) continue;
@@ -143,6 +140,14 @@ function draw(canvas: HTMLCanvasElement, video: HTMLVideoElement, raw: RawPose, 
     ["left_knee", "left_ankle"], ["right_hip", "right_knee"], ["right_knee", "right_ankle"],
     ["left_ankle", "left_foot_index"], ["right_ankle", "right_foot_index"],
   ];
+
+  if (targetPose && torsoScale) {
+    drawTargetGhost(ctx, raw, targetPose, facing, torsoScale, box, points);
+  }
+
+  ctx.strokeStyle = "#b31f19";
+  ctx.fillStyle = "#b31f19";
+  ctx.lineWidth = 2.8;
   ctx.beginPath();
   for (const [start, end] of edges) {
     const a = points.get(start), b = points.get(end);
@@ -152,11 +157,6 @@ function draw(canvas: HTMLCanvasElement, video: HTMLVideoElement, raw: RawPose, 
   ctx.stroke();
   for (const [x, y] of points.values()) {
     ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
-  }
-
-
-  if (targetPose && torsoScale) {
-    drawTargetGhost(ctx, raw, targetPose, facing, torsoScale, box, points);
   }
 
   if (weapon?.grip) drawMarker(ctx, box, weapon.grip.x, weapon.grip.y, "#18d6e8", "GRIP");
