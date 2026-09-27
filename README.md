@@ -5,7 +5,7 @@
 
 Это не тренер и не оценка «правильной» техники HEMA. Это вторая пара глаз: сравнение с конкретной записью.
 
-> **Architecture direction:** core training is browser-first. Live checkpoint drills and detailed uploaded-video analysis both run on the user device. See [CR-001](docs/CR-001-LIVE-CHECKPOINT-DRILLS.md), [CR-002](docs/CR-002-FIELD-TEST-REDESIGN.md) and [CR-003](docs/CR-003-BROWSER-FIRST.md). FastAPI remains only as an optional legacy/cloud layer.
+> **Architecture direction:** core training is browser-first. Live checkpoint drills and detailed uploaded-video analysis both run on the user device. See [CR-001](docs/CR-001-LIVE-CHECKPOINT-DRILLS.md), [CR-002](docs/CR-002-FIELD-TEST-REDESIGN.md) and [CR-003](docs/CR-003-BROWSER-FIRST.md), and [CR-004](docs/CR-004-PERSONALIZED-ANATOMY.md). FastAPI remains only as an optional legacy/cloud layer.
 
 ## Live drills
 
@@ -174,6 +174,14 @@ Backend нужен только для legacy API и серверных эксп
 ```bash
 python launcher.py --with-backend
 ```
+
+
+
+### Personalized anatomy
+
+Live drills briefly calibrate the user's body proportions before matching. Limb lengths are stored locally and used to retarget checkpoint poses, so the matcher and spectral target compare technique on the user's own proportions rather than on a fixed mannequin.
+
+Detailed uploaded-video analysis also retargets the trainer/reference sequence to the attempt's measured proportions before DTW and comparison.
 
 ## Tests
 
