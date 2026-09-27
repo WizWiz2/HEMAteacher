@@ -73,7 +73,7 @@ async function getLandmarker():Promise<PoseLandmarker>{
     sharedLandmarker=(async()=>{
       const vision=await FilesetResolver.forVisionTasks(`${import.meta.env.BASE_URL}wasm`);
       const common={
-        baseOptions:{modelAssetPath:`${import.meta.env.BASE_URL}models/pose_landmarker_lite.task`},
+        baseOptions:{modelAssetPath:`${import.meta.env.BASE_URL}models/pose_landmarker_full.task`},
         runningMode:"VIDEO" as const,
         numPoses:1,
       };
