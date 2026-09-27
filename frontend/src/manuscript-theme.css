@@ -287,10 +287,40 @@ button.ghost.active:hover:not(:disabled) { background: var(--rubric-dark); color
   color: #fff0d6;
   font-size: .875rem;
 }
+.target-guiding .target-focus circle {
+  fill: rgba(244, 186, 52, .3);
+  stroke: #a52b22;
+  stroke-width: 3;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: target-pulse 1.3s ease-in-out infinite;
+}
+.target-guiding .target-direction {
+  fill: none;
+  stroke: #a52b22;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: target-arrow 1.3s ease-in-out infinite;
+}
+.target-guiding .target-cue { color: var(--rubric-dark); font-weight: 700; }
+@keyframes target-pulse { 50% { transform: scale(1.45); opacity: .65; } }
+@keyframes target-arrow { 50% { opacity: .55; } }
 @media (max-width: 700px) {
   .camera-start { padding: 12px; gap: 7px; }
   .camera-start button { min-height: 44px; font-size: 1rem; }
   .camera-start-error { font-size: .78rem; }
   .camera-direct-link { font-size: .78rem; }
   .camera-loading { top: 5px; left: 5px; right: 5px; font-size: .75rem; }
+  .mobile-target-peek { top: 4px; width: min(31vw, 125px); z-index: 17; }
+  .mobile-target-peek .target-card figcaption { padding: 2px 3px 3px; line-height: 1.05; }
+  .mobile-target-peek .target-card figcaption .rubric,
+  .mobile-target-peek .target-card figcaption .target-cue { display: none; }
+  .mobile-target-peek .target-card figcaption strong { font-size: .78rem; }
+  .camera-start { align-items: flex-start; text-align: left; }
+  .camera-start button { width: min(58%, 205px); }
+  .camera-start-error, .camera-direct-link { max-width: 58%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .target-guiding .target-focus circle, .target-guiding .target-direction { animation: none; }
 }

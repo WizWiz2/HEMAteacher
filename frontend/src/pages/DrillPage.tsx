@@ -172,7 +172,7 @@ export function DrillPage() {
 
   const cue = primaryCue(runtime.match);
   const calibrationMessage = runtime.state === "calibrating" && framingReady && !anatomyReady
-    ? "КАЛИБРУЮ ПРОПОРЦИИ · СТОЙ СПОКОЙНО"
+    ? "ПОВТОРИ ПОЗУ НА СТЕНДЕ · ЗАДЕРЖИСЬ"
     : framingMessage;
   const spokenText = runtime.state === "calibrating" && (!framingReady || !anatomyReady)
     ? calibrationMessage
@@ -274,7 +274,7 @@ export function DrillPage() {
               {live.live && live.phase === "loading" && <span className="camera-loading">Камера работает · загружаю распознавание позы…</span>}
               {checkpoint && (
                 <div className="mobile-target-peek" aria-label="Эталон текущей позиции">
-                  <TargetPose checkpoint={checkpoint} facing={facing} />
+                  <TargetPose checkpoint={checkpoint} facing={facing} cue={cue} calibrating={runtime.state === "calibrating"} />
                 </div>
               )}
               <div className="ghost-legend">
@@ -297,7 +297,7 @@ export function DrillPage() {
             </div>
             {checkpoint && (
               <div className="desktop-target-card">
-                <TargetPose checkpoint={checkpoint} facing={facing} />
+                <TargetPose checkpoint={checkpoint} facing={facing} cue={cue} calibrating={runtime.state === "calibrating"} />
               </div>
             )}
           </section>
