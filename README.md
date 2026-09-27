@@ -181,7 +181,7 @@ python launcher.py --with-backend
 
 Live drills briefly calibrate the user's body proportions before matching. Limb lengths are stored locally and used to retarget checkpoint poses, so the matcher and spectral target compare technique on the user's own proportions rather than on a fixed mannequin.
 
-Detailed uploaded-video analysis also retargets the trainer/reference sequence to the attempt's measured proportions before DTW and comparison.
+Detailed uploaded-video analysis canonicalizes both the trainer/reference sequence and the attempt to the attempt user's measured proportions before DTW and comparison.
 
 ## Tests
 
