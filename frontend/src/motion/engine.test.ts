@@ -33,12 +33,14 @@ function anatomySequence(legScale:number):PoseSequence{
     const phase=index/11;
     const leftX=-.42+phase*.14;
     const rightX=.42+phase*.14;
-    const leg=(x:number,z:number)=>{
-      const knee=p(x*.5*legScale,-.5*legScale,z);
-      const ankle=p(x*legScale,-1*legScale,z);
+    const leftHip=p(-.08,0,-.08),rightHip=p(.08,0,.08);
+    const leg=(hip:Landmark,x:number,z:number)=>{
+      const dx=x-hip.x;
+      const knee=p(hip.x+dx*.5*legScale,-.5*legScale,z);
+      const ankle=p(hip.x+dx*legScale,-1*legScale,z);
       return {knee,ankle};
     };
-    const left=leg(leftX,-.08),right=leg(rightX,.08);
+    const left=leg(leftHip,leftX,-.08),right=leg(rightHip,rightX,.08);
     return {
       timestamp_ms:index*67,
       landmarks:{
@@ -46,11 +48,11 @@ function anatomySequence(legScale:number):PoseSequence{
         left_shoulder:p(-.1,1,-.1),right_shoulder:p(.1,1,.1),
         left_elbow:p(-.35,.78,-.1),right_elbow:p(.35,.78,.1),
         left_wrist:p(-.58,.58,-.1),right_wrist:p(.58,.58,.1),
-        left_hip:p(-.08,0,-.08),right_hip:p(.08,0,.08),
+        left_hip:leftHip,right_hip:rightHip,
         left_knee:left.knee,right_knee:right.knee,
         left_ankle:left.ankle,right_ankle:right.ankle,
-        left_heel:p(left.ankle.x-.05,left.ankle.y-.02,-.08),
-        right_heel:p(right.ankle.x-.05,right.ankle.y-.02,.08),
+        left_heel:p(left.ankle.x-.05*legScale,left.ankle.y-.02,-.08),
+        right_heel:p(right.ankle.x-.05*legScale,right.ankle.y-.02,.08),
         left_foot_index:p(left.ankle.x+.12*legScale,left.ankle.y-.02,-.08),
         right_foot_index:p(right.ankle.x+.12*legScale,right.ankle.y-.02,.08),
       },
