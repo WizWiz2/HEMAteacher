@@ -29,9 +29,12 @@ export function analyzeSequences(
   const personalizedReference = attemptBodyProfile
     ? retargetSequence(referenceNormalized, attemptBodyProfile)
     : referenceNormalized;
+  const canonicalAttempt = attemptBodyProfile
+    ? retargetSequence(attemptNormalized, attemptBodyProfile)
+    : attemptNormalized;
 
   const refPrepared=prepareNormalized(personalizedReference);
-  const attPrepared=prepareNormalized(attemptNormalized);
+  const attPrepared=prepareNormalized(canonicalAttempt);
   const alignment=alignDtw(refPrepared,attPrepared,profile.dtw_features);
   const result=compareMotion(refPrepared,attPrepared,alignment.pairs,profile,movementId);
   result.quality={
@@ -44,7 +47,7 @@ export function analyzeSequences(
     referenceImage,
     referenceNormalized:personalizedReference,
     attemptImage,
-    attemptNormalized,
+    attemptNormalized:canonicalAttempt,
   };
 }
 
