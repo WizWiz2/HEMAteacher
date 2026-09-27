@@ -1,20 +1,36 @@
-import { liveCues } from "../drill/feedback";
-import type { CheckpointMatch } from "../drill/types";
+import { liveCues, primaryCue } from "../drill/feedback";
+import type { CheckpointMatch, WeaponMatch } from "../drill/types";
 
-export function LiveFeedback({ match, enough }: { match: CheckpointMatch | null; enough: boolean }) {
+export function LiveFeedback({
+  match,
+  enough,
+  framingMessage,
+  calibrating,
+  weapon,
+}: {
+  match: CheckpointMatch | null;
+  enough: boolean;
+  framingMessage?: string;
+  calibrating?: boolean;
+  weapon?: WeaponMatch | null;
+}) {
   const hasMeasurement = match != null && Object.values(match.features).some((feature) => Number.isFinite(feature.value));
-  if (!enough || !match || !hasMeasurement) {
-    return <p className="cue wait">Встань в кадр целиком и подержи позу.</p>;
+  if (calibrating || !enough || !match || !hasMeasurement) {
+    return <div className="coach-overlay wait"><span>{framingMessage ?? "ВСТАНЬ В КАДР"}</span></div>;
   }
-  const cues = liveCues(match, 3);
-  if (cues.length === 0) return <p className="cue wait">Для этой точки нет ограничений.</p>;
+  const cue = primaryCue(match);
+  const details = liveCues(match, 3);
+  const allGood = details.length > 0 && details.every((item) => item.ok);
+
   return (
-    <ul className="cues">
-      {cues.map((cue) => (
-        <li key={cue.name} className={cue.ok ? "ok" : "bad"}>
-          {cue.ok ? "✓" : "•"} {cue.text}
-        </li>
-      ))}
-    </ul>
+    <div className={`coach-overlay ${allGood ? "good" : "adjust"}`}>
+      <span className="coach-primary">{allGood ? "ДЕРЖИ ПОЗУ" : cue?.text ?? "ПОПРАВЬ ПОЗУ"}</span>
+      <span className="coach-score">{Math.round(match.passScore * 100)}% условий</span>
+      {weapon?.available && (
+        <span className={weapon.passed ? "weapon-ok" : "weapon-adjust"}>
+          Меч: {weapon.passed ? "линия похожа" : `поверни примерно на ${Math.round(Math.abs(weapon.deltaDeg ?? 0))}°`}
+        </span>
+      )}
+    </div>
   );
 }
