@@ -1,6 +1,7 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0start.ps1"
-if errorlevel 1 pause
-exit /b %ERRORLEVEL%
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0start.ps1"
+set "exitCode=%ERRORLEVEL%"
+if not "%exitCode%"=="0" pause
+exit /b %exitCode%
