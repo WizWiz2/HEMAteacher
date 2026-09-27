@@ -12,7 +12,19 @@ OUT = ROOT / "frontend" / "public" / "content"
 
 
 def read_yaml(path: Path):
-    return yaml.safe_load(path.read_text(encoding="utf-8"))
+    return _normalize(yaml.safe_load(path.read_text(encoding="utf-8")))
+
+
+def _normalize(value):
+    if isinstance(value, str):
+        if "\n" in value:
+            return " ".join(value.split())
+        return value
+    if isinstance(value, list):
+        return [_normalize(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _normalize(item) for key, item in value.items()}
+    return value
 
 
 def render() -> dict[Path, str]:
