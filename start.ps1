@@ -44,6 +44,15 @@ function Find-PythonExecutable {
     return $null
 }
 
+function Find-NpmExecutable {
+    $command = Get-Command npm.cmd -ErrorAction SilentlyContinue
+    if ($command) { return $command.Source }
+
+    $fallback = Join-Path $env:ProgramFiles "nodejs\npm.cmd"
+    if (Test-Path -LiteralPath $fallback) { return $fallback }
+    return $null
+}
+
 function Install-WithWinget($id, $label) {
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
         Stop-Launcher "$label не найден, и winget тоже нет. Установите $label вручную и запустите start.bat ещё раз."
@@ -112,6 +121,10 @@ $nodeMajor = [int]((& node -p "process.versions.node.split('.')[0]"))
 if ($nodeMajor -lt 18) { Stop-Launcher "Node.js слишком старый ($nodeMajor). Нужна версия 18 или новее." }
 Say "Node: $($node.Source)"
 
+$npm = Find-NpmExecutable
+if (-not $npm) { Stop-Launcher "npm.cmd не найден. Переустановите Node.js и запустите start.bat ещё раз." }
+Say "npm: $npm"
+
 $venvPython = Join-Path $PSScriptRoot ".venv\Scripts\python.exe"
 if (-not (Test-Path -LiteralPath $venvPython)) {
     Say "Создаю окружение Python..."
@@ -157,7 +170,7 @@ if (-not (Test-Path -LiteralPath $vite) -or -not (Test-Path -LiteralPath $mediap
     Say "Ставлю библиотеки интерфейса..."
     Push-Location (Join-Path $PSScriptRoot "frontend")
     try {
-        & npm install
+        & $npm install
         if ($LASTEXITCODE -ne 0) { Stop-Launcher "npm install не удался." }
     } finally {
         Pop-Location
@@ -200,20 +213,31 @@ if (Test-Listening 5173) {
 
 if (-not $skipApi) {
     Say "Запускаю API на порту 8000..."
-    Start-Process -FilePath $venvPython -ArgumentList @(
+    $apiProcess = Start-Process -FilePath $venvPython -ArgumentList @(
         "-m", "uvicorn", "app.main:app",
         "--app-dir", (Join-Path $PSScriptRoot "backend"),
         "--host", "127.0.0.1",
         "--port", "8000"
-    ) -WorkingDirectory $PSScriptRoot -WindowStyle Normal
+    ) -WorkingDirectory $PSScriptRoot -WindowStyle Normal -PassThru
+
+    if (-not (Wait-Http "http://127.0.0.1:8000/api/v1/health" 90)) {
+        if ($apiProcess.HasExited) {
+            Stop-Launcher "API завершился при запуске с кодом $($apiProcess.ExitCode). Смотрите окно API выше."
+        }
+        Stop-Launcher "API не ответил на /api/v1/health за 90 секунд. Смотрите окно API."
+    }
 }
 
 if (-not $skipWeb) {
     Say "Запускаю интерфейс на порту 5173..."
-    $npm = (Get-Command npm).Source
-    Start-Process -FilePath $npm -ArgumentList @("run", "dev") -WorkingDirectory (Join-Path $PSScriptRoot "frontend") -WindowStyle Normal
+    # Use npm.cmd explicitly. Get-Command npm may resolve to npm.ps1 on Windows,
+    # and Start-Process then asks the user which app should open .ps1 files.
+    $webProcess = Start-Process -FilePath $npm -ArgumentList @("run", "dev") -WorkingDirectory (Join-Path $PSScriptRoot "frontend") -WindowStyle Normal -PassThru
     if (-not (Wait-Http "http://127.0.0.1:5173/" 90)) {
-        Stop-Launcher "Интерфейс не ответил на порту 5173. Смотрите окно, где запущен npm."
+        if ($webProcess.HasExited) {
+            Stop-Launcher "Интерфейс завершился при запуске с кодом $($webProcess.ExitCode). Смотрите окно npm."
+        }
+        Stop-Launcher "Интерфейс не ответил на порту 5173 за 90 секунд. Смотрите окно npm."
     }
 }
 
