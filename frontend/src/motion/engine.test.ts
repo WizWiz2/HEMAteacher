@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Landmark, PoseSequence } from "../types";
 import { analyzeSequences } from "./engine";
+import type { AnalysisProfile } from "./types";
 import { normalizeSequence } from "./normalize";
 
 function p(x:number,y:number,z=0):Landmark{return{x,y,z,visibility:1};}
@@ -26,17 +27,29 @@ function normalizedSequence(offset=0):PoseSequence{
   return {fps:15,duration_ms:737,space:"normalized",width:1,height:1,frames};
 }
 
+const PROFILE:AnalysisProfile={
+  id:"test",scale_strategy:"torso_length",scale_scope:"sequence",
+  dtw_features:["left_ankle_x","right_ankle_x","foot_distance","pelvis_height"],
+  phases:{preparation:"Начало",stride:"Шаг",landing:"Приземление",completion:"Завершение",overall:"Всё движение"},
+  features:{
+    foot_distance:{weight:1,warning_threshold:.12,major_threshold:.22,unit:"torso_lengths",label:"расстояние стоп"},
+    left_ankle_x:{weight:1,warning_threshold:.12,major_threshold:.22,unit:"torso_lengths",label:"левая стопа"},
+    right_ankle_x:{weight:1,warning_threshold:.12,major_threshold:.22,unit:"torso_lengths",label:"правая стопа"},
+    pelvis_height:{weight:.7,warning_threshold:.08,major_threshold:.14,unit:"torso_lengths",label:"таз"},
+  },
+};
+
 describe("browser motion engine",()=>{
   it("gives an identical sequence near-perfect similarity",()=>{
     const seq=normalizedSequence();
-    const result=analyzeSequences("advance",seq,seq).result;
+    const result=analyzeSequences("advance",seq,seq,PROFILE).result;
     expect(result.reliable).toBe(true);
     expect(result.similarity).toBeCloseTo(100,4);
     expect(result.alignment.length).toBe(seq.frames.length);
   });
 
   it("detects a deliberately shifted foot",()=>{
-    const result=analyzeSequences("advance",normalizedSequence(),normalizedSequence(.4)).result;
+    const result=analyzeSequences("advance",normalizedSequence(),normalizedSequence(.4),PROFILE).result;
     expect(result.similarity ?? 100).toBeLessThan(100);
     expect(result.feedback.length).toBeGreaterThan(0);
   });
