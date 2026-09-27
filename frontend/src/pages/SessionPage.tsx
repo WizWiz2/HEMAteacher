@@ -1,16 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { deleteSession, getPose, getResult, getSession } from "../api";
+import { deleteLocalSession, getLocalSession, getReference, type LocalReference, type LocalSession } from "../motion/storage";
 import { drawImageSkeleton, drawNormalizedSkeleton, fitCanvas, frameAt } from "../skeleton";
-import type { AlignmentPair, ComparisonResult, PoseSequence, SessionInfo, TimelineMarker } from "../types";
-
-const STAGES: Array<[string, string]> = [
-  ["uploaded", "Видео получено"],
-  ["extracting_pose", "Считываем положение тела"],
-  ["normalizing", "Приводим скелет к одному масштабу"],
-  ["aligning", "Сопоставляем фазы шага"],
-  ["analyzing", "Считаем различия"],
-];
+import type { AlignmentPair, ComparisonResult, PoseSequence, TimelineMarker } from "../types";
 
 const PHASE: Record<string, string> = {
   preparation: "начало",
@@ -23,108 +15,61 @@ const PHASE: Record<string, string> = {
 export function SessionPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
-  const [session, setSession] = useState<SessionInfo | null>(null);
-  const [result, setResult] = useState<ComparisonResult | null>(null);
+  const [session, setSession] = useState<LocalSession | null>(null);
+  const [reference, setReference] = useState<LocalReference | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let stop = false;
-    let timer = 0;
-    async function poll() {
-      try {
-        const info = await getSession(id);
-        if (stop) return;
-        setSession(info);
-        if (info.status === "completed") {
-          setResult(await getResult(id));
-          return;
-        }
-        if (info.status === "failed") return;
-        timer = window.setTimeout(poll, 1000);
-      } catch (reason) {
-        if (!stop) setError(reason instanceof Error ? reason.message : "Не удалось получить статус");
-      }
-    }
-    void poll();
-    return () => {
-      stop = true;
-      window.clearTimeout(timer);
-    };
+    let alive = true;
+    getLocalSession(id)
+      .then(async (stored) => {
+        if (!alive) return;
+        if (!stored) throw new Error("Локальная попытка не найдена в этом браузере.");
+        setSession(stored);
+        setReference(await getReference(stored.movementId));
+      })
+      .catch((reason: Error) => alive && setError(reason.message));
+    return () => { alive = false; };
   }, [id]);
 
   async function remove() {
-    if (!confirm("Удалить эту попытку с диска?")) return;
-    await deleteSession(id);
-    navigate("/");
+    if (!confirm("Удалить эту локальную попытку?")) return;
+    await deleteLocalSession(id);
+    navigate("/analysis");
   }
 
   if (error) return <p className="error">{error}</p>;
-  if (!session) return <p className="muted">Открываю попытку…</p>;
+  if (!session) return <p className="muted">Открываю локальную попытку…</p>;
 
   return (
     <main className="stack">
-      {session.status !== "completed" && session.status !== "failed" && (
-        <section className="stack">
-          <h1>Разбираю попытку</h1>
-          <ol className="checklist">
-            {STAGES.map(([key, label]) => (
-              <li key={key}>{label}{session.status === key ? "…" : ""}</li>
-            ))}
-          </ol>
-        </section>
-      )}
-      {session.status === "failed" && (
-        <section className="callout">
-          <h1>Не удалось разобрать</h1>
-          <p>{session.error_reason}</p>
-        </section>
-      )}
-      {result && <ResultView result={result} />}
+      <div>
+        <span className="rubric">Browser-only session</span>
+        <h1>Разбор попытки</h1>
+        <p className="muted">Результат, поза и видео хранятся только в IndexedDB этого браузера.</p>
+      </div>
+      <ResultView session={session} reference={reference} />
       <div className="row">
-        {session.movement_id && <Link className="button ghost" to={`/movements/${session.movement_id}`}>К движению</Link>}
+        <Link className="button ghost" to={`/movements/${session.movementId}`}>К движению</Link>
         <button type="button" className="ghost" onClick={() => void remove()}>Удалить попытку</button>
       </div>
     </main>
   );
 }
 
-function ResultView({ result }: { result: ComparisonResult }) {
-  const [referencePose, setReferencePose] = useState<PoseSequence | null>(null);
-  const [attemptPose, setAttemptPose] = useState<PoseSequence | null>(null);
-  const [referenceNorm, setReferenceNorm] = useState<PoseSequence | null>(null);
-  const [attemptNorm, setAttemptNorm] = useState<PoseSequence | null>(null);
-
-  useEffect(() => {
-    let alive = true;
-    async function load(url: string | undefined, space: string) {
-      if (!url) return null;
-      try {
-        return await getPose(space === "image" ? url : `${url}?space=${space}`);
-      } catch {
-        return null;
-      }
-    }
-    void Promise.all([
-      load(result.reference_pose_url, "image"),
-      load(result.attempt_pose_url, "image"),
-      load(result.reference_pose_url, "normalized"),
-      load(result.attempt_pose_url, "normalized"),
-    ]).then(([refImage, attImage, refNorm, attNorm]) => {
-      if (!alive) return;
-      setReferencePose(refImage);
-      setAttemptPose(attImage);
-      setReferenceNorm(refNorm);
-      setAttemptNorm(attNorm);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [result]);
+function ResultView({ session, reference }: { session: LocalSession; reference: LocalReference | null }) {
+  const result = session.result;
+  const attemptUrl = useMemo(() => URL.createObjectURL(session.video), [session.video]);
+  const referenceUrl = useMemo(() => reference ? URL.createObjectURL(reference.video) : null, [reference]);
+  useEffect(() => () => {
+    URL.revokeObjectURL(attemptUrl);
+    if (referenceUrl) URL.revokeObjectURL(referenceUrl);
+  }, [attemptUrl, referenceUrl]);
 
   if (!result.reliable) {
     return (
       <section className="callout">
-        <h1>Не удалось надёжно проанализировать</h1>
+        <h2>Не удалось надёжно проанализировать</h2>
         <p>{result.message}</p>
       </section>
     );
@@ -132,36 +77,35 @@ function ResultView({ result }: { result: ComparisonResult }) {
 
   return (
     <section className="stack">
-      <div>
-        <h1>Что отличается от эталона</h1>
-        {result.message && <p className="lede">{result.message}</p>}
-      </div>
       <div className="feedback">
+        {result.feedback.length === 0 && <p className="callout">Крупных расхождений с этой записью не найдено.</p>}
         {result.feedback.map((item) => (
           <article key={`${item.feature}-${item.phase_name}`} className={`note ${item.severity}`}>
             <p>{item.message}</p>
           </article>
         ))}
       </div>
-      <div className="score">
+      <div className="score manuscript-panel">
         <span>
           Схожесть с этой записью
           <br />
           <span className="muted">Не оценка техники и не рейтинг.</span>
         </span>
-        <strong>{result.similarity?.toFixed(0)}</strong>
+        <strong>{result.similarity?.toFixed(0) ?? "—"}</strong>
       </div>
-      {result.reference_video_url && result.attempt_video_url && (
+      {reference && referenceUrl ? (
         <ComparisonPlayer
-          referenceSrc={result.reference_video_url}
-          attemptSrc={result.attempt_video_url}
-          referencePose={referencePose}
-          attemptPose={attemptPose}
-          referenceNorm={referenceNorm}
-          attemptNorm={attemptNorm}
+          referenceSrc={referenceUrl}
+          attemptSrc={attemptUrl}
+          referencePose={reference.pose}
+          attemptPose={session.pose}
+          referenceNorm={null}
+          attemptNorm={session.normalizedPose}
           alignment={result.alignment}
           markers={result.timeline_markers}
         />
+      ) : (
+        <p className="callout">Эталон был удалён после анализа. Численный результат сохранился, но синхронное видео сравнить уже нельзя.</p>
       )}
       <Diagnostics result={result} />
     </section>
@@ -218,8 +162,8 @@ function ComparisonPlayer({
       const attemptMs = attemptTime(alignment, timeRef.current);
       seek(refVideo.current, timeRef.current / 1000);
       seek(attVideo.current, attemptMs / 1000);
-      paint(refCanvas.current, refVideo.current, frameAt(referencePose, timeRef.current), "#e2c48a");
-      paint(attCanvas.current, attVideo.current, frameAt(attemptPose, attemptMs), "#8eb7d6");
+      paint(refCanvas.current, refVideo.current, frameAt(referencePose, timeRef.current), "#8a3a23");
+      paint(attCanvas.current, attVideo.current, frameAt(attemptPose, attemptMs), "#b8211b");
       paintOverlay(overlayCanvas.current, frameAt(referenceNorm, timeRef.current), frameAt(attemptNorm, attemptMs));
       if (now - lastUi > 80) {
         lastUi = now;
@@ -252,9 +196,7 @@ function ComparisonPlayer({
             {value}×
           </button>
         ))}
-        <button type="button" className={mode === "split" ? "ghost active" : "ghost"} onClick={() => setMode("split")}>
-          Рядом
-        </button>
+        <button type="button" className={mode === "split" ? "ghost active" : "ghost"} onClick={() => setMode("split")}>Рядом</button>
         <button
           type="button"
           className={mode === "overlay" ? "ghost active" : "ghost"}
@@ -263,10 +205,6 @@ function ComparisonPlayer({
         >
           Наложение
         </button>
-      </div>
-      <div className="legend">
-        <span><i className="swatch ref" /> эталон</span>
-        <span><i className="swatch you" /> попытка</span>
       </div>
       {mode === "split" ? (
         <div className="stage-grid split">
@@ -282,7 +220,7 @@ function ComparisonPlayer({
               <video ref={attVideo} src={attemptSrc} playsInline muted preload="auto" />
               <canvas ref={attCanvas} className="overlay" />
             </div>
-            <figcaption className="muted">Ваша попытка</figcaption>
+            <figcaption className="muted">Попытка</figcaption>
           </figure>
         </div>
       ) : (
@@ -313,32 +251,24 @@ function ComparisonPlayer({
 }
 
 function Diagnostics({ result }: { result: ComparisonResult }) {
-  const rows = Object.entries(result.metrics).flatMap(([feature, metric]) => {
-    if (!metric || typeof metric !== "object" || !("phases" in metric)) return [];
-    return Object.entries(metric.phases).map(([phase, values]) => ({
+  const rows = Object.entries(result.metrics).flatMap(([feature, metric]) =>
+    Object.entries(metric.phases).map(([phase, values]) => ({
       feature: metric.label || feature,
       phase: PHASE[phase] ?? phase,
       ...values,
       unit: metric.unit,
-    }));
-  });
+    })),
+  );
+
   return (
     <details>
       <summary>Подробные измерения</summary>
       <p className="muted">
         Поза нашлась в {Math.round((result.quality.pose_detection_ratio ?? 0) * 100)}% кадров.
-        Числа — в длинах корпуса или в градусах, ноль таза совмещён у обеих записей.
+        DTW, признаки и feedback рассчитаны локально в браузере.
       </p>
       <table>
-        <thead>
-          <tr>
-            <th>Признак</th>
-            <th>Фаза</th>
-            <th>Эталон</th>
-            <th>Попытка</th>
-            <th>Разница</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Признак</th><th>Фаза</th><th>Эталон</th><th>Попытка</th><th>Разница</th></tr></thead>
         <tbody>
           {rows.map((row) => (
             <tr key={`${row.feature}-${row.phase}`}>
@@ -357,52 +287,24 @@ function Diagnostics({ result }: { result: ComparisonResult }) {
 
 function formatMetric(value: number, unit: string) {
   if (!Number.isFinite(value)) return "—";
-  if (unit === "degrees") return `${value.toFixed(0)}°`;
-  return value.toFixed(2);
+  return unit === "degrees" ? `${value.toFixed(0)}°` : value.toFixed(2);
 }
-
 function attemptTime(alignment: AlignmentPair[], referenceMs: number) {
-  if (alignment.length === 0) return 0;
-  let low = 0;
-  let high = alignment.length - 1;
-  while (low < high) {
-    const mid = (low + high) >> 1;
-    if (alignment[mid].reference_time_ms < referenceMs) low = mid + 1;
-    else high = mid;
-  }
-  const next = alignment[low];
-  const prev = alignment[Math.max(0, low - 1)];
-  return Math.abs(prev.reference_time_ms - referenceMs) <= Math.abs(next.reference_time_ms - referenceMs)
-    ? prev.attempt_time_ms
-    : next.attempt_time_ms;
+  if (!alignment.length) return 0;
+  let low=0,high=alignment.length-1;
+  while(low<high){const mid=(low+high)>>1;if(alignment[mid].reference_time_ms<referenceMs)low=mid+1;else high=mid;}
+  const next=alignment[low],prev=alignment[Math.max(0,low-1)];
+  return Math.abs(prev.reference_time_ms-referenceMs)<=Math.abs(next.reference_time_ms-referenceMs)?prev.attempt_time_ms:next.attempt_time_ms;
 }
-
 function seek(video: HTMLVideoElement | null, seconds: number) {
-  if (!video || !Number.isFinite(seconds)) return;
-  if (video.readyState < 1) return;
+  if (!video || !Number.isFinite(seconds) || video.readyState < 1) return;
   if (Math.abs(video.currentTime - seconds) > 0.045) video.currentTime = seconds;
 }
-
-function paint(
-  canvas: HTMLCanvasElement | null,
-  video: HTMLVideoElement | null,
-  pose: ReturnType<typeof frameAt>,
-  color: string,
-) {
-  if (!canvas || !video) return;
-  const fitted = fitCanvas(canvas);
-  if (!fitted) return;
-  drawImageSkeleton(fitted.ctx, video, pose, color);
+function paint(canvas:HTMLCanvasElement|null,video:HTMLVideoElement|null,pose:ReturnType<typeof frameAt>,color:string){
+  if(!canvas||!video)return;const fitted=fitCanvas(canvas);if(fitted)drawImageSkeleton(fitted.ctx,video,pose,color);
 }
-
-function paintOverlay(
-  canvas: HTMLCanvasElement | null,
-  reference: ReturnType<typeof frameAt>,
-  attempt: ReturnType<typeof frameAt>,
-) {
-  if (!canvas) return;
-  const fitted = fitCanvas(canvas);
-  if (!fitted) return;
-  drawNormalizedSkeleton(fitted.ctx, fitted.width, fitted.height, reference, "#e2c48a", fitted.width * 0.5);
-  drawNormalizedSkeleton(fitted.ctx, fitted.width, fitted.height, attempt, "#8eb7d6", fitted.width * 0.5);
+function paintOverlay(canvas:HTMLCanvasElement|null,reference:ReturnType<typeof frameAt>,attempt:ReturnType<typeof frameAt>){
+  if(!canvas)return;const fitted=fitCanvas(canvas);if(!fitted)return;
+  drawNormalizedSkeleton(fitted.ctx,fitted.width,fitted.height,reference,"#8a3a23",fitted.width*.5);
+  drawNormalizedSkeleton(fitted.ctx,fitted.width,fitted.height,attempt,"#b8211b",fitted.width*.5);
 }
