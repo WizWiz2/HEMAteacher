@@ -3,9 +3,8 @@ import { compareMotion } from "./compare";
 import { alignDtw } from "./dtw";
 import { extractOfflineFeatures } from "./features";
 import { normalizeSequence } from "./normalize";
-import { FOOTWORK_PROFILE } from "./profile";
 import { segmentMotion } from "./segmentation";
-import type { BrowserAnalysis, PreparedMotion } from "./types";
+import type { AnalysisProfile, BrowserAnalysis, PreparedMotion } from "./types";
 
 export function prepareMotion(sequence: PoseSequence): { normalized: PoseSequence; prepared: PreparedMotion } {
   const normalized=sequence.space==="normalized"?sequence:normalizeSequence(sequence);
@@ -19,11 +18,16 @@ export function prepareMotion(sequence: PoseSequence): { normalized: PoseSequenc
   return {normalized,prepared};
 }
 
-export function analyzeSequences(movementId:string,referenceImage:PoseSequence,attemptImage:PoseSequence):BrowserAnalysis {
+export function analyzeSequences(
+  movementId:string,
+  referenceImage:PoseSequence,
+  attemptImage:PoseSequence,
+  profile:AnalysisProfile,
+):BrowserAnalysis {
   const ref=prepareMotion(referenceImage);
   const att=prepareMotion(attemptImage);
-  const alignment=alignDtw(ref.prepared,att.prepared,FOOTWORK_PROFILE.dtw_features);
-  const result=compareMotion(ref.prepared,att.prepared,alignment.pairs,FOOTWORK_PROFILE,movementId);
+  const alignment=alignDtw(ref.prepared,att.prepared,profile.dtw_features);
+  const result=compareMotion(ref.prepared,att.prepared,alignment.pairs,profile,movementId);
   result.quality={
     reliable:true,
     pose_detection_ratio:poseDetectionRatio(attemptImage),
