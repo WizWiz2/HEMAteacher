@@ -52,11 +52,7 @@ jobs:
         shell: cmd
         run: python launcher.py --help
       - name: Ensure PowerShell launcher is gone
-        shell: powershell
+        shell: cmd
         run: |
-          if (Test-Path .\start.ps1) {
-            throw "start.ps1 must not exist"
-          }
-          if (-not (Select-String -Path .\start.bat -Pattern "launcher.py" -Quiet)) {
-            throw "start.bat does not invoke launcher.py"
-          }
+          if exist start.ps1 exit /b 1
+          findstr /I /C:"powershell" start.bat && exit /b 1 || exit /b 0
