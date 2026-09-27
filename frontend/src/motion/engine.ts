@@ -1,4 +1,6 @@
 import type { PoseSequence } from "../types";
+import { BodyProfileCalibrator, retargetPose, type BodyProfile } from "../live/anatomy";
+import type { RawPose } from "../live/landmarks";
 import { compareMotion } from "./compare";
 import { alignDtw } from "./dtw";
 import { extractOfflineFeatures } from "./features";
@@ -8,14 +10,7 @@ import type { AnalysisProfile, BrowserAnalysis, PreparedMotion } from "./types";
 
 export function prepareMotion(sequence: PoseSequence): { normalized: PoseSequence; prepared: PreparedMotion } {
   const normalized=sequence.space==="normalized"?sequence:normalizeSequence(sequence);
-  const features=extractOfflineFeatures(normalized);
-  const prepared:PreparedMotion={
-    fps:normalized.fps,
-    timestamps_ms:normalized.frames.map(frame=>frame.timestamp_ms),
-    features,
-    phases:segmentMotion(features,normalized.fps),
-  };
-  return {normalized,prepared};
+  return { normalized, prepared: prepareNormalized(normalized) };
 }
 
 export function analyzeSequences(
@@ -24,21 +19,69 @@ export function analyzeSequences(
   attemptImage:PoseSequence,
   profile:AnalysisProfile,
 ):BrowserAnalysis {
-  const ref=prepareMotion(referenceImage);
-  const att=prepareMotion(attemptImage);
-  const alignment=alignDtw(ref.prepared,att.prepared,profile.dtw_features);
-  const result=compareMotion(ref.prepared,att.prepared,alignment.pairs,profile,movementId);
+  const referenceNormalized = referenceImage.space === "normalized" ? referenceImage : normalizeSequence(referenceImage);
+  const attemptNormalized = attemptImage.space === "normalized" ? attemptImage : normalizeSequence(attemptImage);
+
+  // Technique should be compared on the user's anatomy, not the trainer's limb lengths.
+  // The attempt supplies the body proportions; the reference keeps its joint directions
+  // but is retargeted to those proportions before features/DTW are calculated.
+  const attemptBodyProfile = bodyProfileFromSequence(attemptNormalized);
+  const personalizedReference = attemptBodyProfile
+    ? retargetSequence(referenceNormalized, attemptBodyProfile)
+    : referenceNormalized;
+  const canonicalAttempt = attemptBodyProfile
+    ? retargetSequence(attemptNormalized, attemptBodyProfile)
+    : attemptNormalized;
+
+  const refPrepared=prepareNormalized(personalizedReference);
+  const attPrepared=prepareNormalized(canonicalAttempt);
+  const alignment=alignDtw(refPrepared,attPrepared,profile.dtw_features);
+  const result=compareMotion(refPrepared,attPrepared,alignment.pairs,profile,movementId);
   result.quality={
     reliable:true,
     pose_detection_ratio:poseDetectionRatio(attemptImage),
-    reasons:[],
+    reasons:attemptBodyProfile ? [] : ["Не удалось надёжно оценить пропорции тела; использован неперсонализированный эталон."],
   };
   return {
     result,
     referenceImage,
-    referenceNormalized:ref.normalized,
+    referenceNormalized:personalizedReference,
     attemptImage,
-    attemptNormalized:att.normalized,
+    attemptNormalized:canonicalAttempt,
+  };
+}
+
+function prepareNormalized(normalized:PoseSequence):PreparedMotion {
+  const features=extractOfflineFeatures(normalized);
+  return {
+    fps:normalized.fps,
+    timestamps_ms:normalized.frames.map(frame=>frame.timestamp_ms),
+    features,
+    phases:segmentMotion(features,normalized.fps),
+  };
+}
+
+function bodyProfileFromSequence(sequence:PoseSequence):BodyProfile|null {
+  const calibrator=new BodyProfileCalibrator();
+  for(const frame of sequence.frames) {
+    const raw:RawPose={
+      timestampMs:frame.timestamp_ms,
+      width:1,
+      height:1,
+      landmarks:frame.landmarks,
+    };
+    calibrator.push(raw);
+  }
+  return calibrator.build();
+}
+
+function retargetSequence(sequence:PoseSequence,profile:BodyProfile):PoseSequence {
+  return {
+    ...sequence,
+    frames:sequence.frames.map((frame)=>({
+      timestamp_ms:frame.timestamp_ms,
+      landmarks:retargetPose({landmarks:frame.landmarks},profile).landmarks,
+    })),
   };
 }
 

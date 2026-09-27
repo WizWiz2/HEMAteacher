@@ -1094,3 +1094,34 @@ button.active {
     font-size: .6rem;
   }
 }
+
+
+/* CR-004 — personalized anatomy */
+.anatomy-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 11px;
+  border: 1px dashed var(--ochre);
+  background: rgba(173, 109, 33, .08);
+  color: var(--ink-soft);
+  font-size: .78rem;
+  font-weight: 700;
+}
+.anatomy-chip.ready {
+  border-style: solid;
+  border-color: #547454;
+  background: rgba(61, 107, 65, .10);
+  color: var(--green-ink);
+}
+.anatomy-reset {
+  font-size: .78rem;
+}
+
+@media (max-width: 650px) {
+  .anatomy-chip,
+  .anatomy-reset {
+    width: 100%;
+    justify-content: center;
+  }
+}

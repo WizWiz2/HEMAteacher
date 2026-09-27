@@ -27,6 +27,40 @@ function normalizedSequence(offset=0):PoseSequence{
   return {fps:15,duration_ms:737,space:"normalized",width:1,height:1,frames};
 }
 
+
+function anatomySequence(legScale:number):PoseSequence{
+  const frames=Array.from({length:12},(_,index)=>{
+    const phase=index/11;
+    const leftX=-.42+phase*.14;
+    const rightX=.42+phase*.14;
+    const leftHip=p(-.08,0,-.08),rightHip=p(.08,0,.08);
+    const leg=(hip:Landmark,x:number,z:number)=>{
+      const dx=x-hip.x;
+      const knee=p(hip.x+dx*.5*legScale,-.5*legScale,z);
+      const ankle=p(hip.x+dx*legScale,-1*legScale,z);
+      return {knee,ankle};
+    };
+    const left=leg(leftHip,leftX,-.08),right=leg(rightHip,rightX,.08);
+    return {
+      timestamp_ms:index*67,
+      landmarks:{
+        nose:p(.08,1.35),
+        left_shoulder:p(-.1,1,-.1),right_shoulder:p(.1,1,.1),
+        left_elbow:p(-.35,.78,-.1),right_elbow:p(.35,.78,.1),
+        left_wrist:p(-.58,.58,-.1),right_wrist:p(.58,.58,.1),
+        left_hip:leftHip,right_hip:rightHip,
+        left_knee:left.knee,right_knee:right.knee,
+        left_ankle:left.ankle,right_ankle:right.ankle,
+        left_heel:p(left.ankle.x-.05*legScale,left.ankle.y-.02,-.08),
+        right_heel:p(right.ankle.x-.05*legScale,right.ankle.y-.02,.08),
+        left_foot_index:p(left.ankle.x+.12*legScale,left.ankle.y-.02,-.08),
+        right_foot_index:p(right.ankle.x+.12*legScale,right.ankle.y-.02,.08),
+      },
+    };
+  });
+  return {fps:15,duration_ms:737,space:"normalized",width:1,height:1,frames};
+}
+
 const PROFILE:AnalysisProfile={
   id:"test",scale_strategy:"torso_length",scale_scope:"sequence",
   dtw_features:["left_ankle_x","right_ankle_x","foot_distance","pelvis_height"],
@@ -52,6 +86,11 @@ describe("browser motion engine",()=>{
     const result=analyzeSequences("advance",normalizedSequence(),normalizedSequence(.4),PROFILE).result;
     expect(result.similarity ?? 100).toBeLessThan(100);
     expect(result.feedback.length).toBeGreaterThan(0);
+  });
+
+  it("does not punish the same movement performed with longer legs",()=>{
+    const result=analyzeSequences("advance",anatomySequence(1),anatomySequence(1.28),PROFILE).result;
+    expect(result.similarity).toBeGreaterThan(96);
   });
 
   it("normalizes image coordinates around the hips using one sequence scale",()=>{
