@@ -50,10 +50,19 @@ export class BodyProfileCalibrator {
   }
 
   ready(mode: TrackingMode, minimumSamples = 12): boolean {
-    const upper = ["shoulderWidth", "leftUpperArm", "rightUpperArm", "leftForearm", "rightForearm"] as Metric[];
-    const lower = ["hipWidth", "leftThigh", "rightThigh", "leftShin", "rightShin"] as Metric[];
-    const required = mode === "upper_body" ? upper : [...upper, ...lower];
-    return required.every((metric) => (this.values.get(metric)?.length ?? 0) >= minimumSamples);
+    const enoughEitherSide = (left: Metric, right: Metric) =>
+      Math.max(this.values.get(left)?.length ?? 0, this.values.get(right)?.length ?? 0) >= minimumSamples;
+
+    const upperReady =
+      enoughEitherSide("leftUpperArm", "rightUpperArm") &&
+      enoughEitherSide("leftForearm", "rightForearm");
+    if (mode === "upper_body") return upperReady;
+
+    return (
+      upperReady &&
+      enoughEitherSide("leftThigh", "rightThigh") &&
+      enoughEitherSide("leftShin", "rightShin")
+    );
   }
 
   build(previous: BodyProfile | null = null): BodyProfile | null {
@@ -75,18 +84,27 @@ export class BodyProfileCalibrator {
       ...patch,
     };
 
+    mirrorMissingBilateral(next);
     if (!previous) return next;
-    return blendProfiles(previous, next, 0.28);
+    const blended = blendProfiles(previous, next, 0.28);
+    mirrorMissingBilateral(blended);
+    return blended;
   }
 }
 
 export function profileCoverage(profile: BodyProfile | null, mode: TrackingMode): number {
   if (!profile) return 0;
-  const upper: Metric[] = ["shoulderWidth", "leftUpperArm", "rightUpperArm", "leftForearm", "rightForearm"];
-  const lower: Metric[] = ["hipWidth", "leftThigh", "rightThigh", "leftShin", "rightShin"];
-  const required = mode === "upper_body" ? upper : [...upper, ...lower];
-  const present = required.filter((metric) => typeof profile[metric] === "number").length;
-  return present / required.length;
+  const groups: Array<[Metric, Metric]> = [
+    ["leftUpperArm", "rightUpperArm"],
+    ["leftForearm", "rightForearm"],
+  ];
+  if (mode === "full_body") {
+    groups.push(["leftThigh", "rightThigh"], ["leftShin", "rightShin"]);
+  }
+  const present = groups.filter(([left, right]) =>
+    typeof profile[left] === "number" || typeof profile[right] === "number",
+  ).length;
+  return present / groups.length;
 }
 
 export function retargetPose(target: TargetPose, profile: BodyProfile | null): TargetPose {
@@ -216,6 +234,21 @@ function retargetFoot(
     const scaleFactor = footLength && toe ? footLength / Math.max(distance(sourceAnkle, toe), 1e-6) : 1;
     const vector = scale(sub(heel, sourceAnkle), scaleFactor);
     out[heelName] = withVisibility(add(ankle, vector), heel.visibility);
+  }
+}
+
+function mirrorMissingBilateral(profile: BodyProfile): void {
+  const pairs: Array<[Metric, Metric]> = [
+    ["leftUpperArm", "rightUpperArm"],
+    ["leftForearm", "rightForearm"],
+    ["leftThigh", "rightThigh"],
+    ["leftShin", "rightShin"],
+    ["leftFoot", "rightFoot"],
+  ];
+  for (const [left, right] of pairs) {
+    const a = profile[left], b = profile[right];
+    if (typeof a === "number" && typeof b !== "number") profile[right] = a;
+    if (typeof b === "number" && typeof a !== "number") profile[left] = b;
   }
 }
 
