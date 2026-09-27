@@ -1,0 +1,23 @@
+[
+  {
+    "asset": "parchment",
+    "prompt": "Use case: stylized-concept. Asset type: repeating background texture for a readable Renaissance manuscript themed HEMA training web app. Create one square 1024x1024 seamless tile of subtle aged warm cream parchment. Very fine paper fibers and faint irregular speckle with understated natural tonal variation, softly worn but clean. Warm pale ivory cream (#eee1c4 overall). Flat evenly lit full bleed texture, no focal point. Opposite edges should tile seamlessly. Avoid burns, strong stains, creases, shadows, vignettes, text, symbols, frames, borders, illustrations. Low contrast so black interface text stays highly readable.",
+    "tool": "image_gen.imagegen (built-in)",
+    "transparent_background": false,
+    "output_hint": "Generated images are saved to /workspace/scratch/bbf6b02919fe/generated_images as /workspace/scratch/bbf6b02919fe/generated_images/exec-431cf39a-dd11-4707-a23b-65fd430d2380.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+  },
+  {
+    "asset": "frame",
+    "prompt": "Use case: stylized-concept. Asset type: square transparent PNG ornamental Renaissance manuscript UI frame for CSS border-image nine-slice. Create one square image, 1024 by 1024 requested. Actual alpha-transparent background including vast empty center. Frame runs close to outer edges, thin slightly irregular double black ink rectangular outline. Tiny delicate burgundy red vegetal pen flourishes confined strictly to the 90 by 90 pixel corner squares. Fine subtly imperfect historical penwork like a sixteenth-century German fencing manuscript; delicate restrained ornament. Each long straight edge between corners has only the two thin black lines, with no ornament crossing the 90 pixel corner region. Center must be completely empty alpha transparency. Do not draw paper, white fill, checkerboard, shadows, words, lettering, text, shields or extra objects. Border occupies only outer perimeter. Keep full frame visible with about 8 pixel transparent outer margin.",
+    "tool": "image_gen.imagegen (built-in)",
+    "transparent_background": true,
+    "output_hint": "Generated images are saved to /workspace/scratch/bbf6b02919fe/generated_images as /workspace/scratch/bbf6b02919fe/generated_images/exec-977fa719-c42c-466c-94bd-5357d11527e3.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+  },
+  {
+    "asset": "fencers",
+    "prompt": "Use case: historical-scene. Asset type: transparent decorative header vignette for a Renaissance German longsword training web app. Create one wide horizontal composition, approximately 3:1 aspect ratio. Two full-body Renaissance German longsword fencers face each other in practice, one on left with forward extended sword, one on right holding sword in a high guard, each gripping the longsword with both hands. Sixteenth-century doublets, hose, soft shoes, small caps. Thin black ink woodcut engraving with delicate hand hatching, period fencing-manual illustration, elegant lively gestures. Restrained tiny leafy plants and a few ground marks below feet, no scene background. Entire figures and swords fully visible within image with modest padding. Genuine alpha transparency everywhere between ink marks, no white or cream paper fill. Black ink only, no typography, no letters, no labels, no border, no watermark, no checkerboard. Intended to match an antique German fencing manuscript marginal illustration with fine detailed black etched lines.",
+    "tool": "image_gen.imagegen (built-in)",
+    "transparent_background": true,
+    "output_hint": "Generated images are saved to /workspace/scratch/bbf6b02919fe/generated_images as /workspace/scratch/bbf6b02919fe/generated_images/exec-0d928447-7f21-44d9-a650-3267669282b7.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+  }
+]

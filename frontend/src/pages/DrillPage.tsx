@@ -195,7 +195,7 @@ export function DrillPage() {
           <section className="drill-heading manuscript-panel">
             <div>
               <span className="rubric">{categoryTitle(drill.category)}</span>
-              <h1>{drill.name}</h1>
+              <h1 className={drill.category === "meisterhau" ? "latin-drill-title" : undefined}>{drill.name}</h1>
               <p>{drill.description}</p>
             </div>
             <div className="checkpoint-counter">

@@ -53,48 +53,45 @@ function EngravingPose({ pose, facing, title }: { pose: TargetPoseData; facing: 
   const swordGrip = pose.sword ? project(pose.sword.grip.x * mirror, pose.sword.grip.y) : null;
   const swordTip = pose.sword ? project(pose.sword.tip.x * mirror, pose.sword.tip.y) : null;
 
-  const torso = ls && rs && lh && rh
-    ? `${ls[0]},${ls[1]} ${rs[0]},${rs[1]} ${rh[0]},${rh[1]} ${lh[0]},${lh[1]}`
-    : "";
+  const shoulders: [number, number] | null = ls && rs ? [(ls[0] + rs[0]) / 2, (ls[1] + rs[1]) / 2] : null;
+  const hips: [number, number] | null = lh && rh ? [(lh[0] + rh[0]) / 2, (lh[1] + rh[1]) / 2] : null;
+  const limb = (a: string, b: string, asset: string, width: number) => {
+    const from = point(a), to = point(b);
+    return from && to ? <EngravedSegment key={a+b} from={from} to={to} asset={asset} width={width} /> : null;
+  };
 
   return (
     <svg className="target-pose-svg engraving" viewBox="0 0 360 430" role="img" aria-label={title}>
-      <defs>
-        <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
-          <line x1="0" y1="0" x2="0" y2="7" stroke="#3e2a18" strokeWidth="1.2" opacity="0.55" />
-        </pattern>
-        <filter id="roughInk">
-          <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="11" result="noise" />
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-      </defs>
+      <text x="26" y="38" fill="#962820" fontFamily="Cormorant Garamond, Georgia, serif" fontSize="25" fontWeight="700">{title}</text>
+      <text x="26" y="59" fill="#66513c" fontFamily="PT Serif, Georgia, serif" fontSize="12">Целевая поза · вид сбоку</text>
+      <line x1="28" y1="355" x2="332" y2="355" stroke="#745b40" strokeWidth="1" opacity="0.55" />
 
-      <rect width="360" height="430" rx="10" fill="#ead5a7" />
-      <rect x="9" y="9" width="342" height="412" fill="none" stroke="#6a3e22" strokeWidth="2" />
-      <rect x="15" y="15" width="330" height="400" fill="none" stroke="#9a6b3d" strokeWidth="1" />
-      <path d="M22 34 C70 15, 96 18, 126 30 M238 30 C274 16, 312 18, 338 34" fill="none" stroke="#7e1f1a" strokeWidth="2" opacity="0.8" />
-      <text x="26" y="48" fill="#7e1f1a" fontFamily="Georgia, serif" fontSize="15" fontWeight="700">{title}</text>
-      <text x="26" y="67" fill="#6a3e22" fontFamily="Georgia, serif" fontSize="11">FIGURA EXEMPLARIS · боковой ракурс</text>
-      <line x1="28" y1="355" x2="332" y2="355" stroke="#6a3e22" strokeWidth="2" />
-
-      <g filter="url(#roughInk)" opacity="0.96">
-        {torso && <polygon points={torso} fill="url(#hatch)" stroke="#3e2a18" strokeWidth="8" strokeLinejoin="round" />}
-        {EDGES.filter(([a,b]) => !["left_shoulder,right_shoulder","left_shoulder,left_hip","right_shoulder,right_hip","left_hip,right_hip"].includes(`${a},${b}`)).map(([a, b]) => {
-          const pa = point(a), pb = point(b);
-          return pa && pb ? (
-            <line key={"body-"+a+b} x1={pa[0]} y1={pa[1]} x2={pb[0]} y2={pb[1]} stroke="#3e2a18" strokeWidth="18" strokeLinecap="round" />
-          ) : null;
-        })}
-        {nose && (
-          <>
-            <circle cx={nose[0]} cy={nose[1]-2} r="23" fill="#d5b47c" stroke="#3e2a18" strokeWidth="5" />
-            <path d={`M ${nose[0]-12} ${nose[1]-4} q 12 -7 25 1 M ${nose[0]-8} ${nose[1]+7} q 9 5 18 0`} fill="none" stroke="#3e2a18" strokeWidth="2" />
-          </>
+      <g className="engraved-figure">
+        {(['right', 'left'] as const).map((side) => (
+          <g key={side} opacity={side === 'right' ? .82 : 1}>
+            {limb(`${side}_hip`, `${side}_knee`, 'rig-hose', 29)}
+            {limb(`${side}_knee`, `${side}_ankle`, 'rig-hose', 23)}
+            {point(`${side}_ankle`) && (
+              <g transform={`translate(${point(`${side}_ankle`)!.join(' ')}) scale(${mirror} 1)`}>
+                <image href={`${import.meta.env.BASE_URL}theme/rig-boot.webp`} x="-10" y="-5" width="35" height="19" preserveAspectRatio="none" />
+              </g>
+            )}
+          </g>
+        ))}
+        {limb('right_shoulder', 'right_elbow', 'rig-sleeve', 28)}
+        {limb('right_elbow', 'right_wrist', 'rig-sleeve', 23)}
+        {shoulders && hips && (
+          <EngravedSegment from={[shoulders[0], shoulders[1] - 9]} to={[hips[0], hips[1] + 7]} asset="rig-torso" width={63} mirror={mirror} />
         )}
+        {nose && <g transform={`translate(${nose.join(' ')}) scale(${mirror} 1)`}>
+          <image href={`${import.meta.env.BASE_URL}theme/rig-head.webp`} x="-24" y="-28" width="48" height="51" preserveAspectRatio="xMidYMid meet" />
+        </g>}
+        {limb('left_shoulder', 'left_elbow', 'rig-sleeve', 28)}
+        {limb('left_elbow', 'left_wrist', 'rig-sleeve', 23)}
       </g>
 
       {swordGrip && swordTip && (
-        <g filter="url(#roughInk)">
+        <g>
           <line x1={swordGrip[0]} y1={swordGrip[1]} x2={swordTip[0]} y2={swordTip[1]} stroke="#342313" strokeWidth="8" strokeLinecap="round" />
           <line x1={swordGrip[0]-14} y1={swordGrip[1]+3} x2={swordGrip[0]+14} y2={swordGrip[1]-3} stroke="#342313" strokeWidth="5" />
         </g>
@@ -113,12 +110,26 @@ function EngravingPose({ pose, facing, title }: { pose: TargetPoseData; facing: 
         })}
       </g>
 
-      <text x="28" y="390" fill="#4c321d" fontFamily="Georgia, serif" fontSize="12">Красные линии — то, что сравнивает система.</text>
-      <text x="28" y="407" fill="#4c321d" fontFamily="Georgia, serif" fontSize="12">Гравюра и machine target — одна и та же поза.</text>
+      <text x="180" y="391" textAnchor="middle" fill="#66513c" fontFamily="PT Serif, Georgia, serif" fontSize="13">Красным отмечены опорные точки.</text>
     </svg>
   );
 }
 
 function project(x: number, y: number): [number, number] {
   return [110 + (x + 0.8) * 82, 345 - (y + 1.1) * 97];
+}
+
+/** Raster clothing follows the same endpoints as the measured target skeleton. */
+function EngravedSegment({ from, to, asset, width, mirror = 1 }: {
+  from: [number, number]; to: [number, number]; asset: string; width: number; mirror?: number;
+}) {
+  const length = Math.hypot(to[0] - from[0], to[1] - from[1]);
+  if (length < 1) return null;
+  const angle = Math.atan2(to[1] - from[1], to[0] - from[0]) * 180 / Math.PI - 90;
+  return <image
+    href={`${import.meta.env.BASE_URL}theme/${asset}.webp`}
+    transform={`translate(${from.join(' ')}) rotate(${angle}) scale(${mirror} 1)`}
+    x={-width / 2} y={-length * .04} width={width} height={length * 1.08}
+    preserveAspectRatio="none"
+  />;
 }

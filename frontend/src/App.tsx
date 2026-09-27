@@ -16,6 +16,7 @@ export function App() {
           <span className="brand-mark">H</span>
           <span>HEMA Trainer</span>
         </Link>
+        <img className="masthead-engraving" src={`${import.meta.env.BASE_URL}theme/longsword-fencers.webp`} alt="" aria-hidden="true" width="300" height="100" />
         <NavigationMenu />
       </header>
       <Routes>

@@ -1,0 +1,262 @@
+/* The manuscript theme is visual only; responsive training geometry lives in styles.css. */
+:root {
+  --paper: #f1e2ce;
+  --paper-deep: #d1b88e;
+  --paper-light: #f2e4ca;
+  --ink: #281d14;
+  --ink-soft: #66513c;
+  --rubric: #a52b22;
+  --rubric-dark: #772019;
+  --line: #745b40;
+  --green-ink: #35613f;
+  --ochre: #99611d;
+  --shadow-ink: rgba(58, 38, 20, .1);
+  --bg-raise: rgba(255, 249, 232, .28);
+  --brass: var(--rubric);
+  --text: var(--ink);
+  --muted: var(--ink-soft);
+  --body-font: "PT Serif", Georgia, serif;
+  --title-font: "Cormorant Garamond", Georgia, serif;
+  --blackletter: "UnifrakturMaguntia", Georgia, serif;
+  font-family: var(--body-font);
+}
+
+html { background: var(--paper); }
+body {
+  font-family: var(--body-font);
+  background-color: var(--paper);
+  background-image: url('/theme/parchment.webp');
+  background-size: 700px 700px;
+  background-blend-mode: multiply;
+  -webkit-font-smoothing: antialiased;
+}
+body::before { content: none; }
+::selection { background: #a52b2233; color: var(--ink); }
+
+.app { padding-top: 12px; }
+.stack { gap: 16px; }
+h1, h2, h3, .target-card figcaption strong, .drill-foot strong {
+  font-family: var(--title-font);
+  font-weight: 700;
+  letter-spacing: -.025em;
+  line-height: 1.08;
+  font-variant-numeric: lining-nums;
+}
+h1 { font-size: clamp(2rem, 3.5vw, 3.25rem); }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.6rem; }
+p { line-height: 1.55; }
+
+.top.manuscript-top {
+  min-height: 90px;
+  align-items: center;
+  padding: 0 8px 10px;
+  border: 0;
+  border-bottom: 4px double var(--ink);
+  box-shadow: none;
+  background: transparent;
+  margin-bottom: 16px;
+  gap: 24px;
+}
+.top.manuscript-top::after { content: none; }
+.brand {
+  font-family: var(--blackletter);
+  font-weight: 400;
+  font-size: clamp(1.8rem, 3.2vw, 2.8rem);
+  line-height: 1.15;
+  letter-spacing: 0;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.brand-mark {
+  background: var(--rubric);
+  border: 3px double #edd6b7;
+  outline: 1px solid var(--rubric-dark);
+  width: 48px;
+  height: 54px;
+  font-family: var(--blackletter);
+  font-weight: 400;
+  font-size: 2.65rem;
+  color: #f5e8cc;
+  box-shadow: none;
+}
+.masthead-engraving {
+  width: 260px;
+  height: 80px;
+  object-fit: contain;
+  margin-left: auto;
+  mix-blend-mode: multiply;
+  opacity: .94;
+}
+.nav-menu summary {
+  min-width: 116px;
+  min-height: 48px;
+  justify-content: center;
+  padding: 8px 22px;
+  border: 3px double var(--ink);
+  background: transparent;
+  font-family: var(--title-font);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.nav-menu[open] summary { color: var(--rubric); }
+.nav-menu nav {
+  background: var(--paper-light) url('/theme/parchment.webp') center / 700px;
+  border: 3px double var(--ink);
+  box-shadow: 0 12px 25px #38271122;
+  padding: 9px;
+}
+.nav-menu nav a { font-size: 1rem; padding: 14px 10px; }
+.nav-menu nav a:last-child { border: 0; }
+
+.manuscript-panel {
+  background: rgba(255, 247, 228, .14);
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+.manuscript-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 30px solid transparent;
+  border-image: url('/theme/manuscript-frame.webp') 225 / 30px / 0 stretch;
+  pointer-events: none;
+  opacity: .92;
+  z-index: 2;
+}
+.manuscript-panel::after { content: none; }
+.rubric {
+  color: var(--rubric);
+  font-family: var(--body-font);
+  font-size: .75rem;
+  letter-spacing: .1em;
+  font-weight: 700;
+  line-height: 1.45;
+}
+.hero-manuscript { padding: 28px 34px 30px; }
+.hero-manuscript h1 { font-family: var(--blackletter); font-weight: 400; letter-spacing: 0; font-size: clamp(2.6rem, 5vw, 4rem); }
+.hero-manuscript p { font-size: 1rem; max-width: 870px; }
+.library-section { gap: 12px; }
+.library-section > h2 {
+  font-size: 1.85rem;
+  color: var(--ink);
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--line);
+}
+.card.manuscript-card {
+  position: relative;
+  padding: 20px;
+  border: 1px solid #7356388c;
+  background: rgba(255, 249, 235, .15);
+  box-shadow: inset 0 0 0 3px #f7ead04d;
+  transition: background-color .15s, border-color .15s;
+}
+.card.manuscript-card:hover {
+  transform: none;
+  background: rgba(255, 249, 235, .42);
+  border-color: var(--rubric);
+}
+.card-top { align-items: start; }
+.card-top h3 { margin-top: 7px; }
+.card.manuscript-card p { font-size: .9375rem; }
+.start-rune { font-size: .9375rem; font-weight: 700; }
+.badge {
+  font-size: .75rem;
+  padding: 5px 7px;
+  border-color: #8d735655;
+  background: #fff4db44;
+  letter-spacing: .03em;
+  margin-top: 3px;
+}
+button, .button {
+  min-height: 44px;
+  font-family: var(--body-font);
+  font-size: .9375rem;
+  font-weight: 700;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 2px #efcf9920;
+  transition: background-color .15s, border-color .15s;
+}
+button:hover:not(:disabled), .button:hover { background-color: var(--rubric-dark); }
+button.ghost, .button.ghost { background: transparent; border-color: #8d7356; box-shadow: none; }
+button.ghost:hover:not(:disabled), .button.ghost:hover { background: #fff3d977; border-color: var(--rubric); }
+button.ghost.active { color: #fff1d7; background: var(--rubric); border-color: var(--rubric-dark); outline: none; }
+:where(a, button, summary, input):focus-visible { outline: 2px solid var(--rubric); outline-offset: 4px; }
+
+.drill-shell { gap: 12px; }
+.drill-heading { padding: 21px 28px; }
+.drill-heading h1 { font-size: clamp(2.4rem, 4vw, 3.8rem); }
+.drill-heading .latin-drill-title { font-family: var(--blackletter); font-weight: 400; letter-spacing: 0; }
+.drill-heading h1::first-letter { color: var(--rubric); }
+.drill-heading p { font-size: .9375rem; line-height: 1.45; }
+.checkpoint-counter { padding: 0 8px 0 24px; min-width: 96px; border-color: #80624766; }
+.checkpoint-counter strong { font-family: var(--title-font); font-size: 2.75rem; font-weight: 700; }
+.checkpoint-counter span { font-size: .875rem; }
+.checkpoint-scroll { padding: 4px 12px; }
+.checkpoint-seal { width: 34px; height: 34px; flex-basis: 34px; border-width: 1px; border-color: var(--ink); background: var(--paper-light); font-family: var(--title-font); font-size: 1.45rem; }
+.checkpoint-seal:not(:last-child)::after { top: 15px; left: 33px; border-width: 1px; }
+.checkpoint-seal.current { box-shadow: none; }
+.training-controls { gap: 10px; padding: 6px 0; }
+.control-label { font-size: .75rem; letter-spacing: .05em; }
+.toggle-control { border-color: #977f5e66; background: #fff5df24; padding: 0 10px; font-size: .875rem; }
+.toggle-control input { width: 17px; height: 17px; accent-color: var(--green-ink); }
+.anatomy-chip, .anatomy-reset { font-size: .8125rem; }
+.callout.compact { background: #b8852410; border: 0; border-left: 2px solid var(--ochre); padding: 6px 12px; color: var(--ink-soft); font-size: .875rem; }
+.camera-pane { border: 4px double #70543a; box-shadow: none; }
+.camera-pane::after { content: ''; position: absolute; inset: 0; border: 24px solid transparent; border-image: url('/theme/manuscript-frame.webp') 225 / 24px / 0 stretch; opacity: .65; pointer-events: none; z-index: 15; }
+.coach-overlay { border: 3px double #e0b894; color: #fff0d8; background: #9e2b24ed; box-shadow: 0 3px 12px #0003; }
+.coach-primary { font-family: var(--title-font); letter-spacing: 0; font-weight: 700; line-height: 1.1; text-shadow: none; }
+.coach-overlay.wait { color: #f2e5cf; background: #251e18e6; border-color: #bea17c; }
+.coach-overlay.good { color: #f2ecd4; background: #37593fe6; border-color: #c2d1b6; }
+.coach-score { color: inherit; }
+.camera-status { font-size: .875rem; background: #211b15db; border-color: #d0b58a80; }
+.target-card.manuscript-panel { background: #fff5de33; padding: 8px; }
+.target-card figcaption { font-family: var(--body-font); padding: 12px 14px 14px; border-top: 1px solid #98795655; }
+.target-card figcaption strong { font-size: 1.65rem; }
+.target-cue { font-size: .875rem; line-height: 1.45; }
+.target-pose-svg.engraving { background: transparent; }
+.drill-foot { padding: 22px 26px; }
+.drill-foot strong { font-size: 1.6rem; }
+.metric strong { font-size: 2rem; }
+.metric span { font-size: .75rem; }
+.ghost-legend { font-size: .8125rem; }
+.back-link { font-size: .9375rem; }
+.note, .callout, .card, .overlay-board, .preview-live, .video-wrap { border-radius: 2px; }
+
+@media (max-width: 980px) {
+  .app { width: calc(100% - 20px); }
+  .masthead-engraving { width: 210px; }
+}
+@media (max-width: 700px) {
+  .top.manuscript-top { min-height: 68px; padding: 2px 3px 10px; gap: 10px; margin-bottom: 12px; }
+  .brand { font-size: 1.8rem; gap: 8px; }
+  .brand-mark { width: 32px; height: 39px; font-size: 1.8rem; }
+  .masthead-engraving { display: none; }
+  .nav-menu summary { min-width: 72px; min-height: 44px; padding: 6px 12px; font-size: 1.2rem; }
+  .hero-manuscript { padding: 24px; }
+  .hero-manuscript h1 { font-size: 2.7rem; }
+  .hero-manuscript p { font-size: .9375rem; }
+  .manuscript-panel::before { border-image-width: 23px; }
+  .drill-heading { padding: 17px 20px; gap: 10px; }
+  .drill-heading h1 { font-size: 2.4rem; }
+  .checkpoint-counter { padding-left: 14px; min-width: 64px; }
+  .checkpoint-counter strong { font-size: 2.2rem; }
+  .training-controls { gap: 8px; }
+  .control-group { flex-wrap: wrap; }
+  .control-label { margin-right: 6px; }
+  .toggle-control { min-height: 44px; }
+  .coach-primary { font-size: clamp(1rem, 4.6vw, 1.55rem); }
+  .coach-score { font-size: .75rem; }
+  .camera-status { font-size: .75rem; line-height: 1.25; }
+  .ghost-legend { font-size: .75rem; }
+  .mobile-target-peek .target-card.manuscript-panel { padding: 3px; background: var(--paper-light) url('/theme/parchment.webp') center / 500px; }
+  .mobile-target-peek .manuscript-panel::before { border-image-width: 14px; }
+  .mobile-target-peek .target-card figcaption strong { font-size: .875rem; }
+  .drill-foot { padding: 20px; }
+  .library-section > h2 { font-size: 1.65rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  button, .button, .card.manuscript-card { transition: none; }
+}
+
+button.ghost.active:hover:not(:disabled) { background: var(--rubric-dark); color: #fff1d7; }
