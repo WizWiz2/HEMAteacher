@@ -8,9 +8,12 @@ import { TargetPose } from "../components/TargetPose";
 import { createDrillRuntime, stepDrill } from "../drill/drillEngine";
 import { primaryCue } from "../drill/feedback";
 import { targetPoseFor } from "../drill/posePresets";
+import { personalizeDrill } from "../drill/personalize";
 import type { Drill, DrillRuntime, WeaponMarkers } from "../drill/types";
 import { matchWeaponAngle } from "../drill/weaponMatch";
 import type { Facing } from "../live/normalize";
+import { BodyProfileCalibrator, profileCoverage, type BodyProfile } from "../live/anatomy";
+import { clearBodyProfile, loadBodyProfile, saveBodyProfile } from "../live/bodyProfileStorage";
 import { useCoachVoice } from "../live/useCoachVoice";
 import { useLivePose, type LiveSample } from "../live/useLivePose";
 import { DrillResultPage, formatElapsed } from "./DrillResultPage";
@@ -22,6 +25,7 @@ export function DrillPage() {
   const [runtime, setRuntime] = useState<DrillRuntime>(createDrillRuntime());
   const [facing, setFacing] = useState<Facing>("right");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [bodyProfile, setBodyProfile] = useState<BodyProfile | null>(() => loadBodyProfile());
   const [targetGhostEnabled, setTargetGhostEnabled] = useState(true);
   const [weaponMarkersEnabled, setWeaponMarkersEnabled] = useState(false);
   const [framingMessage, setFramingMessage] = useState("ПОКАЖИСЬ КАМЕРЕ");
@@ -31,11 +35,14 @@ export function DrillPage() {
   const [now, setNow] = useState(0);
 
   const runtimeRef = useRef(runtime);
-  const drillRef = useRef(drill);
+  const drillRef = useRef<Drill | null>(null);
+  const bodyProfileRef = useRef(bodyProfile);
+  const calibratorRef = useRef(new BodyProfileCalibrator());
+  const profileRefinedRef = useRef(false);
   const qualitySince = useRef<number | null>(null);
   const lastFraming = useRef("");
   runtimeRef.current = runtime;
-  drillRef.current = drill;
+  bodyProfileRef.current = bodyProfile;
 
   useEffect(() => {
     getDrill(id)
@@ -43,6 +50,8 @@ export function DrillPage() {
         setDrill(value);
         setRuntime(createDrillRuntime());
         setWeaponMarkersEnabled(false);
+        calibratorRef.current.reset();
+        profileRefinedRef.current = false;
         qualitySince.current = null;
       })
       .catch((reason: Error) => setError(reason.message));
@@ -53,10 +62,13 @@ export function DrillPage() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const checkpoint = drill?.checkpoints[runtime.checkpointIndex];
+  const personalizedDrill = useMemo(() => personalizeDrill(drill, bodyProfile), [drill, bodyProfile]);
+  drillRef.current = personalizedDrill;
+
+  const checkpoint = personalizedDrill?.checkpoints[runtime.checkpointIndex];
   const smoothingMs = checkpoint?.smoothingMs ?? 100;
-  const trackingMode = drill?.trackingMode ?? "full_body";
-  const activeWeaponTracking = weaponMarkersEnabled ? drill?.weaponTracking ?? "none" : "none";
+  const trackingMode = personalizedDrill?.trackingMode ?? "full_body";
+  const activeWeaponTracking = weaponMarkersEnabled ? personalizedDrill?.weaponTracking ?? "none" : "none";
   const targetPose = checkpoint?.targetPose ?? targetPoseFor(checkpoint?.targetPoseId);
 
   const live = useLivePose(
@@ -75,6 +87,20 @@ export function DrillPage() {
     const current = drillRef.current;
     if (!current) return;
 
+    if (sample.normalized && sample.framing.ready) {
+      calibratorRef.current.push(sample.normalized);
+      const coverage = profileCoverage(bodyProfileRef.current, current.trackingMode ?? "full_body");
+      if (!profileRefinedRef.current && (coverage < 0.8 || calibratorRef.current.ready(current.trackingMode ?? "full_body", 18))) {
+        const nextProfile = calibratorRef.current.build(bodyProfileRef.current);
+        if (nextProfile && profileCoverage(nextProfile, current.trackingMode ?? "full_body") >= 0.8) {
+          bodyProfileRef.current = nextProfile;
+          setBodyProfile(nextProfile);
+          saveBodyProfile(nextProfile);
+          profileRefinedRef.current = true;
+        }
+      }
+    }
+
     if (sample.framing.message !== lastFraming.current) {
       lastFraming.current = sample.framing.message;
       setFramingMessage(sample.framing.message);
@@ -84,9 +110,10 @@ export function DrillPage() {
 
     let next = runtimeRef.current;
     if (next.state === "calibrating") {
-      if (sample.usable) {
+      const anatomyReady = profileCoverage(bodyProfileRef.current, current.trackingMode ?? "full_body") >= 0.8;
+      if (sample.usable && anatomyReady) {
         qualitySince.current ??= sample.timeMs;
-        if (sample.timeMs - qualitySince.current >= 350) {
+        if (sample.timeMs - qualitySince.current >= 450) {
           next = stepDrill(next, current, { type: "quality", ok: true });
         }
       } else {
@@ -115,8 +142,24 @@ export function DrillPage() {
   }
 
   function retry() {
-    if (!drill) return;
-    const next = stepDrill(runtimeRef.current, drill, { type: "retry" });
+    const current = drillRef.current;
+    if (!current) return;
+    const next = stepDrill(runtimeRef.current, current, { type: "retry" });
+    runtimeRef.current = next;
+    setRuntime(next);
+  }
+
+  const anatomyCoverage = profileCoverage(bodyProfile, trackingMode);
+  const anatomyReady = anatomyCoverage >= 0.8;
+
+  function recalibrateBody() {
+    clearBodyProfile();
+    setBodyProfile(null);
+    bodyProfileRef.current = null;
+    calibratorRef.current.reset();
+    profileRefinedRef.current = false;
+    qualitySince.current = null;
+    const next = createDrillRuntime();
     runtimeRef.current = next;
     setRuntime(next);
   }
@@ -127,8 +170,11 @@ export function DrillPage() {
   );
 
   const cue = primaryCue(runtime.match);
-  const spokenText = runtime.state === "calibrating" && !framingReady
-    ? framingMessage
+  const calibrationMessage = runtime.state === "calibrating" && framingReady && !anatomyReady
+    ? "КАЛИБРУЮ ПРОПОРЦИИ · СТОЙ СПОКОЙНО"
+    : framingMessage;
+  const spokenText = runtime.state === "calibrating" && (!framingReady || !anatomyReady)
+    ? calibrationMessage
     : cue && !cue.ok
       ? cue.text
       : weaponMatch.available && !weaponMatch.passed
@@ -177,6 +223,10 @@ export function DrillPage() {
               <input type="checkbox" checked={targetGhostEnabled} onChange={(event) => setTargetGhostEnabled(event.target.checked)} />
               <span>Эталон поверх меня</span>
             </label>
+            <span className={anatomyReady ? "anatomy-chip ready" : "anatomy-chip"}>
+              {anatomyReady ? "Твои пропорции ✓" : `Калибровка тела ${Math.round(anatomyCoverage * 100)}%`}
+            </span>
+            <button type="button" className="ghost anatomy-reset" onClick={recalibrateBody}>Перекалибровать</button>
             {drill.weaponTracking === "optional" && (
               <label className="toggle-control">
                 <input
@@ -219,13 +269,15 @@ export function DrillPage() {
               <LiveFeedback
                 match={runtime.match}
                 enough={runtime.state !== "calibrating" && runtime.match != null}
-                framingMessage={framingMessage}
+                framingMessage={calibrationMessage}
                 calibrating={runtime.state === "calibrating"}
                 weapon={weaponMatch}
               />
               <div className="camera-status">
                 <span>{trackingMode === "upper_body" ? "Верх тела" : "Всё тело"}</span>
-                <span className={framingReady ? "status-ok" : "status-warn"}>{framingMessage}</span>
+                <span className={framingReady && anatomyReady ? "status-ok" : "status-warn"}>
+                  {calibrationMessage}
+                </span>
               </div>
             </div>
             {checkpoint && (
