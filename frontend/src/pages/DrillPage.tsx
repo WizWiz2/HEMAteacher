@@ -89,8 +89,7 @@ export function DrillPage() {
 
     if (sample.normalized && sample.framing.ready) {
       calibratorRef.current.push(sample.normalized);
-      const coverage = profileCoverage(bodyProfileRef.current, current.trackingMode ?? "full_body");
-      if (!profileRefinedRef.current && (coverage < 0.8 || calibratorRef.current.ready(current.trackingMode ?? "full_body", 18))) {
+      if (!profileRefinedRef.current && calibratorRef.current.ready(current.trackingMode ?? "full_body", 18)) {
         const nextProfile = calibratorRef.current.build(bodyProfileRef.current);
         if (nextProfile && profileCoverage(nextProfile, current.trackingMode ?? "full_body") >= 0.8) {
           bodyProfileRef.current = nextProfile;
@@ -110,7 +109,9 @@ export function DrillPage() {
 
     let next = runtimeRef.current;
     if (next.state === "calibrating") {
-      const anatomyReady = profileCoverage(bodyProfileRef.current, current.trackingMode ?? "full_body") >= 0.8;
+      const anatomyReady =
+        profileRefinedRef.current &&
+        profileCoverage(bodyProfileRef.current, current.trackingMode ?? "full_body") >= 0.8;
       if (sample.usable && anatomyReady) {
         qualitySince.current ??= sample.timeMs;
         if (sample.timeMs - qualitySince.current >= 450) {
@@ -150,7 +151,7 @@ export function DrillPage() {
   }
 
   const anatomyCoverage = profileCoverage(bodyProfile, trackingMode);
-  const anatomyReady = anatomyCoverage >= 0.8;
+  const anatomyReady = anatomyCoverage >= 0.8 && profileRefinedRef.current;
 
   function recalibrateBody() {
     clearBodyProfile();
@@ -224,7 +225,11 @@ export function DrillPage() {
               <span>Эталон поверх меня</span>
             </label>
             <span className={anatomyReady ? "anatomy-chip ready" : "anatomy-chip"}>
-              {anatomyReady ? "Твои пропорции ✓" : `Калибровка тела ${Math.round(anatomyCoverage * 100)}%`}
+              {anatomyReady
+                ? "Твои пропорции ✓"
+                : bodyProfile
+                  ? "Уточняю пропорции…"
+                  : `Калибровка тела ${Math.round(anatomyCoverage * 100)}%`}
             </span>
             <button type="button" className="ghost anatomy-reset" onClick={recalibrateBody}>Перекалибровать</button>
             {drill.weaponTracking === "optional" && (
