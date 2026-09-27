@@ -1,5 +1,5 @@
 import type { Drill } from "./drill/types";
-import type { ComparisonResult, MovementDetail, MovementSummary, PoseSequence, SessionInfo } from "./types";
+import type { MovementDetail, MovementSummary } from "./types";
 
 const CONTENT_BASE = `${import.meta.env.BASE_URL}content`;
 
@@ -20,16 +20,8 @@ async function getJson<T>(url: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-async function staticFirst<T>(staticUrl: string, apiUrl: string): Promise<T> {
-  try {
-    return await getJson<T>(staticUrl);
-  } catch {
-    return getJson<T>(apiUrl);
-  }
-}
-
 export function listDrills(): Promise<Drill[]> {
-  return staticFirst(`${CONTENT_BASE}/drills.json`, "/api/v1/drills");
+  return getJson(`${CONTENT_BASE}/drills.json`);
 }
 
 export async function getDrill(id: string): Promise<Drill> {
@@ -48,7 +40,7 @@ interface StaticMovement {
 }
 
 export async function listMovements(): Promise<MovementSummary[]> {
-  const items = await staticFirst<StaticMovement[]>(`${CONTENT_BASE}/movements.json`, "/api/v1/movements");
+  const items = await getJson<StaticMovement[]>(`${CONTENT_BASE}/movements.json`);
   return items.map((item) => ({
     id: item.id,
     name: item.name,
@@ -58,7 +50,7 @@ export async function listMovements(): Promise<MovementSummary[]> {
 }
 
 export async function getMovement(id: string): Promise<MovementDetail> {
-  const items = await staticFirst<StaticMovement[]>(`${CONTENT_BASE}/movements.json`, "/api/v1/movements");
+  const items = await getJson<StaticMovement[]>(`${CONTENT_BASE}/movements.json`);
   const item = items.find((value) => value.id === id);
   if (!item) throw new Error("Движение не найдено");
   return {
@@ -68,27 +60,4 @@ export async function getMovement(id: string): Promise<MovementDetail> {
     reference_pose_url: null,
     duration_ms: null,
   };
-}
-
-/** Legacy/cloud API helpers. Core live + offline browser flows do not use them. */
-export function getSession(id: string): Promise<SessionInfo> {
-  return getJson(`/api/v1/sessions/${id}`);
-}
-export function getResult(id: string): Promise<ComparisonResult> {
-  return getJson(`/api/v1/sessions/${id}/result`);
-}
-export function getPose(url: string): Promise<PoseSequence> {
-  return getJson(url);
-}
-export async function uploadAttempt(movementId: string, file: Blob, filename: string): Promise<string> {
-  const body = new FormData();
-  body.append("video", file, filename);
-  const response = await fetch(`/api/v1/movements/${movementId}/attempts`, { method: "POST", body });
-  if (!response.ok) throw new Error(await readError(response));
-  const payload = (await response.json()) as { session_id: string };
-  return payload.session_id;
-}
-export async function deleteSession(id: string): Promise<void> {
-  const response = await fetch(`/api/v1/sessions/${id}`, { method: "DELETE" });
-  if (!response.ok) throw new Error(await readError(response));
 }

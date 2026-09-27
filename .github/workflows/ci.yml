@@ -33,8 +33,15 @@ jobs:
         working-directory: frontend
       - run: npm test
         working-directory: frontend
-      - run: npm run build
-        working-directory: frontend
+      - name: Validate standalone Sites output
+        run: |
+          node scripts/build-site.mjs
+          node scripts/check-static-build.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hematrainer-static
+          path: dist/
+          if-no-files-found: error
 
   windows-launcher:
     runs-on: windows-latest

@@ -147,6 +147,28 @@ npm run dev
 
 Интерфейс: http://localhost:5173.
 
+### Static hosting (ChatGPT Sites)
+
+The training app runs entirely in the browser. To build a standalone site:
+
+```bash
+cd frontend && npm ci && cd ..
+node scripts/build-site.mjs
+node scripts/check-static-build.mjs
+```
+
+Publish `dist/` at the domain root over HTTPS. The build includes MediaPipe WASM,
+the pose model, lesson content, and the analysis Web Worker. Client routes use
+hash URLs (for example `/#/drills/id`), so static hosting needs no route rewrite.
+Camera access needs HTTPS (or localhost); sessions and
+recordings are local to the device's IndexedDB. GitHub Actions validates the
+static build and uploads it as the `hematrainer-static` artifact.
+
+Sites publication currently uses the Sites connector. Its repository write
+credential is short lived and scoped to one Site, so the GitHub Actions job does
+not have an unattended Sites deployment credential. A green CI run means the
+artifact is ready; it does not mean the Site has been updated.
+
 Backend нужен только для legacy API и серверных экспериментов:
 
 ```bash
