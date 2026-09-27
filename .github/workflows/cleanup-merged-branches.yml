@@ -1,0 +1,43 @@
+name: Cleanup merged branches
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete merged and known superseded branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          delete_branch() {
+            local branch="$1"
+            [ -z "$branch" ] && return 0
+            [ "$branch" = "main" ] && return 0
+
+            if gh api "repos/$REPO/git/ref/heads/$branch" >/dev/null 2>&1; then
+              echo "Deleting $branch"
+              gh api --method DELETE "repos/$REPO/git/refs/heads/$branch"
+            else
+              echo "Already gone: $branch"
+            fi
+          }
+
+          # Normal policy: every same-repository PR branch is removed once merged.
+          gh api --paginate "repos/$REPO/pulls?state=closed&per_page=100"             --jq '.[] | select(.merged_at != null and .head.repo.full_name == .base.repo.full_name) | .head.ref'             | sort -u             | while IFS= read -r branch; do
+                delete_branch "$branch"
+              done
+
+          # One-time cleanup for an abandoned branch superseded by PR #4.
+          delete_branch "fix/quiet-windows-launcher"
