@@ -5,7 +5,7 @@
 
 Это не тренер и не оценка «правильной» техники HEMA. Это вторая пара глаз: сравнение с конкретной записью.
 
-> **Architecture direction:** the primary MVP flow is being changed to live checkpoint-based drills. See [CR-001 — Live Checkpoint Drills](docs/CR-001-LIVE-CHECKPOINT-DRILLS.md). The existing offline video-analysis flow remains as a secondary feature.
+> **Architecture direction:** core training is browser-first. Live checkpoint drills and detailed uploaded-video analysis both run on the user device. See [CR-001](docs/CR-001-LIVE-CHECKPOINT-DRILLS.md), [CR-002](docs/CR-002-FIELD-TEST-REDESIGN.md) and [CR-003](docs/CR-003-BROWSER-FIRST.md). FastAPI remains only as an optional legacy/cloud layer.
 
 ## Live drills
 
@@ -46,91 +46,96 @@
 
 ## Quick start
 
-Двойной щелчок по `start.bat` в корне репозитория. Скрипт проверяет Python и Node.js, при необходимости ставит их через winget, создаёт окружение, докачивает модель позы и открывает http://127.0.0.1:5173/ . API и Vite работают скрыто в фоне — отдельных PowerShell/API/Web окон не остаётся. Для остановки приложения запустите `stop.bat`. Логи фоновых процессов лежат в `.runtime/api.log` и `.runtime/web.log`.
+Двойной щелчок по `start.bat` в корне репозитория.
 
-На Python 3.13 живая тренировка работает. Подробный разбор загруженного видео на сервере требует Python 3.12: у MediaPipe нет колёс для 3.13. Тогда либо поставьте 3.12 и запустите `start.bat` ещё раз после удаления папки `.venv`, либо используйте Docker.
+Обычный запуск теперь поднимает **только frontend**:
+- Vite;
+- MediaPipe WASM + модель;
+- live checkpoint engine;
+- локальный offline video analysis;
+- IndexedDB для эталонов и результатов.
 
-Тот же запуск через Docker:
+FastAPI по умолчанию **не запускается**.
 
-```bash
-docker compose up --build
-```
+Для остановки приложения запустите `stop.bat`.
 
-- Компьютер: http://localhost:8080
-- Телефон в той же сети: `https://<адрес-компьютера>:8443`
-
-На телефоне браузер попросит подтвердить самоподписанный сертификат. После этого страница считается защищённой, и камера в браузере открывается. По обычному `http://` в локальной сети камера в мобильном браузере не заработает — тогда снимите ролик камерой телефона и загрузите файл.
-
-Каталог из пяти движений уже есть. Видео эталонов в репозиторий не входят: их нужно импортировать.
-
-## Add reference
-
-Положите ролик в `data/incoming/` (папка может не существовать — создайте её) и выполните внутри контейнера:
+Если зачем-то нужны старые серверные маршруты:
 
 ```bash
-docker compose exec backend python scripts/import_reference.py --movement passing-step-forward --video /data/incoming/reference.mp4
+python launcher.py --with-backend
 ```
 
-Команда проверяет видео, один раз снимает позу, нормализует скелет и сохраняет результат в `data/references/passing-step-forward/`. Повторно гонять MediaPipe на каждый запрос пользователя не нужно.
+### Browser-only offline analysis
 
-Так же импортируются `advance`, `retreat`, `passing-step-backward`, `cross-step`. Имена и описания правятся в `data/movements/*.yaml`.
+Для подробного анализа:
 
-Офлайн-сравнение двух роликов без интерфейса:
+1. откройте «Подробный разбор видео»;
+2. выберите движение;
+3. один раз импортируйте видео-эталон тренера;
+4. браузер извлечёт pose locally и сохранит видео + pose в IndexedDB;
+5. снимите или загрузите попытку;
+6. MediaPipe, normalization, feature extraction, segmentation, DTW, comparison и feedback выполнятся на устройстве;
+7. результат тоже останется в IndexedDB.
+
+Видео в этом flow **не отправляется на сервер**.
+
+### Static deployment
 
 ```bash
-docker compose exec backend python scripts/compare.py --reference /data/incoming/reference.mp4 --attempt /data/incoming/attempt.mp4 --output /data/result
+cd frontend
+npm ci
+npm run build
 ```
 
-В каталоге появятся позы, нормализованные скелеты, `alignment.json`, `comparison.json` и `comparison.mp4` с двумя выровненными скелетами.
+Содержимое `frontend/dist/` можно отдавать обычным static hosting/CDN. Для core-функций Python/FastAPI/GPU на сервере не нужны.
 
-Отладочный ролик поверх исходного видео:
+Каталоги drills/movements и analysis profile экспортируются из YAML:
 
 ```bash
-docker compose exec backend python scripts/analyze_video.py --movement passing-step-forward --video /data/incoming/attempt.mp4 --debug-output /data/debug
+python scripts/export_static_content.py
 ```
+
+CI проверяет, что `frontend/public/content/*.json` синхронизированы с `data/*.yaml`.
 
 ## Architecture
 
 ```text
-Браузер
-  библиотека движений, плеер эталона, запись, сравнение
-        │  mp4
-        ▼
-FastAPI
-        ▼
-OpenCV  →  кадры
-        ▼
-MediaPipe Pose Landmarker  →  точки скелета
-        ▼
-нормализация (таз, масштаб корпуса, лицо в +X)
-        ▼
-признаки footwork
-        ▼
-DTW  →  одна и та же фаза шага, даже если темп другой
-        ▼
-сравнение с порогами из YAML
-        ▼
-до трёх текстовых замечаний
+                         Browser
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│ Camera ──→ MediaPipe ──→ normalized pose ──→ live matcher  │
+│                                                             │
+│ Uploaded video                                              │
+│      │                                                      │
+│      ▼                                                      │
+│ browser video decoder                                      │
+│      │                                                      │
+│      ▼                                                      │
+│ MediaPipe Pose                                             │
+│      │                                                      │
+│      ▼                                                      │
+│ normalization → features → segmentation                     │
+│                          │                                  │
+│ Reference in IndexedDB ──┴→ Web Worker: DTW + comparison  │
+│                                      │                      │
+│                                      ▼                      │
+│                                   feedback                  │
+│                                                             │
+│ IndexedDB: reference videos / poses / local sessions        │
+└─────────────────────────────────────────────────────────────┘
+
+Static assets:
+data/*.yaml → export_static_content.py → frontend/public/content/*.json
+
+Optional legacy/cloud layer:
+FastAPI / old server-side video pipeline / future account sync
 ```
 
-Монорепозиторий: `frontend/` (React, TypeScript, Vite), `backend/` (FastAPI), `data/` (YAML движений, профили, видео и JSON), `scripts/`.
+Главный принцип: вычислительная стоимость растёт на устройстве пользователя, а не на VPS. Один пользователь и тысяча пользователей не создают тысячу MediaPipe/DTW jobs на сервере.
 
-Метаданные попыток — SQLite (`data/coach.sqlite`). Видео и скелеты — файлы в `data/sessions/` и `data/references/`. PostgreSQL нет. Аккаунтов нет. Видео никуда наружу не уходит, отдельного облачного инференса нет.
-
-Удаление попытки: кнопка на экране результата или `DELETE /api/v1/sessions/{id}`.
+Монорепозиторий по-прежнему содержит `backend/`, но он не нужен для обычного browser-first запуска.
 
 ## Development
-
-MediaPipe ставится на Python 3.12. На 3.13 колёс нет, поэтому полный разбор видео рассчитан на контейнер. Юнит-тесты математики MediaPipe не требуют.
-
-Бэкенд с хоста, если есть Python 3.12 и скачанная модель:
-
-```bash
-python scripts/download_model.py
-cd backend
-python -m pip install -r requirements.txt
-python -m uvicorn app.main:app --reload --port 8000
-```
 
 Фронтенд:
 
@@ -140,9 +145,13 @@ npm install
 npm run dev
 ```
 
-Vite проксирует `/api` на `http://127.0.0.1:8000`. Интерфейс: http://localhost:5173. На localhost камера доступна и по HTTP.
+Интерфейс: http://localhost:5173.
 
-Пороги качества — `config/settings.yaml`. Веса и формулировки замечаний — `data/profiles/footwork_v1.yaml`. Что именно измеряется — `docs/FEATURES.md`.
+Backend нужен только для legacy API и серверных экспериментов:
+
+```bash
+python launcher.py --with-backend
+```
 
 ## Tests
 
@@ -164,4 +173,4 @@ python -m pytest
 - Схожесть с эталоном — не объективная правильность исторического фехтования.
 - Высота таза измеряется относительно стоп, а не пола комнаты.
 - Глубина (ось Z) с одной камеры неточная, боковые признаки имеют маленький вес.
-- Разбор не идёт в реальном времени: видео уходит на анализ после записи.
+- Подробный разбор выполняется после записи, но локально в браузере; видео на сервер не уходит.
