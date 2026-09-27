@@ -10,7 +10,6 @@ import subprocess
 import sys
 import time
 import urllib.request
-import webbrowser
 
 ROOT = Path(__file__).resolve().parent
 RUNTIME = ROOT / ".runtime"
@@ -151,6 +150,20 @@ def stop_all() -> None:
     say("HEMA Motion Coach остановлен.")
 
 
+def open_app_page() -> None:
+    """Open the app in the default browser using the OS URL handler."""
+    try:
+        if os.name == "nt":
+            os.startfile(WEB_URL)  # type: ignore[attr-defined]
+            return
+        import webbrowser
+        if webbrowser.open(WEB_URL, new=2):
+            return
+    except Exception as exc:
+        fail(f"Не удалось автоматически открыть страницу {WEB_URL}: {exc}")
+    fail(f"Не удалось автоматически открыть страницу {WEB_URL}.")
+
+
 def ensure_python_env() -> Path:
     if sys.version_info < (3, 9):
         fail(f"Нужен Python 3.9 или новее. Сейчас {sys.version.split()[0]}.")
@@ -261,7 +274,7 @@ def start_app() -> None:
         stop_pid_file("web.pid", "интерфейс")
         fail("Интерфейс не запустился. Последние строки .runtime/web.log:\n" + log_tail("web.log"))
 
-    webbrowser.open(WEB_URL)
+    open_app_page()
     say()
     say(f"Приложение открыто: {WEB_URL}")
     say("Фоновых окон больше нет. Для остановки используйте stop.bat.")
