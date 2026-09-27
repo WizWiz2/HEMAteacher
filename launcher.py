@@ -221,34 +221,34 @@ def ensure_frontend(node: Path) -> None:
     run([str(node), str(FRONTEND / "scripts" / "prepare-live.mjs")], cwd=FRONTEND)
 
 
-def start_app() -> None:
+def start_app(with_backend: bool = False) -> None:
     os.chdir(ROOT)
     say()
     say("HEMA Motion Coach — проверка и запуск")
     say()
 
-    venv_python = ensure_python_env()
     node = find_node() or install_node()
     ensure_frontend(node)
 
-    if not shutil.which("ffmpeg"):
-        say("ffmpeg не найден: live-тренировка работает, перекодирование загруженного видео — нет.")
-
     api_started = False
     web_started = False
-    if port_open(8000):
-        if not http_ok(API_URL, contains='"status":"ok"') and not http_ok(API_URL, contains='"status": "ok"'):
-            fail("Порт 8000 занят другим приложением.")
-        say("API уже запущен.")
+    if with_backend:
+        venv_python = ensure_python_env()
+        if port_open(8000):
+            if not http_ok(API_URL, contains='"status":"ok"') and not http_ok(API_URL, contains='"status": "ok"'):
+                fail("Порт 8000 занят другим приложением.")
+            say("Legacy API уже запущен.")
+        else:
+            say("Запускаю legacy API скрыто...")
+            launch_hidden(
+                [str(venv_python), "-m", "uvicorn", "app.main:app", "--app-dir", str(BACKEND), "--host", "127.0.0.1", "--port", "8000"],
+                cwd=ROOT,
+                log_name="api.log",
+                pid_name="api.pid",
+            )
+            api_started = True
     else:
-        say("Запускаю API скрыто...")
-        launch_hidden(
-            [str(venv_python), "-m", "uvicorn", "app.main:app", "--app-dir", str(BACKEND), "--host", "127.0.0.1", "--port", "8000"],
-            cwd=ROOT,
-            log_name="api.log",
-            pid_name="api.pid",
-        )
-        api_started = True
+        say("Browser-first режим: FastAPI не запускается.")
 
     if port_open(5173):
         if not http_ok(WEB_URL, contains="HEMA Motion Coach"):
@@ -277,17 +277,22 @@ def start_app() -> None:
     open_app_page()
     say()
     say(f"Приложение открыто: {WEB_URL}")
-    say("Фоновых окон больше нет. Для остановки используйте stop.bat.")
+    if with_backend:
+        say("Legacy API включён (--with-backend).")
+    else:
+        say("Видео, MediaPipe, DTW и comparison работают в браузере; API не запущен.")
+    say("Для остановки используйте stop.bat.")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--stop", action="store_true")
+    parser.add_argument("--with-backend", action="store_true", help="Запустить legacy FastAPI для старых/служебных маршрутов")
     args = parser.parse_args()
     if args.stop:
         stop_all()
     else:
-        start_app()
+        start_app(with_backend=args.with_backend)
 
 
 if __name__ == "__main__":
