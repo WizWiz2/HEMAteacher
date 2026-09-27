@@ -49,8 +49,16 @@ def main() -> int:
     if args.check:
         mismatches = []
         for path, expected in files.items():
-            actual = path.read_text(encoding="utf-8") if path.exists() else ""
-            if actual != expected:
+            if not path.exists():
+                mismatches.append(path.relative_to(ROOT).as_posix())
+                continue
+            try:
+                actual_value = json.loads(path.read_text(encoding="utf-8"))
+                expected_value = json.loads(expected)
+            except (json.JSONDecodeError, OSError):
+                mismatches.append(path.relative_to(ROOT).as_posix())
+                continue
+            if actual_value != expected_value:
                 mismatches.append(path.relative_to(ROOT).as_posix())
         if mismatches:
             print("Static browser content is stale:")
