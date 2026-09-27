@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { PoseFrame } from "../types";
-import type { TrackingMode, WeaponMarkers, WeaponTrackingMode } from "../drill/types";
+import type { TargetPose, TrackingMode, WeaponMarkers, WeaponTrackingMode } from "../drill/types";
 import { assessFraming, type FramingAssessment } from "./framing";
 import { liveFeatures, poseUsable, type FeatureMap } from "./features";
 import type { RawPose } from "./landmarks";
@@ -8,6 +8,7 @@ import { normalizePose, torsoPixels, TorsoScale, type Facing } from "./normalize
 import { MediaPipeLivePose } from "./poseLandmarker";
 import { smoothFeatures, trimHistory, type TimedSample } from "./smoothing";
 import { detectWeaponMarkers } from "./weaponMarkers";
+import { projectTargetGhost } from "./targetGhost";
 
 export interface LiveSample {
   timeMs: number;
@@ -25,6 +26,8 @@ export interface LivePoseOptions {
   smoothingMs?: number;
   trackingMode?: TrackingMode;
   weaponTracking?: WeaponTrackingMode;
+  targetPose?: TargetPose | null;
+  targetGhost?: boolean;
 }
 
 export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => void, options: LivePoseOptions = {}) {
@@ -69,7 +72,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
         weapon = null;
       }
 
-      draw(canvas, video, raw, weapon);
+      draw(canvas, video, raw, weapon, active.targetGhost ? active.targetPose ?? null : null, facingRef.current, smoothedScale);
       onSampleRef.current({
         timeMs: raw.timestampMs,
         raw,
@@ -110,7 +113,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
   return { videoRef, canvasRef, error, live };
 }
 
-function draw(canvas: HTMLCanvasElement, video: HTMLVideoElement, raw: RawPose, weapon: WeaponMarkers | null) {
+function draw(canvas: HTMLCanvasElement, video: HTMLVideoElement, raw: RawPose, weapon: WeaponMarkers | null, targetPose: TargetPose | null, facing: Facing, torsoScale: number | null) {
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
   const width = Math.max(1, rect.width);
@@ -151,6 +154,11 @@ function draw(canvas: HTMLCanvasElement, video: HTMLVideoElement, raw: RawPose, 
     ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
   }
 
+
+  if (targetPose && torsoScale) {
+    drawTargetGhost(ctx, raw, targetPose, facing, torsoScale, box, points);
+  }
+
   if (weapon?.grip) drawMarker(ctx, box, weapon.grip.x, weapon.grip.y, "#18d6e8", "GRIP");
   if (weapon?.tip) drawMarker(ctx, box, weapon.tip.x, weapon.tip.y, "#ff3bc8", "TIP");
   if (weapon?.detected && weapon.grip && weapon.tip) {
@@ -161,6 +169,96 @@ function draw(canvas: HTMLCanvasElement, video: HTMLVideoElement, raw: RawPose, 
     ctx.lineTo(box.x + weapon.tip.x * box.w, box.y + weapon.tip.y * box.h);
     ctx.stroke();
   }
+}
+
+
+const GHOST_EDGES: Array<[string, string]> = [
+  ["left_shoulder", "right_shoulder"], ["left_shoulder", "left_hip"], ["right_shoulder", "right_hip"],
+  ["left_hip", "right_hip"], ["left_shoulder", "left_elbow"], ["left_elbow", "left_wrist"],
+  ["right_shoulder", "right_elbow"], ["right_elbow", "right_wrist"], ["left_hip", "left_knee"],
+  ["left_knee", "left_ankle"], ["right_hip", "right_knee"], ["right_knee", "right_ankle"],
+  ["left_ankle", "left_foot_index"], ["right_ankle", "right_foot_index"],
+];
+
+const GHOST_GUIDE_JOINTS = ["left_wrist", "right_wrist", "left_elbow", "right_elbow", "left_knee", "right_knee", "left_ankle", "right_ankle"];
+
+function drawTargetGhost(
+  ctx: CanvasRenderingContext2D,
+  raw: RawPose,
+  targetPose: TargetPose,
+  facing: Facing,
+  torsoScale: number,
+  box: {x:number;y:number;w:number;h:number},
+  livePoints: Map<string, [number, number]>,
+) {
+  const ghost = projectTargetGhost(raw, targetPose, facing, torsoScale, box);
+  if (!ghost) return;
+
+  ctx.save();
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.shadowColor = "rgba(177, 104, 255, 0.95)";
+  ctx.shadowBlur = 16;
+  ctx.strokeStyle = "rgba(190, 128, 255, 0.64)";
+  ctx.lineWidth = 8;
+  ctx.beginPath();
+  for (const [start, end] of GHOST_EDGES) {
+    const a = ghost.points[start], b = ghost.points[end];
+    if (!a || !b) continue;
+    ctx.moveTo(a[0], a[1]);
+    ctx.lineTo(b[0], b[1]);
+  }
+  ctx.stroke();
+
+  ctx.shadowBlur = 5;
+  ctx.strokeStyle = "rgba(255, 222, 128, 0.98)";
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  for (const [start, end] of GHOST_EDGES) {
+    const a = ghost.points[start], b = ghost.points[end];
+    if (!a || !b) continue;
+    ctx.moveTo(a[0], a[1]);
+    ctx.lineTo(b[0], b[1]);
+  }
+  ctx.stroke();
+
+  for (const [name, point] of Object.entries(ghost.points)) {
+    if (!GHOST_GUIDE_JOINTS.includes(name)) continue;
+    ctx.fillStyle = "rgba(255, 225, 136, 0.96)";
+    ctx.beginPath();
+    ctx.arc(point[0], point[1], 5.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.shadowBlur = 0;
+  ctx.setLineDash([5, 5]);
+  ctx.lineWidth = 1.8;
+  for (const name of GHOST_GUIDE_JOINTS) {
+    const current = livePoints.get(name);
+    const ideal = ghost.points[name];
+    if (!current || !ideal) continue;
+    const distance = Math.hypot(current[0] - ideal[0], current[1] - ideal[1]);
+    if (distance < 10) continue;
+    ctx.strokeStyle = distance > 34 ? "rgba(255, 92, 180, 0.92)" : "rgba(255, 215, 120, 0.76)";
+    ctx.beginPath();
+    ctx.moveTo(current[0], current[1]);
+    ctx.lineTo(ideal[0], ideal[1]);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  if (ghost.sword) {
+    ctx.shadowColor = "rgba(177, 104, 255, 0.95)";
+    ctx.shadowBlur = 12;
+    ctx.strokeStyle = "rgba(255, 225, 136, 0.9)";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(ghost.sword.grip[0], ghost.sword.grip[1]);
+    ctx.lineTo(ghost.sword.tip[0], ghost.sword.tip[1]);
+    ctx.stroke();
+  }
+
+  ctx.restore();
 }
 
 function drawMarker(ctx: CanvasRenderingContext2D, box: {x:number;y:number;w:number;h:number}, x:number, y:number, color:string, label:string) {
