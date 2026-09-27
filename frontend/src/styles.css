@@ -952,3 +952,145 @@ button.active {
     grid-column: auto;
   }
 }
+
+
+/* Mobile drill target + spectral "Stand" overlay */
+.desktop-target-card {
+  min-width: 0;
+}
+.mobile-target-peek {
+  display: none;
+}
+.ghost-legend {
+  position: absolute;
+  left: 10px;
+  bottom: 46px;
+  z-index: 9;
+  display: flex;
+  gap: 10px;
+  padding: 5px 8px;
+  color: #f7e8c1;
+  background: rgba(26, 18, 14, .72);
+  border: 1px solid rgba(240, 216, 170, .42);
+  font-size: .72rem;
+  pointer-events: none;
+}
+.ghost-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 4px;
+  margin-right: 5px;
+  vertical-align: 2px;
+  border-radius: 999px;
+}
+.ghost-swatch.live {
+  background: #b31f19;
+  box-shadow: 0 0 6px rgba(179, 31, 25, .65);
+}
+.ghost-swatch.target {
+  background: #ffe088;
+  box-shadow: 0 0 8px rgba(183, 111, 255, .95);
+}
+
+@media (max-width: 700px) {
+  .drill-stage {
+    display: block;
+  }
+
+  .camera-pane {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+  }
+
+  .camera-pane .video-wrap.live-frame {
+    width: 100%;
+    height: 100%;
+  }
+
+  .camera-pane .live-frame video {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    aspect-ratio: auto;
+    object-fit: contain;
+  }
+
+  .desktop-target-card {
+    display: none;
+  }
+
+  .mobile-target-peek {
+    display: block;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: min(31vw, 148px);
+    z-index: 12;
+    pointer-events: none;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .46));
+  }
+
+  .mobile-target-peek .target-card.manuscript-panel {
+    min-height: 0;
+    border-width: 1px;
+    background: rgba(239, 216, 169, .94);
+  }
+
+  .mobile-target-peek .target-pose-svg.engraving {
+    width: 100%;
+    max-height: none;
+    aspect-ratio: 360 / 430;
+  }
+
+  .mobile-target-peek .target-card figcaption {
+    display: block;
+    padding: 4px 6px 5px;
+    text-align: center;
+  }
+
+  .mobile-target-peek .target-card figcaption .rubric,
+  .mobile-target-peek .target-card figcaption .target-cue {
+    display: none;
+  }
+
+  .mobile-target-peek .target-card figcaption strong {
+    font-size: .68rem;
+    line-height: 1.05;
+  }
+
+  .coach-overlay {
+    left: 2.5%;
+    top: 4%;
+    transform: none;
+    width: 61%;
+    padding: 7px 8px;
+    z-index: 13;
+  }
+
+  .coach-primary {
+    font-size: clamp(.98rem, 4.6vw, 1.55rem);
+  }
+
+  .coach-score,
+  .coach-overlay .weapon-ok,
+  .coach-overlay .weapon-adjust {
+    font-size: .64rem;
+  }
+
+  .ghost-legend {
+    left: 7px;
+    bottom: 42px;
+    gap: 7px;
+    padding: 4px 6px;
+    font-size: .61rem;
+  }
+
+  .camera-status {
+    left: 7px;
+    right: 7px;
+    bottom: 7px;
+    padding: 5px 7px;
+    font-size: .6rem;
+  }
+}
