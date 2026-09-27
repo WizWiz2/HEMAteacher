@@ -7,19 +7,27 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmSource = path.join(root, "node_modules", "@mediapipe", "tasks-vision", "wasm");
 const wasmDest = path.join(root, "public", "wasm");
-const modelDest = path.join(root, "public", "models", "pose_landmarker_lite.task");
-// Pin the model artifact version; do not use /latest/ because that makes old commits non-reproducible.
-const modelUrl =
-  "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
+const models = [
+  {
+    dest: path.join(root, "public", "models", "pose_landmarker_lite.task"),
+    url: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
+  },
+  {
+    dest: path.join(root, "public", "models", "pose_landmarker_full.task"),
+    url: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
+  },
+];
+// Pin concrete model artifact versions; never use /latest/.
 
 if (!existsSync(wasmSource)) throw new Error("Нет @mediapipe/tasks-vision. Сначала npm install.");
 mkdirSync(wasmDest, { recursive: true });
 cpSync(wasmSource, wasmDest, { recursive: true });
 
-if (!existsSync(modelDest)) {
-  mkdirSync(path.dirname(modelDest), { recursive: true });
-  const response = await fetch(modelUrl);
+for (const model of models) {
+  if (existsSync(model.dest)) continue;
+  mkdirSync(path.dirname(model.dest), { recursive: true });
+  const response = await fetch(model.url);
   if (!response.ok || !response.body) throw new Error(`Не удалось скачать модель позы: ${response.status}`);
-  await pipeline(Readable.fromWeb(response.body), createWriteStream(modelDest));
+  await pipeline(Readable.fromWeb(response.body), createWriteStream(model.dest));
 }
-console.log("Live pose assets ready");
+console.log("Browser pose assets ready");
