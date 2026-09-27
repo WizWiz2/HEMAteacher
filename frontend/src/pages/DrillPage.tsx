@@ -22,6 +22,7 @@ export function DrillPage() {
   const [runtime, setRuntime] = useState<DrillRuntime>(createDrillRuntime());
   const [facing, setFacing] = useState<Facing>("right");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [targetGhostEnabled, setTargetGhostEnabled] = useState(true);
   const [weaponMarkersEnabled, setWeaponMarkersEnabled] = useState(false);
   const [framingMessage, setFramingMessage] = useState("ПОКАЖИСЬ КАМЕРЕ");
   const [framingReady, setFramingReady] = useState(false);
@@ -56,11 +57,18 @@ export function DrillPage() {
   const smoothingMs = checkpoint?.smoothingMs ?? 100;
   const trackingMode = drill?.trackingMode ?? "full_body";
   const activeWeaponTracking = weaponMarkersEnabled ? drill?.weaponTracking ?? "none" : "none";
+  const targetPose = checkpoint?.targetPose ?? targetPoseFor(checkpoint?.targetPoseId);
 
   const live = useLivePose(
     facing,
     (sample) => onSample(sample),
-    { smoothingMs, trackingMode, weaponTracking: activeWeaponTracking },
+    {
+      smoothingMs,
+      trackingMode,
+      weaponTracking: activeWeaponTracking,
+      targetPose,
+      targetGhost: targetGhostEnabled,
+    },
   );
 
   function onSample(sample: LiveSample) {
@@ -113,7 +121,6 @@ export function DrillPage() {
     setRuntime(next);
   }
 
-  const targetPose = checkpoint?.targetPose ?? targetPoseFor(checkpoint?.targetPoseId);
   const weaponMatch = useMemo(
     () => matchWeaponAngle(weaponMarkersEnabled ? weaponMarkers : null, targetPose, facing),
     [weaponMarkersEnabled, weaponMarkers, targetPose, facing],
@@ -166,6 +173,10 @@ export function DrillPage() {
               <input type="checkbox" checked={voiceEnabled} onChange={(event) => setVoiceEnabled(event.target.checked)} />
               <span>Голосовые подсказки</span>
             </label>
+            <label className="toggle-control">
+              <input type="checkbox" checked={targetGhostEnabled} onChange={(event) => setTargetGhostEnabled(event.target.checked)} />
+              <span>Эталон поверх меня</span>
+            </label>
             {drill.weaponTracking === "optional" && (
               <label className="toggle-control">
                 <input
@@ -196,6 +207,15 @@ export function DrillPage() {
           <section className="drill-stage">
             <div className="camera-pane">
               <LivePoseCanvas videoRef={live.videoRef} canvasRef={live.canvasRef} />
+              {checkpoint && (
+                <div className="mobile-target-peek" aria-label="Эталон текущей позиции">
+                  <TargetPose checkpoint={checkpoint} facing={facing} />
+                </div>
+              )}
+              <div className="ghost-legend">
+                <span><i className="ghost-swatch live" /> ты</span>
+                <span><i className="ghost-swatch target" /> эталон</span>
+              </div>
               <LiveFeedback
                 match={runtime.match}
                 enough={runtime.state !== "calibrating" && runtime.match != null}
@@ -208,7 +228,11 @@ export function DrillPage() {
                 <span className={framingReady ? "status-ok" : "status-warn"}>{framingMessage}</span>
               </div>
             </div>
-            {checkpoint && <TargetPose checkpoint={checkpoint} facing={facing} />}
+            {checkpoint && (
+              <div className="desktop-target-card">
+                <TargetPose checkpoint={checkpoint} facing={facing} />
+              </div>
+            )}
           </section>
 
           {live.error && <p className="error">{live.error}</p>}
