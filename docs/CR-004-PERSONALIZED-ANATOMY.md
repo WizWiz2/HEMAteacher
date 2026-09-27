@@ -57,8 +57,9 @@ Detailed video comparison is anatomy-aware too.
 Before DTW/features:
 1. both sequences are torso-normalized;
 2. body proportions are measured from the attempt;
-3. the trainer/reference sequence is retargeted to the attempt's body proportions;
-4. features, segmentation, DTW and feedback run on the personalized reference.
+3. a stable body profile is measured from the attempt;
+4. both the trainer/reference sequence and the attempt are canonicalized to that same user profile;
+5. features, segmentation, DTW and feedback run on those anatomy-matched sequences.
 
 The goal is to compare movement technique rather than trainer-vs-student limb lengths.
 
