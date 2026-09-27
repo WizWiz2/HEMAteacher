@@ -10,12 +10,24 @@ interface Request {
   profile:AnalysisProfile;
 }
 
-self.onmessage=(event:MessageEvent<Request>)=>{
+interface Response {
+  id:string;
+  ok:boolean;
+  analysis?:ReturnType<typeof analyzeSequences>;
+  error?:string;
+}
+
+const ctx=self as unknown as {
+  onmessage: ((event:MessageEvent<Request>)=>void)|null;
+  postMessage: (message:Response)=>void;
+};
+
+ctx.onmessage=(event)=>{
   const {id,movementId,reference,attempt,profile}=event.data;
   try {
     const analysis=analyzeSequences(movementId,reference,attempt,profile);
-    self.postMessage({id,ok:true,analysis});
+    ctx.postMessage({id,ok:true,analysis});
   } catch(error) {
-    self.postMessage({id,ok:false,error:error instanceof Error?error.message:"Не удалось сравнить движения"});
+    ctx.postMessage({id,ok:false,error:error instanceof Error?error.message:"Не удалось сравнить движения"});
   }
 };
