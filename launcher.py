@@ -287,7 +287,7 @@ def start_app(with_backend: bool = False) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--stop", action="store_true")
-    parser.add_argument("--with-backend", action="store_true", help="Запустить legacy FastAPI для старых/служебных маршрутов")
+    parser.add_argument("--with-backend", action="store_true", help="Start legacy FastAPI routes")
     args = parser.parse_args()
     if args.stop:
         stop_all()
