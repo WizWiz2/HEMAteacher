@@ -1,4 +1,5 @@
 import { Link, Route, Routes } from "react-router-dom";
+import { NavigationMenu } from "./components/NavigationMenu";
 import { CheckpointCapturePage } from "./pages/CheckpointCapturePage";
 import { DrillPage } from "./pages/DrillPage";
 import { HomePage } from "./pages/HomePage";
@@ -10,9 +11,12 @@ import { SessionPage } from "./pages/SessionPage";
 export function App() {
   return (
     <div className="app">
-      <header className="top">
-        <Link className="brand" to="/">HEMA Motion Coach</Link>
-        <span className="eyebrow">Живая тренировка</span>
+      <header className="top manuscript-top">
+        <Link className="brand" to="/">
+          <span className="brand-mark">H</span>
+          <span>HEMA Trainer</span>
+        </Link>
+        <NavigationMenu />
       </header>
       <Routes>
         <Route path="/" element={<HomePage />} />

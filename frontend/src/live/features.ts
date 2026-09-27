@@ -1,32 +1,19 @@
 import { angleDegrees, xyDistance, type LandmarkMap, type Vec3 } from "./landmarks";
+import type { TrackingMode } from "../drill/types";
 
 export const LIVE_FEATURES = [
-  "left_ankle_x",
-  "left_ankle_y",
-  "right_ankle_x",
-  "right_ankle_y",
-  "foot_distance",
-  "pelvis_height",
-  "left_knee_angle",
-  "right_knee_angle",
-  "torso_angle",
-  "knee_over_foot_left",
-  "knee_over_foot_right",
-  "left_wrist_x",
-  "left_wrist_y",
-  "right_wrist_x",
-  "right_wrist_y",
-  "hand_center_x",
-  "hand_center_y",
-  "hand_distance",
-  "left_elbow_angle",
-  "right_elbow_angle",
+  "left_ankle_x", "left_ankle_y", "right_ankle_x", "right_ankle_y",
+  "foot_distance", "pelvis_height", "left_knee_angle", "right_knee_angle",
+  "torso_angle", "knee_over_foot_left", "knee_over_foot_right",
+  "left_wrist_x", "left_wrist_y", "right_wrist_x", "right_wrist_y",
+  "hand_center_x", "hand_center_y", "hand_distance",
+  "left_elbow_angle", "right_elbow_angle",
 ] as const;
 
 export type LiveFeatureName = (typeof LIVE_FEATURES)[number];
 export type FeatureMap = Partial<Record<LiveFeatureName, number>>;
 
-const MIN_VISIBILITY = 0.5;
+const MIN_VISIBILITY = 0.42;
 
 export function liveFeatures(landmarks: LandmarkMap, minVisibility = MIN_VISIBILITY): FeatureMap {
   const point = (name: string) => {
@@ -48,14 +35,8 @@ export function liveFeatures(landmarks: LandmarkMap, minVisibility = MIN_VISIBIL
   const rightWrist = point("right_wrist");
 
   const features: FeatureMap = {};
-  if (leftAnkle) {
-    features.left_ankle_x = leftAnkle.x;
-    features.left_ankle_y = leftAnkle.y;
-  }
-  if (rightAnkle) {
-    features.right_ankle_x = rightAnkle.x;
-    features.right_ankle_y = rightAnkle.y;
-  }
+  if (leftAnkle) { features.left_ankle_x = leftAnkle.x; features.left_ankle_y = leftAnkle.y; }
+  if (rightAnkle) { features.right_ankle_x = rightAnkle.x; features.right_ankle_y = rightAnkle.y; }
   if (leftAnkle && rightAnkle) {
     features.foot_distance = xyDistance(leftAnkle, rightAnkle);
     features.pelvis_height = -0.5 * (leftAnkle.y + rightAnkle.y);
@@ -69,37 +50,24 @@ export function liveFeatures(landmarks: LandmarkMap, minVisibility = MIN_VISIBIL
     const shoulder = mid(leftShoulder, rightShoulder);
     features.torso_angle = (Math.atan2(shoulder.x - hip.x, shoulder.y - hip.y) * 180) / Math.PI;
   }
-  if (leftWrist) {
-    features.left_wrist_x = leftWrist.x;
-    features.left_wrist_y = leftWrist.y;
-  }
-  if (rightWrist) {
-    features.right_wrist_x = rightWrist.x;
-    features.right_wrist_y = rightWrist.y;
-  }
+  if (leftWrist) { features.left_wrist_x = leftWrist.x; features.left_wrist_y = leftWrist.y; }
+  if (rightWrist) { features.right_wrist_x = rightWrist.x; features.right_wrist_y = rightWrist.y; }
   if (leftWrist && rightWrist) {
     features.hand_center_x = (leftWrist.x + rightWrist.x) / 2;
     features.hand_center_y = (leftWrist.y + rightWrist.y) / 2;
-    features.hand_distance = Math.hypot(
-      leftWrist.x - rightWrist.x,
-      leftWrist.y - rightWrist.y,
-      leftWrist.z - rightWrist.z,
-    );
+    features.hand_distance = Math.hypot(leftWrist.x - rightWrist.x, leftWrist.y - rightWrist.y, leftWrist.z - rightWrist.z);
   }
-  if (leftShoulder && leftElbow && leftWrist) {
-    features.left_elbow_angle = angleDegrees(leftShoulder, leftElbow, leftWrist);
-  }
-  if (rightShoulder && rightElbow && rightWrist) {
-    features.right_elbow_angle = angleDegrees(rightShoulder, rightElbow, rightWrist);
-  }
+  if (leftShoulder && leftElbow && leftWrist) features.left_elbow_angle = angleDegrees(leftShoulder, leftElbow, leftWrist);
+  if (rightShoulder && rightElbow && rightWrist) features.right_elbow_angle = angleDegrees(rightShoulder, rightElbow, rightWrist);
   return features;
 }
 
-export function poseUsable(features: FeatureMap | null): boolean {
+export function poseUsable(features: FeatureMap | null, mode: TrackingMode = "full_body"): boolean {
   if (!features) return false;
-  return ["left_ankle_x", "right_ankle_x", "pelvis_height", "torso_angle"].every((name) =>
-    Number.isFinite(features[name as LiveFeatureName]),
-  );
+  const required: LiveFeatureName[] = mode === "upper_body"
+    ? ["torso_angle", "hand_center_x", "hand_center_y", "left_elbow_angle", "right_elbow_angle"]
+    : ["left_ankle_x", "right_ankle_x", "pelvis_height", "torso_angle"];
+  return required.every((name) => Number.isFinite(features[name]));
 }
 
 function mid(a: Vec3, b: Vec3): Vec3 {

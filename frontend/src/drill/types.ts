@@ -9,6 +9,8 @@ export interface RangeConstraint {
 }
 
 export type FeatureConstraint = TargetConstraint | RangeConstraint;
+export type TrackingMode = "full_body" | "upper_body";
+export type WeaponTrackingMode = "none" | "optional";
 
 export interface TargetLandmark {
   x: number;
@@ -36,6 +38,8 @@ export interface Checkpoint {
   constraints?: Record<string, FeatureConstraint>;
   featureTolerances?: Record<string, number>;
   weights?: Record<string, number>;
+  requiredFeatures?: string[];
+  passThreshold?: number;
   cue?: string;
 }
 
@@ -45,6 +49,8 @@ export interface Drill {
   description: string;
   cameraView: "side";
   category?: "footwork" | "guards" | "meisterhau";
+  trackingMode?: TrackingMode;
+  weaponTracking?: WeaponTrackingMode;
   unvalidated?: boolean;
   limitations?: string[];
   checkpoints: Checkpoint[];
@@ -56,12 +62,35 @@ export interface FeatureMatch {
   value: number;
   target?: number;
   delta?: number;
+  closeness?: number;
 }
 
 export interface CheckpointMatch {
   passed: boolean;
   confidence: number;
+  passScore: number;
   features: Record<string, FeatureMatch>;
+}
+
+export interface WeaponPoint {
+  x: number;
+  y: number;
+  confidence: number;
+}
+
+export interface WeaponMarkers {
+  detected: boolean;
+  grip?: WeaponPoint;
+  tip?: WeaponPoint;
+  angleDeg?: number;
+}
+
+export interface WeaponMatch {
+  available: boolean;
+  passed: boolean;
+  angleDeg?: number;
+  targetAngleDeg?: number;
+  deltaDeg?: number;
 }
 
 export type DrillState = "calibrating" | "ready" | "running" | "completed";

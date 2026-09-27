@@ -67,6 +67,8 @@ class CheckpointModel(BaseModel):
     constraints: dict[str, ConstraintModel] = Field(default_factory=dict)
     featureTolerances: dict[str, float] = Field(default_factory=dict)
     weights: dict[str, float] | None = None
+    requiredFeatures: list[str] = Field(default_factory=list)
+    passThreshold: float = 0.70
     cue: str | None = None
 
     @model_validator(mode="after")
@@ -77,6 +79,8 @@ class CheckpointModel(BaseModel):
             raise ValueError("smoothingMs must be between 40 and 500")
         if any(value <= 0 for value in self.featureTolerances.values()):
             raise ValueError("feature tolerances must be > 0")
+        if not 0.4 <= self.passThreshold <= 1.0:
+            raise ValueError("passThreshold must be between 0.4 and 1.0")
         has_target = self.targetPose is not None or self.targetPoseId is not None
         if not self.constraints and not (has_target and self.featureTolerances):
             raise ValueError("checkpoint needs explicit constraints or target pose + feature tolerances")
@@ -89,6 +93,8 @@ class DrillModel(BaseModel):
     description: str
     cameraView: Literal["side"] = "side"
     category: Literal["footwork", "guards", "meisterhau"] = "footwork"
+    trackingMode: Literal["full_body", "upper_body"] = "full_body"
+    weaponTracking: Literal["none", "optional"] = "none"
     unvalidated: bool = True
     limitations: list[str] = Field(default_factory=list)
     checkpoints: list[CheckpointModel]

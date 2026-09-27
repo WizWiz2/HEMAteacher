@@ -3,38 +3,46 @@ name: Шаг назад
 description: Задняя стопа открывает дистанцию, передняя восстанавливает рабочую стойку.
 cameraView: side
 category: footwork
+trackingMode: full_body
+weaponTracking: none
 unvalidated: true
 checkpoints:
   - id: start
     title: Стартовая стойка
     targetPoseId: stance-left
     holdMs: 350
+
+    passThreshold: 0.65
     featureTolerances:
-      left_ankle_x: 0.28
-      right_ankle_x: 0.28
-      foot_distance: 0.24
-      pelvis_height: 0.22
-      torso_angle: 14
+      left_ankle_x: 0.34
+      right_ankle_x: 0.34
+      foot_distance: 0.30
+      pelvis_height: 0.28
+      torso_angle: 18
   - id: rear-out
     title: Задняя стопа назад
     targetPoseId: retreat-rear-out
     holdMs: 70
+
+    passThreshold: 0.65
     smoothingMs: 80
     cue: Задняя стопа ушла, передняя ещё держит место.
     featureTolerances:
-      left_ankle_x: 0.28
-      right_ankle_x: 0.28
-      foot_distance: 0.24
-      pelvis_height: 0.22
-      torso_angle: 14
+      left_ankle_x: 0.34
+      right_ankle_x: 0.34
+      foot_distance: 0.30
+      pelvis_height: 0.28
+      torso_angle: 18
   - id: recover
     title: Собери стойку
     targetPoseId: stance-left
     holdMs: 320
+
+    passThreshold: 0.65
     featureTolerances:
-      left_ankle_x: 0.28
-      right_ankle_x: 0.28
-      foot_distance: 0.24
-      pelvis_height: 0.22
-      torso_angle: 14
+      left_ankle_x: 0.34
+      right_ankle_x: 0.34
+      foot_distance: 0.30
+      pelvis_height: 0.28
+      torso_angle: 18
 transitions: []

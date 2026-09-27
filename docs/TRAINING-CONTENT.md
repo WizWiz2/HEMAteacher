@@ -70,3 +70,31 @@ For each drill, ask the trainer to review:
 - whether the camera angle is sufficient.
 
 After review, replace prototype pose presets or capture new poses with `/dev/checkpoint-capture`.
+
+
+## Field-test tracking modes
+
+`guards-basic` uses `upper_body`: shoulders, elbows, wrists and hips must be visible, but the user does not need to step far enough away for both feet to remain in frame.
+
+Footwork and Meisterhau drills use `full_body` because lower-body movement remains part of the exercise.
+
+## Forgiving beginner matching
+
+Checkpoint validity is no longer equivalent to "every feature is inside tolerance".
+
+Each checkpoint can define:
+- `passThreshold` — weighted share of features that should pass;
+- `requiredFeatures` — features that must pass regardless of overall score;
+- per-feature weights.
+
+This is deliberately more forgiving for beginner static guards, where monocular pose jitter and individual body proportions otherwise produce misleading failures.
+
+## Optional weapon marker mode
+
+For weapon-bearing drills the user can enable a marker prototype:
+- cyan marker/tape near the guard/grip;
+- magenta marker/tape toward the tip.
+
+The browser finds both color clusters and estimates a rough blade line and angle.
+
+This is **not** blade recognition. It is a controlled prototype to validate whether adding weapon geometry materially improves training before investing in a dedicated sword detector.

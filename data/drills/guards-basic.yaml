@@ -3,64 +3,85 @@ name: Четыре базовые позиции
 description: Ознакомительный drill по Vom Tag, Ochs, Pflug и Alber.
 cameraView: side
 category: guards
+trackingMode: upper_body
+weaponTracking: optional
 unvalidated: true
 limitations:
-  - "Клинок на target-картинке пока только визуальный ориентир: matcher проверяет тело, руки и ноги, но не траекторию клинка."
+  - "Без цветных меток приложение оценивает положение тела и рук, но не линию клинка."
 checkpoints:
   - id: vom-tag
     title: Vom Tag
     targetPoseId: vom-tag
-    holdMs: 450
-    cue: Высокая готовая позиция.
+    holdMs: 350
+    passThreshold: 0.55
+    requiredFeatures: [hand_center_y]
+    cue: Высокая готовая позиция. Для beginner-mode важнее высота рук и общий силуэт, чем точное копирование суставов.
     featureTolerances:
-      hand_center_x: 0.28
-      hand_center_y: 0.24
-      hand_distance: 0.22
-      left_elbow_angle: 32
-      right_elbow_angle: 32
-      foot_distance: 0.30
-      pelvis_height: 0.25
-      torso_angle: 15
+      hand_center_x: 0.46
+      hand_center_y: 0.42
+      hand_distance: 0.36
+      left_elbow_angle: 48
+      right_elbow_angle: 48
+      torso_angle: 24
+    weights:
+      hand_center_y: 1.5
+      torso_angle: 1.2
+      hand_center_x: 0.8
+      hand_distance: 0.5
+      left_elbow_angle: 0.6
+      right_elbow_angle: 0.6
+
   - id: ochs
     title: Ochs
     targetPoseId: ochs
-    holdMs: 450
-    cue: Руки высоко, острие визуально направлено вперёд.
+    holdMs: 350
+    passThreshold: 0.58
+    requiredFeatures: [hand_center_y]
+    cue: Руки высоко; без маркеров меча острие остаётся визуальным ориентиром.
     featureTolerances:
-      hand_center_x: 0.28
-      hand_center_y: 0.24
-      hand_distance: 0.22
-      left_elbow_angle: 32
-      right_elbow_angle: 32
-      foot_distance: 0.30
-      pelvis_height: 0.25
-      torso_angle: 15
+      hand_center_x: 0.46
+      hand_center_y: 0.42
+      hand_distance: 0.36
+      left_elbow_angle: 48
+      right_elbow_angle: 48
+      torso_angle: 24
+    weights:
+      hand_center_y: 1.5
+      torso_angle: 1.2
+
   - id: pflug
     title: Pflug
     targetPoseId: pflug
-    holdMs: 450
-    cue: Руки ниже, острие визуально вперёд.
+    holdMs: 350
+    passThreshold: 0.58
+    requiredFeatures: [hand_center_y]
+    cue: Руки ниже; корпус остаётся собранным.
     featureTolerances:
-      hand_center_x: 0.28
-      hand_center_y: 0.24
-      hand_distance: 0.22
-      left_elbow_angle: 32
-      right_elbow_angle: 32
-      foot_distance: 0.30
-      pelvis_height: 0.25
-      torso_angle: 15
+      hand_center_x: 0.46
+      hand_center_y: 0.42
+      hand_distance: 0.36
+      left_elbow_angle: 48
+      right_elbow_angle: 48
+      torso_angle: 24
+    weights:
+      hand_center_y: 1.5
+      torso_angle: 1.2
+
   - id: alber
     title: Alber
     targetPoseId: alber
-    holdMs: 450
-    cue: Низкая позиция; клинок пока не проверяется.
+    holdMs: 350
+    passThreshold: 0.58
+    requiredFeatures: [hand_center_y]
+    cue: Низкая позиция рук. Линия клинка проверяется только в маркерном режиме.
     featureTolerances:
-      hand_center_x: 0.28
-      hand_center_y: 0.24
-      hand_distance: 0.22
-      left_elbow_angle: 32
-      right_elbow_angle: 32
-      foot_distance: 0.30
-      pelvis_height: 0.25
-      torso_angle: 15
+      hand_center_x: 0.46
+      hand_center_y: 0.42
+      hand_distance: 0.36
+      left_elbow_angle: 48
+      right_elbow_angle: 48
+      torso_angle: 24
+    weights:
+      hand_center_y: 1.5
+      torso_angle: 1.2
 transitions: []

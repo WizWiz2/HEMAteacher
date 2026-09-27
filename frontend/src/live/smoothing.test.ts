@@ -10,6 +10,14 @@ const stable: FeatureMap = {
   foot_distance: 0.8,
 };
 
+const upper: FeatureMap = {
+  torso_angle: 2,
+  hand_center_x: 0.2,
+  hand_center_y: 1.1,
+  left_elbow_angle: 110,
+  right_elbow_angle: 118,
+};
+
 describe("temporal median", () => {
   it("ignores a single noisy frame", () => {
     const history: TimedSample[] = [0, 25, 50, 75, 100].map((timeMs, index) => ({
@@ -43,5 +51,11 @@ describe("temporal median", () => {
     const smoothed = smoothFeatures(history, 120, 80, 3);
     expect(smoothed.enough).toBe(true);
     expect(smoothed.features?.foot_distance).toBeCloseTo(0.2, 5);
+  });
+
+  it("supports an upper-body drill when feet are not visible", () => {
+    const history: TimedSample[] = [0, 30, 60].map((timeMs) => ({ timeMs, features: { ...upper } }));
+    expect(smoothFeatures(history, 60, 100, 3, "upper_body").enough).toBe(true);
+    expect(smoothFeatures(history, 60, 100, 3, "full_body").enough).toBe(false);
   });
 });

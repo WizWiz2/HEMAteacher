@@ -3,62 +3,72 @@ name: Schielhau
 description: "Прототип Schielhau: высокая подготовка и вытянутый выход вперёд."
 cameraView: side
 category: meisterhau
+trackingMode: full_body
+weaponTracking: optional
 unvalidated: true
 limitations:
-  - "Клинок на target-картинке пока только визуальный ориентир: matcher проверяет тело, руки и ноги, но не траекторию клинка."
+  - "Без цветных меток matcher проверяет тело, руки и ноги. С двумя яркими метками дополнительно оценивается примерная линия клинка."
 checkpoints:
   - id: guard
     title: Vom Tag
     targetPoseId: vom-tag
     holdMs: 350
+
+    passThreshold: 0.62
     featureTolerances:
-      hand_center_x: 0.28
-      hand_center_y: 0.24
-      hand_distance: 0.22
-      left_elbow_angle: 32
-      right_elbow_angle: 32
-      foot_distance: 0.30
-      pelvis_height: 0.25
-      torso_angle: 15
+      hand_center_x: 0.42
+      hand_center_y: 0.38
+      hand_distance: 0.35
+      left_elbow_angle: 45
+      right_elbow_angle: 45
+      foot_distance: 0.38
+      pelvis_height: 0.32
+      torso_angle: 22
   - id: chamber
     title: Подготовка
     targetPoseId: schiel-chamber
     holdMs: 70
+
+    passThreshold: 0.62
     smoothingMs: 80
     featureTolerances:
-      hand_center_x: 0.28
-      hand_center_y: 0.24
-      hand_distance: 0.22
-      left_elbow_angle: 32
-      right_elbow_angle: 32
-      foot_distance: 0.30
-      pelvis_height: 0.25
-      torso_angle: 15
+      hand_center_x: 0.42
+      hand_center_y: 0.38
+      hand_distance: 0.35
+      left_elbow_angle: 45
+      right_elbow_angle: 45
+      foot_distance: 0.38
+      pelvis_height: 0.32
+      torso_angle: 22
   - id: extend
     title: Выход
     targetPoseId: schiel-extend
     holdMs: 80
+
+    passThreshold: 0.62
     smoothingMs: 80
     featureTolerances:
-      hand_center_x: 0.28
-      hand_center_y: 0.24
-      hand_distance: 0.22
-      left_elbow_angle: 32
-      right_elbow_angle: 32
-      foot_distance: 0.30
-      pelvis_height: 0.25
-      torso_angle: 15
+      hand_center_x: 0.42
+      hand_center_y: 0.38
+      hand_distance: 0.35
+      left_elbow_angle: 45
+      right_elbow_angle: 45
+      foot_distance: 0.38
+      pelvis_height: 0.32
+      torso_angle: 22
   - id: finish
     title: Контроль
     targetPoseId: schiel-finish
     holdMs: 280
+
+    passThreshold: 0.62
     featureTolerances:
-      hand_center_x: 0.28
-      hand_center_y: 0.24
-      hand_distance: 0.22
-      left_elbow_angle: 32
-      right_elbow_angle: 32
-      foot_distance: 0.30
-      pelvis_height: 0.25
-      torso_angle: 15
+      hand_center_x: 0.42
+      hand_center_y: 0.38
+      hand_distance: 0.35
+      left_elbow_angle: 45
+      right_elbow_angle: 45
+      foot_distance: 0.38
+      pelvis_height: 0.32
+      torso_angle: 22
 transitions: []

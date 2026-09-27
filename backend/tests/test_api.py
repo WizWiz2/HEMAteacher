@@ -32,6 +32,7 @@ def test_beginner_drill_library_is_data_driven():
     drill = detail.json()
     assert drill["cameraView"] == "side"
     assert drill["unvalidated"] is True
+    assert drill["trackingMode"] == "full_body"
     assert len(drill["checkpoints"]) >= 4
     assert len({item["id"] for item in drill["checkpoints"]}) == len(drill["checkpoints"])
 
@@ -46,6 +47,11 @@ def test_invalid_checkpoint_schema_is_rejected():
         CheckpointModel.model_validate({
             "id": "bad", "title": "bad", "holdMs": 100,
             "constraints": {"foot_distance": {"min": 2.0, "max": 1.0}},
+        })
+    with pytest.raises(ValidationError):
+        CheckpointModel.model_validate({
+            "id": "bad", "title": "bad", "holdMs": 100, "passThreshold": 0.2,
+            "constraints": {"foot_distance": {"target": 1.0, "tolerance": 0.2}},
         })
 
 
@@ -75,3 +81,13 @@ def test_delete_session_removes_metadata(tmp_path):
     assert client.get(f"/api/v1/sessions/{session_id}").status_code == 200
     assert client.delete(f"/api/v1/sessions/{session_id}").status_code == 204
     assert client.get(f"/api/v1/sessions/{session_id}").status_code == 404
+
+
+def test_guards_use_upper_body_mode_and_optional_weapon_tracking():
+    client = TestClient(create_app())
+    drill = client.get("/api/v1/drills/guards-basic").json()
+    assert drill["trackingMode"] == "upper_body"
+    assert drill["weaponTracking"] == "optional"
+    vom_tag = drill["checkpoints"][0]
+    assert vom_tag["passThreshold"] < 0.7
+    assert "hand_center_y" in vom_tag["requiredFeatures"]
