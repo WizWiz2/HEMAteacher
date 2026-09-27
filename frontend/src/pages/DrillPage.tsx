@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getDrill } from "../api";
 import { CheckpointProgress } from "../components/CheckpointProgress";
@@ -6,8 +6,12 @@ import { LiveFeedback } from "../components/LiveFeedback";
 import { LivePoseCanvas } from "../components/LivePoseCanvas";
 import { TargetPose } from "../components/TargetPose";
 import { createDrillRuntime, stepDrill } from "../drill/drillEngine";
-import type { Drill, DrillRuntime } from "../drill/types";
+import { primaryCue } from "../drill/feedback";
+import { targetPoseFor } from "../drill/posePresets";
+import type { Drill, DrillRuntime, WeaponMarkers } from "../drill/types";
+import { matchWeaponAngle } from "../drill/weaponMatch";
 import type { Facing } from "../live/normalize";
+import { useCoachVoice } from "../live/useCoachVoice";
 import { useLivePose, type LiveSample } from "../live/useLivePose";
 import { DrillResultPage, formatElapsed } from "./DrillResultPage";
 
@@ -17,16 +21,30 @@ export function DrillPage() {
   const [error, setError] = useState<string | null>(null);
   const [runtime, setRuntime] = useState<DrillRuntime>(createDrillRuntime());
   const [facing, setFacing] = useState<Facing>("right");
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [weaponMarkersEnabled, setWeaponMarkersEnabled] = useState(false);
+  const [framingMessage, setFramingMessage] = useState("ПОКАЖИСЬ КАМЕРЕ");
+  const [framingReady, setFramingReady] = useState(false);
+  const [weaponMarkers, setWeaponMarkers] = useState<WeaponMarkers | null>(null);
   const [flash, setFlash] = useState(false);
   const [now, setNow] = useState(0);
+
   const runtimeRef = useRef(runtime);
   const drillRef = useRef(drill);
   const qualitySince = useRef<number | null>(null);
+  const lastFraming = useRef("");
   runtimeRef.current = runtime;
   drillRef.current = drill;
 
   useEffect(() => {
-    getDrill(id).then(setDrill).catch((reason: Error) => setError(reason.message));
+    getDrill(id)
+      .then((value) => {
+        setDrill(value);
+        setRuntime(createDrillRuntime());
+        setWeaponMarkersEnabled(false);
+        qualitySince.current = null;
+      })
+      .catch((reason: Error) => setError(reason.message));
   }, [id]);
 
   useEffect(() => {
@@ -34,26 +52,48 @@ export function DrillPage() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const smoothingMs = drill?.checkpoints[runtime.checkpointIndex]?.smoothingMs ?? 100;
-  const live = useLivePose(facing, (sample) => onSample(sample), smoothingMs);
+  const checkpoint = drill?.checkpoints[runtime.checkpointIndex];
+  const smoothingMs = checkpoint?.smoothingMs ?? 100;
+  const trackingMode = drill?.trackingMode ?? "full_body";
+  const activeWeaponTracking = weaponMarkersEnabled ? drill?.weaponTracking ?? "none" : "none";
+
+  const live = useLivePose(
+    facing,
+    (sample) => onSample(sample),
+    { smoothingMs, trackingMode, weaponTracking: activeWeaponTracking },
+  );
 
   function onSample(sample: LiveSample) {
     const current = drillRef.current;
     if (!current) return;
+
+    if (sample.framing.message !== lastFraming.current) {
+      lastFraming.current = sample.framing.message;
+      setFramingMessage(sample.framing.message);
+      setFramingReady(sample.framing.ready);
+    }
+    if (current.weaponTracking === "optional") setWeaponMarkers(sample.weapon);
+
     let next = runtimeRef.current;
     if (next.state === "calibrating") {
       if (sample.usable) {
         qualitySince.current ??= sample.timeMs;
-        if (sample.timeMs - qualitySince.current >= 300) next = stepDrill(next, current, { type: "quality", ok: true });
+        if (sample.timeMs - qualitySince.current >= 350) {
+          next = stepDrill(next, current, { type: "quality", ok: true });
+        }
       } else {
         qualitySince.current = null;
       }
     }
+
     if (next.state === "ready" || next.state === "running") {
       const beforeIndex = next.checkpointIndex;
       const beforeState = next.state;
       next = stepDrill(next, current, {
-        type: "sample", timeMs: sample.timeMs, features: sample.smoothed, enoughSamples: sample.enough,
+        type: "sample",
+        timeMs: sample.timeMs,
+        features: sample.smoothed,
+        enoughSamples: sample.enough,
       });
       if (next.checkpointIndex !== beforeIndex || (beforeState !== next.state && next.state === "completed")) {
         chime();
@@ -61,6 +101,7 @@ export function DrillPage() {
         window.setTimeout(() => setFlash(false), 350);
       }
     }
+
     runtimeRef.current = next;
     setRuntime(next);
   }
@@ -72,47 +113,146 @@ export function DrillPage() {
     setRuntime(next);
   }
 
+  const targetPose = checkpoint?.targetPose ?? targetPoseFor(checkpoint?.targetPoseId);
+  const weaponMatch = useMemo(
+    () => matchWeaponAngle(weaponMarkersEnabled ? weaponMarkers : null, targetPose, facing),
+    [weaponMarkersEnabled, weaponMarkers, targetPose, facing],
+  );
+
+  const cue = primaryCue(runtime.match);
+  const spokenText = runtime.state === "calibrating" && !framingReady
+    ? framingMessage
+    : cue && !cue.ok
+      ? cue.text
+      : weaponMatch.available && !weaponMatch.passed
+        ? "Поверни меч ближе к линии эталона"
+        : null;
+  useCoachVoice(spokenText, voiceEnabled);
+
   if (error) return <p className="error">{error}</p>;
-  const checkpoint = drill?.checkpoints[runtime.checkpointIndex];
   const elapsed = runtime.startedAt == null ? 0 : (runtime.finishedAt ?? now) - runtime.startedAt;
   const total = drill?.checkpoints.length ?? 0;
 
   return (
     <main className={`stack drill-shell ${flash ? "pulse" : ""}`}>
       {!drill && <p className="muted">Открываю упражнение…</p>}
-      {drill && <div className="card-top"><h1>{drill.name}</h1><span className="badge">{runtime.state === "completed" ? total : runtime.checkpointIndex + 1} / {total}</span></div>}
-      {drill?.unvalidated && <p className="callout">Черновой учебный материал: позы и допуски ещё должен проверить тренер.</p>}
-      {drill?.limitations?.map((item) => <p className="muted drill-limit" key={item}>{item}</p>)}
-      <div className="row">
-        <button type="button" className={facing === "left" ? "ghost active" : "ghost"} onClick={() => setFacing("left")}>Лицом ←</button>
-        <button type="button" className={facing === "right" ? "ghost active" : "ghost"} onClick={() => setFacing("right")}>Лицом →</button>
-      </div>
-      <div className="drill-stage">
-        <LivePoseCanvas videoRef={live.videoRef} canvasRef={live.canvasRef} />
-        {checkpoint && <TargetPose checkpoint={checkpoint} facing={facing} />}
-      </div>
-      {live.error && <p className="error">{live.error}</p>}
-      {runtime.state === "calibrating" && <p className="cue wait">Встань боком: в кадре голова и обе стопы. Телефон не двигай.</p>}
-      {runtime.state !== "calibrating" && <div className="pose-match"><span>Совпадение позы</span><strong>{Math.round((runtime.match?.confidence ?? 0) * 100)}%</strong></div>}
-      <LiveFeedback match={runtime.match} enough={runtime.state !== "calibrating" && runtime.match != null} />
-      {drill && <CheckpointProgress count={drill.checkpoints.length} index={runtime.checkpointIndex} completed={runtime.state === "completed"} />}
-      <p className="elapsed">{formatElapsed(elapsed)}</p>
-      {runtime.state === "completed" && <DrillResultPage elapsedMs={elapsed} onRetry={retry} />}
-      <Link className="muted" to="/">К списку</Link>
+      {drill && (
+        <>
+          <section className="drill-heading manuscript-panel">
+            <div>
+              <span className="rubric">{categoryTitle(drill.category)}</span>
+              <h1>{drill.name}</h1>
+              <p>{drill.description}</p>
+            </div>
+            <div className="checkpoint-counter">
+              <strong>{runtime.state === "completed" ? total : runtime.checkpointIndex + 1}</strong>
+              <span>из {total}</span>
+            </div>
+          </section>
+
+          <CheckpointProgress
+            count={drill.checkpoints.length}
+            index={runtime.checkpointIndex}
+            completed={runtime.state === "completed"}
+          />
+
+          <div className="training-controls">
+            <div className="control-group">
+              <span className="control-label">Ракурс</span>
+              <button type="button" className={facing === "left" ? "ghost active" : "ghost"} onClick={() => setFacing("left")}>Лицом ←</button>
+              <button type="button" className={facing === "right" ? "ghost active" : "ghost"} onClick={() => setFacing("right")}>Лицом →</button>
+            </div>
+            <label className="toggle-control">
+              <input type="checkbox" checked={voiceEnabled} onChange={(event) => setVoiceEnabled(event.target.checked)} />
+              <span>Голосовые подсказки</span>
+            </label>
+            {drill.weaponTracking === "optional" && (
+              <label className="toggle-control">
+                <input
+                  type="checkbox"
+                  checked={weaponMarkersEnabled}
+                  onChange={(event) => setWeaponMarkersEnabled(event.target.checked)}
+                />
+                <span>Видеть меч по меткам</span>
+              </label>
+            )}
+          </div>
+
+          {drill.unvalidated && (
+            <p className="callout compact">Черновой учебный материал: checkpoint'ы и допуски ещё должен проверить тренер.</p>
+          )}
+
+          {weaponMarkersEnabled && drill.weaponTracking === "optional" && (
+            <div className="weapon-help manuscript-panel">
+              <strong>Маркерный режим меча</strong>
+              <span><i className="marker cyan" /> голубая/циановая лента у гарды</span>
+              <span><i className="marker magenta" /> ярко-розовая лента ближе к острию</span>
+              <span className={weaponMarkers?.detected ? "weapon-ok" : "weapon-adjust"}>
+                {weaponMarkers?.detected ? "✓ обе метки найдены — линия клинка отслеживается" : "Метки пока не найдены"}
+              </span>
+            </div>
+          )}
+
+          <section className="drill-stage">
+            <div className="camera-pane">
+              <LivePoseCanvas videoRef={live.videoRef} canvasRef={live.canvasRef} />
+              <LiveFeedback
+                match={runtime.match}
+                enough={runtime.state !== "calibrating" && runtime.match != null}
+                framingMessage={framingMessage}
+                calibrating={runtime.state === "calibrating"}
+                weapon={weaponMatch}
+              />
+              <div className="camera-status">
+                <span>{trackingMode === "upper_body" ? "Верх тела" : "Всё тело"}</span>
+                <span className={framingReady ? "status-ok" : "status-warn"}>{framingMessage}</span>
+              </div>
+            </div>
+            {checkpoint && <TargetPose checkpoint={checkpoint} facing={facing} />}
+          </section>
+
+          {live.error && <p className="error">{live.error}</p>}
+
+          <section className="drill-foot manuscript-panel">
+            <div>
+              <span className="rubric">Текущая точка</span>
+              <strong>{checkpoint?.title ?? "—"}</strong>
+              {checkpoint?.cue && <span className="target-cue">{checkpoint.cue}</span>}
+            </div>
+            <div className="metric">
+              <span>условий проходит</span>
+              <strong>{Math.round((runtime.match?.passScore ?? 0) * 100)}%</strong>
+            </div>
+            <div className="metric">
+              <span>время</span>
+              <strong>{formatElapsed(elapsed)}</strong>
+            </div>
+          </section>
+
+          {runtime.state === "completed" && <DrillResultPage elapsedMs={elapsed} onRetry={retry} />}
+          <Link className="muted back-link" to="/">← К упражнениям</Link>
+        </>
+      )}
     </main>
   );
+}
+
+function categoryTitle(category: Drill["category"]) {
+  if (category === "meisterhau") return "Meisterhau";
+  if (category === "guards") return "Стойки и позиции";
+  return "Footwork";
 }
 
 function chime() {
   const audio = new AudioContext();
   const oscillator = audio.createOscillator();
   const gain = audio.createGain();
-  oscillator.frequency.value = 660;
+  oscillator.frequency.value = 720;
   oscillator.connect(gain);
   gain.connect(audio.destination);
-  gain.gain.setValueAtTime(0.04, audio.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.12);
+  gain.gain.setValueAtTime(0.05, audio.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.16);
   oscillator.start();
-  oscillator.stop(audio.currentTime + 0.12);
+  oscillator.stop(audio.currentTime + 0.16);
   window.setTimeout(() => void audio.close(), 300);
 }
