@@ -59,7 +59,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
       const normalized = smoothedScale ? normalizePose(raw, facingRef.current, smoothedScale) : null;
       const features = normalized ? liveFeatures(normalized.landmarks) : null;
       history = trimHistory([...history, { timeMs: raw.timestampMs, features }], raw.timestampMs);
-      const smoothed = smoothFeatures(history, raw.timestampMs, active.smoothingMs ?? 100);
+      const smoothed = smoothFeatures(history, raw.timestampMs, active.smoothingMs ?? 100, 3, trackingMode);
       const framing = assessFraming(raw, trackingMode);
 
       if (active.weaponTracking === "optional" && raw.timestampMs - lastWeaponAt >= 90) {
