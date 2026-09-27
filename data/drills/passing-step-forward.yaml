@@ -3,60 +3,72 @@ name: Проходной шаг вперёд
 description: Задняя нога проходит вперёд и становится новой передней ногой.
 cameraView: side
 category: footwork
+trackingMode: full_body
+weaponTracking: none
 unvalidated: true
 checkpoints:
   - id: start
     title: Старт
     targetPoseId: stance-left
     holdMs: 350
+
+    passThreshold: 0.65
     featureTolerances:
-      left_ankle_x: 0.28
-      right_ankle_x: 0.28
-      foot_distance: 0.24
-      pelvis_height: 0.22
-      torso_angle: 14
+      left_ankle_x: 0.34
+      right_ankle_x: 0.34
+      foot_distance: 0.30
+      pelvis_height: 0.28
+      torso_angle: 18
   - id: compact
     title: Собери шаг
     targetPoseId: stance-compact-left
     holdMs: 70
+
+    passThreshold: 0.65
     smoothingMs: 80
     featureTolerances:
-      left_ankle_x: 0.28
-      right_ankle_x: 0.28
-      foot_distance: 0.24
-      pelvis_height: 0.22
-      torso_angle: 14
+      left_ankle_x: 0.34
+      right_ankle_x: 0.34
+      foot_distance: 0.30
+      pelvis_height: 0.28
+      torso_angle: 18
   - id: cross
     title: Стопы проходят рядом
     targetPoseId: stance-cross
     holdMs: 60
+
+    passThreshold: 0.65
     smoothingMs: 70
     cue: Не замирай — просто пройди через эту фазу.
     featureTolerances:
-      left_ankle_x: 0.28
-      right_ankle_x: 0.28
-      foot_distance: 0.24
-      pelvis_height: 0.22
-      torso_angle: 14
+      left_ankle_x: 0.34
+      right_ankle_x: 0.34
+      foot_distance: 0.30
+      pelvis_height: 0.28
+      torso_angle: 18
   - id: reach
     title: Новая нога впереди
     targetPoseId: stance-wide-right
     holdMs: 80
+
+    passThreshold: 0.65
     smoothingMs: 80
     featureTolerances:
-      left_ankle_x: 0.28
-      right_ankle_x: 0.28
-      foot_distance: 0.24
-      pelvis_height: 0.22
-      torso_angle: 14
+      left_ankle_x: 0.34
+      right_ankle_x: 0.34
+      foot_distance: 0.30
+      pelvis_height: 0.28
+      torso_angle: 18
   - id: settle
     title: Новая стойка
     targetPoseId: stance-right
     holdMs: 320
+
+    passThreshold: 0.65
     featureTolerances:
-      left_ankle_x: 0.28
-      right_ankle_x: 0.28
-      foot_distance: 0.24
-      pelvis_height: 0.22
-      torso_angle: 14
+      left_ankle_x: 0.34
+      right_ankle_x: 0.34
+      foot_distance: 0.30
+      pelvis_height: 0.28
+      torso_angle: 18
 transitions: []
