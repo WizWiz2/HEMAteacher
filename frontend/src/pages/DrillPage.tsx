@@ -350,8 +350,8 @@ export function DrillPage() {
               />
               <div className="camera-status">
                 <span>{cameraView === "front" ? "Спереди" : "Сбоку"} · {trackingMode === "upper_body" ? "верх тела" : "всё тело"}</span>
-                <span className={framingReady && anatomyReady ? "status-ok" : "status-warn"}>
-                  {calibrationMessage}
+                <span className={runtime.state === "completed" || (framingReady && anatomyReady) ? "status-ok" : "status-warn"}>
+                  {runtime.state === "completed" ? "УПРАЖНЕНИЕ · ГОТОВО" : calibrationMessage}
                 </span>
               </div>
             </div>
