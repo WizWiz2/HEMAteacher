@@ -20,6 +20,17 @@ const EDGES: Array<[string, string]> = [
   ["right_ankle", "right_foot_index"],
 ];
 
+const LIMBS: Array<[string, string, number]> = [
+  ["right_hip", "right_knee", 27],
+  ["right_knee", "right_ankle", 23],
+  ["right_shoulder", "right_elbow", 23],
+  ["right_elbow", "right_wrist", 19],
+  ["left_hip", "left_knee", 29],
+  ["left_knee", "left_ankle", 24],
+  ["left_shoulder", "left_elbow", 24],
+  ["left_elbow", "left_wrist", 20],
+];
+
 const KEY_POINTS = [
   "left_wrist", "right_wrist", "left_elbow", "right_elbow",
   "left_hip", "right_hip", "left_knee", "right_knee",
@@ -97,8 +108,11 @@ function EngravingPose({
   const rs = point("right_shoulder");
   const lh = point("left_hip");
   const rh = point("right_hip");
-  const shoulders = ls && rs ? midpoint2(ls, rs) : null;
-  const hips = lh && rh ? midpoint2(lh, rh) : null;
+
+  const torso = ls && rs && lh && rh
+    ? `${ls[0]},${ls[1]} ${rs[0]},${rs[1]} ${rh[0]},${rh[1]} ${lh[0]},${lh[1]}`
+    : "";
+
   const swordGrip = pose.sword && cameraView === "side"
     ? projectXY(pose.sword.grip.x * (facing === "right" ? 1 : -1), pose.sword.grip.y, cameraView)
     : null;
@@ -130,59 +144,89 @@ function EngravingPose({
       aria-label={`${title}. ${cameraView === "front" ? "Вид спереди" : "Вид сбоку"}${cue ? `. ${cue.text}` : calibrating ? ". Повтори позу на рисунке" : ""}`}
     >
       <defs>
-        <filter id="ink-rough" x="-20%" y="-20%" width="140%" height="140%">
-          <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="7" result="noise" />
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.15" />
+        <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
+          <line x1="0" y1="0" x2="0" y2="7" stroke="#3e2a18" strokeWidth="1.2" opacity=".55" />
+        </pattern>
+        <pattern id="clothHatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(26)">
+          <rect width="8" height="8" fill="#caa86f" />
+          <line x1="0" y1="0" x2="0" y2="8" stroke="#6a492a" strokeWidth="1.1" opacity=".5" />
+        </pattern>
+        <filter id="roughInk" x="-20%" y="-20%" width="140%" height="140%">
+          <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="11" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale=".8" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </defs>
 
-      <text x="26" y="38" fill="#962820" fontFamily="Cormorant Garamond, Georgia, serif" fontSize="25" fontWeight="700">{title}</text>
-      <text x="26" y="59" fill="#66513c" fontFamily="PT Serif, Georgia, serif" fontSize="12">
-        Целевая поза · {cameraView === "front" ? "вид спереди" : "вид сбоку"}
+      <rect width="360" height="430" rx="10" fill="#ead5a7" />
+      <rect x="9" y="9" width="342" height="412" fill="none" stroke="#6a3e22" strokeWidth="2" />
+      <rect x="15" y="15" width="330" height="400" fill="none" stroke="#9a6b3d" strokeWidth="1" />
+      <path d="M22 34 C70 15, 96 18, 126 30 M238 30 C274 16, 312 18, 338 34" fill="none" stroke="#7e1f1a" strokeWidth="2" opacity=".8" />
+      <text x="26" y="48" fill="#7e1f1a" fontFamily="Georgia, serif" fontSize="15" fontWeight="700">{title}</text>
+      <text x="26" y="67" fill="#6a3e22" fontFamily="Georgia, serif" fontSize="11">
+        FIGURA EXEMPLARIS · {cameraView === "front" ? "фронтальный ракурс" : "боковой ракурс"}
       </text>
-      <line x1="28" y1="355" x2="332" y2="355" stroke="#745b40" strokeWidth="1" opacity=".55" />
+      <line x1="28" y1="355" x2="332" y2="355" stroke="#6a3e22" strokeWidth="2" />
 
-      <g className="engraved-figure" filter="url(#ink-rough)">
-        <BodySegment from={point("right_hip")} to={point("right_knee")} width={25} faded />
-        <BodySegment from={point("right_knee")} to={point("right_ankle")} width={21} faded />
-        <Foot ankle={point("right_ankle")} toe={point("right_foot_index")} heel={point("right_heel")} faded />
+      <g filter="url(#roughInk)" opacity=".98">
+        {LIMBS.slice(0,4).map(([a,b,width]) => (
+          <EngravedLimb key={`rear-${a}-${b}`} from={point(a)} to={point(b)} width={width} faded />
+        ))}
 
-        <BodySegment from={point("right_shoulder")} to={point("right_elbow")} width={20} faded />
-        <BodySegment from={point("right_elbow")} to={point("right_wrist")} width={16} faded />
+        {torso && (
+          <polygon
+            points={torso}
+            fill="url(#hatch)"
+            stroke="#3e2a18"
+            strokeWidth="8"
+            strokeLinejoin="round"
+          />
+        )}
 
-        {shoulders && hips && <Torso shoulders={shoulders} hips={hips} />}
-        {shoulders && nose && <Neck from={shoulders} to={nose} />}
-        {nose && <Head center={nose} cameraView={cameraView} />}
+        {ls && rs && <JointBridge from={ls} to={rs} width={16} />}
+        {lh && rh && <JointBridge from={lh} to={rh} width={18} />}
 
-        <BodySegment from={point("left_hip")} to={point("left_knee")} width={27} />
-        <BodySegment from={point("left_knee")} to={point("left_ankle")} width={22} />
-        <Foot ankle={point("left_ankle")} toe={point("left_foot_index")} heel={point("left_heel")} />
+        {nose && (
+          <>
+            <circle cx={nose[0]} cy={nose[1]-2} r="23" fill="#d5b47c" stroke="#3e2a18" strokeWidth="5" />
+            <path
+              d={`M ${nose[0]-12} ${nose[1]-4} q 12 -7 25 1 M ${nose[0]-8} ${nose[1]+7} q 9 5 18 0`}
+              fill="none"
+              stroke="#3e2a18"
+              strokeWidth="2"
+            />
+          </>
+        )}
 
-        <BodySegment from={point("left_shoulder")} to={point("left_elbow")} width={21} />
-        <BodySegment from={point("left_elbow")} to={point("left_wrist")} width={17} />
+        {LIMBS.slice(4).map(([a,b,width]) => (
+          <EngravedLimb key={`front-${a}-${b}`} from={point(a)} to={point(b)} width={width} />
+        ))}
 
-        {ls && rs && <JointBar from={ls} to={rs} width={14} />}
-        {lh && rh && <JointBar from={lh} to={rh} width={16} />}
+        <EngravedFoot ankle={point("right_ankle")} toe={point("right_foot_index")} heel={point("right_heel")} faded />
+        <EngravedFoot ankle={point("left_ankle")} toe={point("left_foot_index")} heel={point("left_heel")} />
+
+        {["left_elbow","right_elbow","left_knee","right_knee"].map((name) => {
+          const p = point(name);
+          return p ? <circle key={name} cx={p[0]} cy={p[1]} r="8" fill="url(#clothHatch)" stroke="#3e2a18" strokeWidth="3" /> : null;
+        })}
       </g>
 
       {swordGrip && swordTip && (
-        <g>
-          <line x1={swordGrip[0]} y1={swordGrip[1]} x2={swordTip[0]} y2={swordTip[1]} stroke="#342313" strokeWidth="7" strokeLinecap="round" />
-          <line x1={swordGrip[0] - 13} y1={swordGrip[1] + 3} x2={swordGrip[0] + 13} y2={swordGrip[1] - 3} stroke="#342313" strokeWidth="5" />
+        <g filter="url(#roughInk)">
+          <line x1={swordGrip[0]} y1={swordGrip[1]} x2={swordTip[0]} y2={swordTip[1]} stroke="#342313" strokeWidth="8" strokeLinecap="round" />
+          <line x1={swordGrip[0]-14} y1={swordGrip[1]+3} x2={swordGrip[0]+14} y2={swordGrip[1]-3} stroke="#342313" strokeWidth="5" />
         </g>
       )}
 
       <g className="machine-overlay">
         {EDGES.map(([a, b]) => {
-          const pa = point(a);
-          const pb = point(b);
+          const pa = point(a), pb = point(b);
           return pa && pb ? (
-            <line key={`skeleton-${a}${b}`} x1={pa[0]} y1={pa[1]} x2={pb[0]} y2={pb[1]} stroke="#a51d17" strokeWidth="2.5" strokeLinecap="round" opacity=".9" />
+            <line key={`skeleton-${a}${b}`} x1={pa[0]} y1={pa[1]} x2={pb[0]} y2={pb[1]} stroke="#a51d17" strokeWidth="2.6" strokeLinecap="round" opacity=".92" />
           ) : null;
         })}
         {KEY_POINTS.map((name) => {
           const p = point(name);
-          return p ? <circle key={name} cx={p[0]} cy={p[1]} r="5.3" fill="#b8211b" stroke="#f0d9a7" strokeWidth="1.4" /> : null;
+          return p ? <circle key={name} cx={p[0]} cy={p[1]} r="5.7" fill="#b8211b" stroke="#f0d9a7" strokeWidth="1.5" /> : null;
         })}
       </g>
 
@@ -206,19 +250,20 @@ function EngravingPose({
         </g>
       )}
 
-      <text x="180" y="391" textAnchor="middle" fill="#66513c" fontFamily="PT Serif, Georgia, serif" fontSize="13">
-        Красным отмечены опорные точки.
+      <text x="28" y="390" fill="#4c321d" fontFamily="Georgia, serif" fontSize="12">Красные линии — то, что сравнивает система.</text>
+      <text x="28" y="407" fill="#4c321d" fontFamily="Georgia, serif" fontSize="12">
+        {cameraView === "front" ? "Фронтальный режим по глубине мягче." : "Гравюра и machine target — одна и та же поза."}
       </text>
-      {cameraView === "front" && (
-        <text x="180" y="409" textAnchor="middle" fill="#8a5d2c" fontFamily="PT Serif, Georgia, serif" fontSize="10">
-          Глубина по одной камере оценивается мягче.
-        </text>
-      )}
     </svg>
   );
 }
 
-function BodySegment({ from, to, width, faded = false }: {
+function EngravedLimb({
+  from,
+  to,
+  width,
+  faded = false,
+}: {
   from: [number, number] | null;
   to: [number, number] | null;
   width: number;
@@ -226,47 +271,38 @@ function BodySegment({ from, to, width, faded = false }: {
 }) {
   if (!from || !to) return null;
   return (
-    <g opacity={faded ? .76 : 1}>
-      <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} stroke="#382617" strokeWidth={width + 6} strokeLinecap="round" />
-      <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} stroke="#c7a56b" strokeWidth={width} strokeLinecap="round" />
-      <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} stroke="#80613d" strokeWidth="1.6" strokeDasharray="5 6" strokeLinecap="round" opacity=".72" />
+    <g opacity={faded ? .72 : 1}>
+      <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} stroke="#3e2a18" strokeWidth={width + 8} strokeLinecap="round" />
+      <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} stroke="url(#clothHatch)" strokeWidth={width} strokeLinecap="round" />
+      <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} stroke="#4a311d" strokeWidth="1.4" strokeDasharray="4 6" strokeLinecap="round" opacity=".72" />
     </g>
   );
 }
 
-function Torso({ shoulders, hips }: { shoulders: [number, number]; hips: [number, number] }) {
+function JointBridge({
+  from,
+  to,
+  width,
+}: {
+  from: [number, number];
+  to: [number, number];
+  width: number;
+}) {
+  if (Math.hypot(to[0]-from[0], to[1]-from[1]) < 2) return null;
   return (
-    <g>
-      <line x1={shoulders[0]} y1={shoulders[1]} x2={hips[0]} y2={hips[1]} stroke="#382617" strokeWidth="61" strokeLinecap="round" />
-      <line x1={shoulders[0]} y1={shoulders[1]} x2={hips[0]} y2={hips[1]} stroke="#b98e52" strokeWidth="53" strokeLinecap="round" />
-      <line x1={shoulders[0]} y1={shoulders[1]} x2={hips[0]} y2={hips[1]} stroke="#745332" strokeWidth="2" strokeDasharray="6 7" opacity=".7" />
+    <g opacity=".9">
+      <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} stroke="#3e2a18" strokeWidth={width + 6} strokeLinecap="round" />
+      <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} stroke="url(#hatch)" strokeWidth={width} strokeLinecap="round" />
     </g>
   );
 }
 
-function Neck({ from, to }: { from: [number, number]; to: [number, number] }) {
-  const end: [number, number] = [
-    from[0] + (to[0] - from[0]) * .68,
-    from[1] + (to[1] - from[1]) * .68,
-  ];
-  return <BodySegment from={from} to={end} width={15} />;
-}
-
-function Head({ center, cameraView }: { center: [number, number]; cameraView: CameraView }) {
-  return (
-    <g>
-      <ellipse cx={center[0]} cy={center[1] - 4} rx={cameraView === "front" ? 23 : 19} ry="28" fill="#c8a66d" stroke="#382617" strokeWidth="5" />
-      <path d={`M ${center[0]-12} ${center[1]-11} Q ${center[0]} ${center[1]-20} ${center[0]+13} ${center[1]-10}`} fill="none" stroke="#745332" strokeWidth="2" opacity=".75" />
-    </g>
-  );
-}
-
-function JointBar({ from, to, width }: { from: [number, number]; to: [number, number]; width: number }) {
-  if (Math.hypot(to[0]-from[0], to[1]-from[1]) < 3) return null;
-  return <BodySegment from={from} to={to} width={width} faded />;
-}
-
-function Foot({ ankle, toe, heel, faded = false }: {
+function EngravedFoot({
+  ankle,
+  toe,
+  heel,
+  faded = false,
+}: {
   ankle: [number, number] | null;
   toe: [number, number] | null;
   heel: [number, number] | null;
@@ -275,9 +311,9 @@ function Foot({ ankle, toe, heel, faded = false }: {
   if (!ankle || !toe) return null;
   const back = heel ?? ankle;
   return (
-    <g opacity={faded ? .76 : 1}>
-      <line x1={back[0]} y1={back[1]} x2={toe[0]} y2={toe[1]} stroke="#382617" strokeWidth="13" strokeLinecap="round" />
-      <line x1={back[0]} y1={back[1]} x2={toe[0]} y2={toe[1]} stroke="#9b7448" strokeWidth="8" strokeLinecap="round" />
+    <g opacity={faded ? .72 : 1}>
+      <line x1={back[0]} y1={back[1]} x2={toe[0]} y2={toe[1]} stroke="#3e2a18" strokeWidth="16" strokeLinecap="round" />
+      <line x1={back[0]} y1={back[1]} x2={toe[0]} y2={toe[1]} stroke="#8c633c" strokeWidth="10" strokeLinecap="round" />
     </g>
   );
 }
