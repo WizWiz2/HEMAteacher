@@ -183,6 +183,16 @@ Live drills briefly calibrate the user's body proportions before matching. Limb 
 
 Detailed uploaded-video analysis canonicalizes both the trainer/reference sequence and the attempt to the attempt user's measured proportions before DTW and comparison.
 
+
+
+### Training camera views
+
+Live drills support both **side** and **front** camera views. Side view remains the most reliable default. Front view maps MediaPipe depth into the canonical fore/aft axis and deliberately uses softer tolerances for depth-sensitive features.
+
+The camera can be expanded to a full-viewport training surface, and preview mirroring can be toggled manually. Selfie cameras are mirrored automatically; rear cameras are not.
+
+See [CR-005](docs/CR-005-DRILL-UX-VIEWS.md).
+
 ## Tests
 
 ```bash
