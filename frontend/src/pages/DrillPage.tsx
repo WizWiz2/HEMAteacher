@@ -101,9 +101,10 @@ export function DrillPage() {
   );
 
   useEffect(() => {
-    if (!live.cameraFacingMode) return;
-    setMirrorPreview(live.cameraFacingMode === "user");
-  }, [live.cameraFacingMode]);
+    if (!live.live) return;
+    const facingMode = live.cameraFacingMode ?? live.requestedCamera;
+    setMirrorPreview(facingMode === "user");
+  }, [live.live, live.cameraFacingMode, live.requestedCamera]);
 
   function onSample(sample: LiveSample) {
     const current = drillRef.current;
