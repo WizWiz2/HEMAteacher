@@ -9,9 +9,10 @@ import { createDrillRuntime, stepDrill } from "../drill/drillEngine";
 import { primaryCue } from "../drill/feedback";
 import { targetPoseFor } from "../drill/posePresets";
 import { personalizeDrill } from "../drill/personalize";
+import { adaptDrillForCameraView } from "../drill/cameraView";
 import type { Drill, DrillRuntime, WeaponMarkers } from "../drill/types";
 import { matchWeaponAngle } from "../drill/weaponMatch";
-import type { Facing } from "../live/normalize";
+import type { CameraView, Facing } from "../live/normalize";
 import { BodyProfileCalibrator, profileCoverage, type BodyProfile } from "../live/anatomy";
 import { clearBodyProfile, loadBodyProfile, saveBodyProfile } from "../live/bodyProfileStorage";
 import { useCoachVoice } from "../live/useCoachVoice";
@@ -24,6 +25,9 @@ export function DrillPage() {
   const [error, setError] = useState<string | null>(null);
   const [runtime, setRuntime] = useState<DrillRuntime>(createDrillRuntime());
   const [facing, setFacing] = useState<Facing>("right");
+  const [cameraView, setCameraView] = useState<CameraView>("side");
+  const [mirrorPreview, setMirrorPreview] = useState(false);
+  const [cameraExpanded, setCameraExpanded] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [bodyProfile, setBodyProfile] = useState<BodyProfile | null>(() => loadBodyProfile());
   const [targetGhostEnabled, setTargetGhostEnabled] = useState(true);
@@ -35,6 +39,7 @@ export function DrillPage() {
   const [now, setNow] = useState(0);
 
   const runtimeRef = useRef(runtime);
+  const cameraPaneRef = useRef<HTMLDivElement>(null);
   const drillRef = useRef<Drill | null>(null);
   const bodyProfileRef = useRef(bodyProfile);
   const calibratorRef = useRef(new BodyProfileCalibrator());
@@ -62,13 +67,24 @@ export function DrillPage() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const personalizedDrill = useMemo(() => personalizeDrill(drill, bodyProfile), [drill, bodyProfile]);
-  drillRef.current = personalizedDrill;
+  useEffect(() => {
+    if (!cameraExpanded) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previous; };
+  }, [cameraExpanded]);
 
-  const checkpoint = personalizedDrill?.checkpoints[runtime.checkpointIndex];
+  const personalizedDrill = useMemo(() => personalizeDrill(drill, bodyProfile), [drill, bodyProfile]);
+  const activeDrill = useMemo(
+    () => adaptDrillForCameraView(personalizedDrill, cameraView),
+    [personalizedDrill, cameraView],
+  );
+  drillRef.current = activeDrill;
+
+  const checkpoint = activeDrill?.checkpoints[runtime.checkpointIndex];
   const smoothingMs = checkpoint?.smoothingMs ?? 100;
-  const trackingMode = personalizedDrill?.trackingMode ?? "full_body";
-  const activeWeaponTracking = weaponMarkersEnabled ? personalizedDrill?.weaponTracking ?? "none" : "none";
+  const trackingMode = activeDrill?.trackingMode ?? "full_body";
+  const activeWeaponTracking = cameraView === "side" && weaponMarkersEnabled ? activeDrill?.weaponTracking ?? "none" : "none";
   const targetPose = checkpoint?.targetPose ?? targetPoseFor(checkpoint?.targetPoseId);
 
   const live = useLivePose(
@@ -80,8 +96,14 @@ export function DrillPage() {
       weaponTracking: activeWeaponTracking,
       targetPose,
       targetGhost: targetGhostEnabled,
+      cameraView,
     },
   );
+
+  useEffect(() => {
+    if (!live.cameraFacingMode) return;
+    setMirrorPreview(live.cameraFacingMode === "user");
+  }, [live.cameraFacingMode]);
 
   function onSample(sample: LiveSample) {
     const current = drillRef.current;
@@ -142,6 +164,18 @@ export function DrillPage() {
     setRuntime(next);
   }
 
+  function changeCameraView(nextView: CameraView) {
+    if (nextView === cameraView) return;
+    setCameraView(nextView);
+    setWeaponMarkersEnabled(false);
+    calibratorRef.current.reset();
+    profileRefinedRef.current = false;
+    qualitySince.current = null;
+    const next = createDrillRuntime();
+    runtimeRef.current = next;
+    setRuntime(next);
+  }
+
   function retry() {
     const current = drillRef.current;
     if (!current) return;
@@ -166,21 +200,25 @@ export function DrillPage() {
   }
 
   const weaponMatch = useMemo(
-    () => matchWeaponAngle(weaponMarkersEnabled ? weaponMarkers : null, targetPose, facing),
-    [weaponMarkersEnabled, weaponMarkers, targetPose, facing],
+    () => cameraView === "side"
+      ? matchWeaponAngle(weaponMarkersEnabled ? weaponMarkers : null, targetPose, facing)
+      : { available: false, passed: false },
+    [cameraView, weaponMarkersEnabled, weaponMarkers, targetPose, facing],
   );
 
   const cue = primaryCue(runtime.match);
   const calibrationMessage = runtime.state === "calibrating" && framingReady && !anatomyReady
     ? "ПОВТОРИ ПОЗУ НА СТЕНДЕ · ЗАДЕРЖИСЬ"
     : framingMessage;
-  const spokenText = runtime.state === "calibrating" && (!framingReady || !anatomyReady)
-    ? calibrationMessage
-    : cue && !cue.ok
-      ? cue.text
-      : weaponMatch.available && !weaponMatch.passed
-        ? "Поверни меч ближе к линии эталона"
-        : null;
+  const spokenText = runtime.state === "completed"
+    ? "Готово"
+    : runtime.state === "calibrating" && (!framingReady || !anatomyReady)
+      ? calibrationMessage
+      : cue && !cue.ok
+        ? cue.text
+        : weaponMatch.available && !weaponMatch.passed
+          ? "Поверни меч ближе к линии эталона"
+          : null;
   useCoachVoice(spokenText, voiceEnabled);
 
   if (error) return <p className="error">{error}</p>;
@@ -212,10 +250,23 @@ export function DrillPage() {
 
           <div className="training-controls">
             <div className="control-group">
-              <span className="control-label">Ракурс</span>
-              <button type="button" className={facing === "left" ? "ghost active" : "ghost"} onClick={() => setFacing("left")}>Лицом ←</button>
-              <button type="button" className={facing === "right" ? "ghost active" : "ghost"} onClick={() => setFacing("right")}>Лицом →</button>
+              <span className="control-label">Камера</span>
+              <button type="button" className={cameraView === "side" ? "ghost active" : "ghost"} onClick={() => changeCameraView("side")}>Сбоку</button>
+              <button type="button" className={cameraView === "front" ? "ghost active" : "ghost"} onClick={() => changeCameraView("front")}>Спереди</button>
             </div>
+            {cameraView === "side" ? (
+              <div className="control-group">
+                <span className="control-label">Направление</span>
+                <button type="button" className={facing === "left" ? "ghost active" : "ghost"} onClick={() => setFacing("left")}>Лицом ←</button>
+                <button type="button" className={facing === "right" ? "ghost active" : "ghost"} onClick={() => setFacing("right")}>Лицом →</button>
+              </div>
+            ) : (
+              <span className="view-reliability">Фронтальный режим · глубина оценивается мягче</span>
+            )}
+            <label className="toggle-control">
+              <input type="checkbox" checked={mirrorPreview} onChange={(event) => setMirrorPreview(event.target.checked)} />
+              <span>Зеркало</span>
+            </label>
             <label className="toggle-control">
               <input type="checkbox" checked={voiceEnabled} onChange={(event) => setVoiceEnabled(event.target.checked)} />
               <span>Голосовые подсказки</span>
@@ -232,7 +283,7 @@ export function DrillPage() {
                   : `Калибровка тела ${Math.round(anatomyCoverage * 100)}%`}
             </span>
             <button type="button" className="ghost anatomy-reset" onClick={recalibrateBody}>Перекалибровать</button>
-            {drill.weaponTracking === "optional" && (
+            {drill.weaponTracking === "optional" && cameraView === "side" && (
               <label className="toggle-control">
                 <input
                   type="checkbox"
@@ -248,7 +299,7 @@ export function DrillPage() {
             <p className="callout compact">Черновой учебный материал: checkpoint'ы и допуски ещё должен проверить тренер.</p>
           )}
 
-          {weaponMarkersEnabled && drill.weaponTracking === "optional" && (
+          {weaponMarkersEnabled && drill.weaponTracking === "optional" && cameraView === "side" && (
             <div className="weapon-help manuscript-panel">
               <strong>Маркерный режим меча</strong>
               <span><i className="marker cyan" /> голубая/циановая лента у гарды</span>
@@ -260,8 +311,16 @@ export function DrillPage() {
           )}
 
           <section className="drill-stage">
-            <div className="camera-pane">
-              <LivePoseCanvas videoRef={live.videoRef} canvasRef={live.canvasRef} />
+            <div ref={cameraPaneRef} className={`camera-pane ${cameraExpanded ? "camera-expanded" : ""}`}>
+              <LivePoseCanvas videoRef={live.videoRef} canvasRef={live.canvasRef} mirrored={mirrorPreview} />
+              <button
+                type="button"
+                className="camera-expand-button"
+                onClick={() => setCameraExpanded((value) => !value)}
+                aria-label={cameraExpanded ? "Свернуть камеру" : "Развернуть камеру на весь экран"}
+              >
+                {cameraExpanded ? "✕ Свернуть" : "⛶ На весь экран"}
+              </button>
               {!live.live && (
                 <div className="camera-start">
                   <button type="button" onClick={() => void live.start()} disabled={live.phase !== "idle"}>
@@ -274,7 +333,7 @@ export function DrillPage() {
               {live.live && live.phase === "loading" && <span className="camera-loading">Камера работает · загружаю распознавание позы…</span>}
               {checkpoint && (
                 <div className="mobile-target-peek" aria-label="Эталон текущей позиции">
-                  <TargetPose checkpoint={checkpoint} facing={facing} cue={cue} calibrating={runtime.state === "calibrating"} />
+                  <TargetPose checkpoint={checkpoint} facing={facing} cameraView={cameraView} cue={cue} calibrating={runtime.state === "calibrating"} />
                 </div>
               )}
               <div className="ghost-legend">
@@ -287,17 +346,18 @@ export function DrillPage() {
                 framingMessage={calibrationMessage}
                 calibrating={runtime.state === "calibrating"}
                 weapon={weaponMatch}
+                completed={runtime.state === "completed"}
               />
               <div className="camera-status">
-                <span>{trackingMode === "upper_body" ? "Верх тела" : "Всё тело"}</span>
-                <span className={framingReady && anatomyReady ? "status-ok" : "status-warn"}>
-                  {calibrationMessage}
+                <span>{cameraView === "front" ? "Спереди" : "Сбоку"} · {trackingMode === "upper_body" ? "верх тела" : "всё тело"}</span>
+                <span className={runtime.state === "completed" || (framingReady && anatomyReady) ? "status-ok" : "status-warn"}>
+                  {runtime.state === "completed" ? "УПРАЖНЕНИЕ · ГОТОВО" : calibrationMessage}
                 </span>
               </div>
             </div>
             {checkpoint && (
               <div className="desktop-target-card">
-                <TargetPose checkpoint={checkpoint} facing={facing} cue={cue} calibrating={runtime.state === "calibrating"} />
+                <TargetPose checkpoint={checkpoint} facing={facing} cameraView={cameraView} cue={cue} calibrating={runtime.state === "calibrating"} />
               </div>
             )}
           </section>

@@ -7,13 +7,23 @@ export function LiveFeedback({
   framingMessage,
   calibrating,
   weapon,
+  completed = false,
 }: {
   match: CheckpointMatch | null;
   enough: boolean;
   framingMessage?: string;
   calibrating?: boolean;
   weapon?: WeaponMatch | null;
+  completed?: boolean;
 }) {
+  if (completed) {
+    return (
+      <div className="coach-overlay complete">
+        <span className="coach-primary">ГОТОВО ✓</span>
+        <span className="coach-score">Упражнение завершено</span>
+      </div>
+    );
+  }
   const hasMeasurement = match != null && Object.values(match.features).some((feature) => Number.isFinite(feature.value));
   if (calibrating || !enough || !match || !hasMeasurement) {
     return <div className="coach-overlay wait"><span>{framingMessage ?? "ВСТАНЬ В КАДР"}</span></div>;

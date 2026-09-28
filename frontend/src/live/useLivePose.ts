@@ -4,7 +4,7 @@ import type { TargetPose, TrackingMode, WeaponMarkers, WeaponTrackingMode } from
 import { assessFraming, type FramingAssessment } from "./framing";
 import { liveFeatures, poseUsable, type FeatureMap } from "./features";
 import type { RawPose } from "./landmarks";
-import { normalizePose, torsoPixels, TorsoScale, type Facing } from "./normalize";
+import { normalizePose, torsoPixels, TorsoScale, type CameraView, type Facing } from "./normalize";
 import { MediaPipeLivePose } from "./poseLandmarker";
 import { smoothFeatures, trimHistory, type TimedSample } from "./smoothing";
 import { detectWeaponMarkers } from "./weaponMarkers";
@@ -28,6 +28,7 @@ export interface LivePoseOptions {
   weaponTracking?: WeaponTrackingMode;
   targetPose?: TargetPose | null;
   targetGhost?: boolean;
+  cameraView?: CameraView;
 }
 
 export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => void, options: LivePoseOptions = {}) {
@@ -39,6 +40,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
   const [error, setError] = useState<string | null>(null);
   const [live, setLive] = useState(false);
   const [phase, setPhase] = useState<"idle" | "requesting" | "loading" | "ready">("idle");
+  const [cameraFacingMode, setCameraFacingMode] = useState<string | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const detectorRef = useRef<MediaPipeLivePose | null>(null);
   const requestId = useRef(0);
@@ -79,7 +81,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
       const active = optionsRef.current;
       const trackingMode = active.trackingMode ?? "full_body";
       const smoothedScale = scale.push(torsoPixels(raw));
-      const normalized = smoothedScale ? normalizePose(raw, facingRef.current, smoothedScale) : null;
+      const normalized = smoothedScale ? normalizePose(raw, facingRef.current, smoothedScale, 0.5, active.cameraView ?? "side") : null;
       const features = normalized ? liveFeatures(normalized.landmarks) : null;
       history = trimHistory([...history, { timeMs: raw.timestampMs, features }], raw.timestampMs);
       const smoothed = smoothFeatures(history, raw.timestampMs, active.smoothingMs ?? 100, 3, trackingMode);
@@ -92,7 +94,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
         weapon = null;
       }
 
-      draw(canvas, video, raw, weapon, active.targetGhost ? active.targetPose ?? null : null, facingRef.current, smoothedScale);
+      draw(canvas, video, raw, weapon, active.targetGhost ? active.targetPose ?? null : null, facingRef.current, smoothedScale, active.cameraView ?? "side");
       onSampleRef.current({
         timeMs: raw.timestampMs,
         raw,
@@ -114,6 +116,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
       });
       if (currentRequest !== requestId.current) { stream.getTracks().forEach((track) => track.stop()); return; }
       streamRef.current = stream;
+      setCameraFacingMode(stream.getVideoTracks()[0]?.getSettings().facingMode ?? null);
       video.srcObject = stream;
       await video.play();
       if (currentRequest !== requestId.current) return;
@@ -143,7 +146,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     streamRef.current = null;
   }, []);
 
-  return { videoRef, canvasRef, error, live, phase, start };
+  return { videoRef, canvasRef, error, live, phase, start, cameraFacingMode };
 }
 
 function cameraError(reason: unknown): string {
@@ -158,7 +161,7 @@ function cameraError(reason: unknown): string {
   return `Камера или распознавание позы не запустились: ${reason instanceof Error ? reason.message : "неизвестная ошибка"}`;
 }
 
-function draw(canvas: HTMLCanvasElement, video: HTMLVideoElement, raw: RawPose, weapon: WeaponMarkers | null, targetPose: TargetPose | null, facing: Facing, torsoScale: number | null) {
+function draw(canvas: HTMLCanvasElement, video: HTMLVideoElement, raw: RawPose, weapon: WeaponMarkers | null, targetPose: TargetPose | null, facing: Facing, torsoScale: number | null, cameraView: CameraView) {
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
   const width = Math.max(1, rect.width);
@@ -187,7 +190,7 @@ function draw(canvas: HTMLCanvasElement, video: HTMLVideoElement, raw: RawPose, 
   ];
 
   if (targetPose && torsoScale) {
-    drawTargetGhost(ctx, raw, targetPose, facing, torsoScale, box, points);
+    drawTargetGhost(ctx, raw, targetPose, facing, torsoScale, box, points, cameraView);
   }
 
   ctx.strokeStyle = "#b31f19";
@@ -235,8 +238,9 @@ function drawTargetGhost(
   torsoScale: number,
   box: {x:number;y:number;w:number;h:number},
   livePoints: Map<string, [number, number]>,
+  cameraView: CameraView,
 ) {
-  const ghost = projectTargetGhost(raw, targetPose, facing, torsoScale, box);
+  const ghost = projectTargetGhost(raw, targetPose, facing, torsoScale, box, cameraView);
   if (!ghost) return;
 
   ctx.save();

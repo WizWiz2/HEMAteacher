@@ -1,4 +1,4 @@
-import type { Facing } from "./normalize";
+import type { CameraView, Facing } from "./normalize";
 import type { RawPose } from "./landmarks";
 import type { TargetPose } from "../drill/types";
 
@@ -15,6 +15,7 @@ export function projectTargetGhost(
   facing: Facing,
   torsoScalePx: number,
   box: { x: number; y: number; w: number; h: number },
+  cameraView: CameraView = "side",
 ): TargetGhostProjection | null {
   const leftHip = raw.landmarks.left_hip;
   const rightHip = raw.landmarks.right_hip;
@@ -25,8 +26,9 @@ export function projectTargetGhost(
   const rootY = ((leftHip.y + rightHip.y) / 2) * raw.height;
   const face = facing === "right" ? 1 : -1;
 
-  const project = (x: number, y: number): ScreenPoint => {
-    const px = rootX + x * torsoScalePx * face;
+  const project = (x: number, y: number, z = 0): ScreenPoint => {
+    const horizontal = cameraView === "front" ? -z : x * face;
+    const px = rootX + horizontal * torsoScalePx;
     const py = rootY - y * torsoScalePx;
     return [
       box.x + (px / raw.width) * box.w,
@@ -36,12 +38,12 @@ export function projectTargetGhost(
 
   const points: Record<string, ScreenPoint> = {};
   for (const [name, point] of Object.entries(target.landmarks)) {
-    points[name] = project(point.x, point.y);
+    points[name] = project(point.x, point.y, point.z);
   }
 
   return {
     points,
-    sword: target.sword
+    sword: target.sword && cameraView === "side"
       ? {
           grip: project(target.sword.grip.x, target.sword.grip.y),
           tip: project(target.sword.tip.x, target.sword.tip.y),

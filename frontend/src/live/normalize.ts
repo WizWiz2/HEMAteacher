@@ -1,6 +1,7 @@
 import type { LandmarkMap, RawPose, Vec3 } from "./landmarks";
 
 export type Facing = "right" | "left";
+export type CameraView = "side" | "front";
 
 const MIN_VISIBILITY = 0.5;
 
@@ -36,7 +37,7 @@ export function torsoPixels(pose: RawPose, minVisibility = MIN_VISIBILITY): numb
   return length > 1e-3 ? length : null;
 }
 
-export function normalizePose(pose: RawPose, facing: Facing, scale: number, minVisibility = MIN_VISIBILITY): RawPose | null {
+export function normalizePose(pose: RawPose, facing: Facing, scale: number, minVisibility = MIN_VISIBILITY, cameraView: CameraView = "side"): RawPose | null {
   const leftHip = visible(pose.landmarks.left_hip, minVisibility);
   const rightHip = visible(pose.landmarks.right_hip, minVisibility);
   if (!leftHip || !rightHip || !Number.isFinite(scale) || scale <= 1e-3) return null;
@@ -46,12 +47,23 @@ export function normalizePose(pose: RawPose, facing: Facing, scale: number, minV
   for (const [name, landmark] of Object.entries(pose.landmarks)) {
     if (!visible(landmark, minVisibility)) continue;
     const point = toPixels(landmark, pose);
-    landmarks[name] = {
-      x: ((point.x - root.x) / scale) * face,
-      y: -((point.y - root.y) / scale),
-      z: (point.z - root.z) / scale,
-      visibility: landmark.visibility,
-    };
+    const screenX = (point.x - root.x) / scale;
+    const depth = (point.z - root.z) / scale;
+    landmarks[name] = cameraView === "front"
+      ? {
+          // Front camera: MediaPipe depth becomes the canonical fore/aft axis.
+          // Screen horizontal becomes the body's lateral axis.
+          x: -depth,
+          y: -((point.y - root.y) / scale),
+          z: -screenX,
+          visibility: landmark.visibility,
+        }
+      : {
+          x: screenX * face,
+          y: -((point.y - root.y) / scale),
+          z: depth,
+          visibility: landmark.visibility,
+        };
   }
   return { ...pose, landmarks };
 }
