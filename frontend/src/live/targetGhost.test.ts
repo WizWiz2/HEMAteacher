@@ -30,4 +30,18 @@ describe("target ghost projection",()=>{
     expect(right?.points.right_shoulder[0]).toBeGreaterThan(500);
     expect(left?.points.right_shoulder[0]).toBeLessThan(500);
   });
+
+  it("uses target z as horizontal screen axis in front view",()=>{
+    const frontTarget:TargetPose={
+      landmarks:{
+        left_hip:{x:0,y:0,z:0,visibility:1},
+        left_shoulder:{x:.7,y:1,z:-.35,visibility:1},
+        right_shoulder:{x:.7,y:1,z:.35,visibility:1},
+      },
+    };
+    const result=projectTargetGhost(raw,frontTarget,"right",100,{x:0,y:0,w:1000,h:500},"front");
+    expect(result?.points.left_shoulder[0]).toBeGreaterThan(500);
+    expect(result?.points.right_shoulder[0]).toBeLessThan(500);
+    expect(result?.sword).toBeUndefined();
+  });
 });
