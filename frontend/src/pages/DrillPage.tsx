@@ -101,9 +101,10 @@ export function DrillPage() {
   );
 
   useEffect(() => {
-    if (!live.cameraFacingMode) return;
-    setMirrorPreview(live.cameraFacingMode === "user");
-  }, [live.cameraFacingMode]);
+    if (!live.live) return;
+    const facingMode = live.cameraFacingMode ?? live.requestedCamera;
+    setMirrorPreview(facingMode === "user");
+  }, [live.live, live.cameraFacingMode, live.requestedCamera]);
 
   function onSample(sample: LiveSample) {
     const current = drillRef.current;
@@ -174,6 +175,16 @@ export function DrillPage() {
     const next = createDrillRuntime();
     runtimeRef.current = next;
     setRuntime(next);
+  }
+
+  async function switchPhysicalCamera() {
+    calibratorRef.current.reset();
+    profileRefinedRef.current = false;
+    qualitySince.current = null;
+    const next = createDrillRuntime();
+    runtimeRef.current = next;
+    setRuntime(next);
+    await live.switchCamera();
   }
 
   function retry() {
@@ -250,7 +261,7 @@ export function DrillPage() {
 
           <div className="training-controls">
             <div className="control-group">
-              <span className="control-label">Камера</span>
+              <span className="control-label">Ракурс анализа</span>
               <button type="button" className={cameraView === "side" ? "ghost active" : "ghost"} onClick={() => changeCameraView("side")}>Сбоку</button>
               <button type="button" className={cameraView === "front" ? "ghost active" : "ghost"} onClick={() => changeCameraView("front")}>Спереди</button>
             </div>
@@ -321,6 +332,19 @@ export function DrillPage() {
               >
                 {cameraExpanded ? "✕ Свернуть" : "⛶ На весь экран"}
               </button>
+              {live.live && (
+                <button
+                  type="button"
+                  className="camera-switch-button"
+                  onClick={() => void switchPhysicalCamera()}
+                  disabled={live.phase === "requesting" || live.phase === "loading"}
+                  aria-label={(live.cameraFacingMode ?? live.requestedCamera) === "user" ? "Переключить на основную камеру" : "Переключить на селфи-камеру"}
+                >
+                  {live.cameraFacingMode === "user" || (!live.cameraFacingMode && live.requestedCamera === "user")
+                    ? "↺ Основная"
+                    : "↺ Селфи"}
+                </button>
+              )}
               {!live.live && (
                 <div className="camera-start">
                   <button type="button" onClick={() => void live.start()} disabled={live.phase !== "idle"}>
@@ -349,7 +373,10 @@ export function DrillPage() {
                 completed={runtime.state === "completed"}
               />
               <div className="camera-status">
-                <span>{cameraView === "front" ? "Спереди" : "Сбоку"} · {trackingMode === "upper_body" ? "верх тела" : "всё тело"}</span>
+                <span>
+                  {cameraView === "front" ? "Спереди" : "Сбоку"} · {trackingMode === "upper_body" ? "верх тела" : "всё тело"}
+                  {live.live ? ` · ${(live.cameraFacingMode ?? live.requestedCamera) === "user" ? "селфи" : "основная камера"}` : ""}
+                </span>
                 <span className={runtime.state === "completed" || (framingReady && anatomyReady) ? "status-ok" : "status-warn"}>
                   {runtime.state === "completed" ? "УПРАЖНЕНИЕ · ГОТОВО" : calibrationMessage}
                 </span>
