@@ -1261,3 +1261,29 @@ button.active {
     font-size: clamp(1rem, 4.8vw, 1.7rem);
   }
 }
+
+
+/* Physical camera lens switch */
+.camera-switch-button {
+  position: absolute;
+  top: 10px;
+  left: 132px;
+  z-index: 18;
+  min-height: 34px;
+  padding: 5px 9px;
+  border: 1px solid rgba(246, 231, 197, .65);
+  background: rgba(31, 23, 16, .78);
+  color: #f5e7c4;
+  font-size: .74rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,.26);
+}
+
+@media (max-width: 700px) {
+  .camera-switch-button {
+    top: 6px;
+    left: 102px;
+    min-height: 30px;
+    font-size: .65rem;
+    padding: 4px 7px;
+  }
+}
