@@ -68,11 +68,6 @@ export function DrillPage() {
   }, []);
 
   useEffect(() => {
-    if (!live.cameraFacingMode) return;
-    setMirrorPreview(live.cameraFacingMode === "user");
-  }, [live.cameraFacingMode]);
-
-  useEffect(() => {
     if (!cameraExpanded) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -104,6 +99,11 @@ export function DrillPage() {
       cameraView,
     },
   );
+
+  useEffect(() => {
+    if (!live.cameraFacingMode) return;
+    setMirrorPreview(live.cameraFacingMode === "user");
+  }, [live.cameraFacingMode]);
 
   function onSample(sample: LiveSample) {
     const current = drillRef.current;
