@@ -40,6 +40,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
   const [error, setError] = useState<string | null>(null);
   const [live, setLive] = useState(false);
   const [phase, setPhase] = useState<"idle" | "requesting" | "loading" | "ready">("idle");
+  const [cameraFacingMode, setCameraFacingMode] = useState<string | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const detectorRef = useRef<MediaPipeLivePose | null>(null);
   const requestId = useRef(0);
@@ -115,6 +116,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
       });
       if (currentRequest !== requestId.current) { stream.getTracks().forEach((track) => track.stop()); return; }
       streamRef.current = stream;
+      setCameraFacingMode(stream.getVideoTracks()[0]?.getSettings().facingMode ?? null);
       video.srcObject = stream;
       await video.play();
       if (currentRequest !== requestId.current) return;
@@ -144,7 +146,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     streamRef.current = null;
   }, []);
 
-  return { videoRef, canvasRef, error, live, phase, start };
+  return { videoRef, canvasRef, error, live, phase, start, cameraFacingMode };
 }
 
 function cameraError(reason: unknown): string {
