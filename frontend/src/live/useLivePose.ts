@@ -22,6 +22,8 @@ export interface LiveSample {
   weapon: WeaponMarkers | null;
 }
 
+export type PhysicalCamera = "environment" | "user";
+
 export interface LivePoseOptions {
   smoothingMs?: number;
   trackingMode?: TrackingMode;
@@ -41,6 +43,9 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
   const [live, setLive] = useState(false);
   const [phase, setPhase] = useState<"idle" | "requesting" | "loading" | "ready">("idle");
   const [cameraFacingMode, setCameraFacingMode] = useState<string | null>(null);
+  const [requestedCamera, setRequestedCamera] = useState<PhysicalCamera>("environment");
+  const requestedCameraRef = useRef<PhysicalCamera>("environment");
+  const actualCameraRef = useRef<string | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const detectorRef = useRef<MediaPipeLivePose | null>(null);
   const requestId = useRef(0);
@@ -49,7 +54,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
   facingRef.current = facing;
   optionsRef.current = options;
 
-  const start = useCallback(async () => {
+  const start = useCallback(async (camera: PhysicalCamera = requestedCameraRef.current) => {
     if (busy.current) return;
     busy.current = true;
     const currentRequest = ++requestId.current;
@@ -60,6 +65,8 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
       setError("Экран камеры ещё не готов. Попробуй ещё раз.");
       return;
     }
+    requestedCameraRef.current = camera;
+    setRequestedCamera(camera);
     setError(null);
     setLive(false);
     setPhase("requesting");
@@ -110,13 +117,12 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
 
     try {
       // Request the camera while the user's tap is still being handled.
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
-      });
+      const stream = await openCameraStream(camera);
       if (currentRequest !== requestId.current) { stream.getTracks().forEach((track) => track.stop()); return; }
       streamRef.current = stream;
-      setCameraFacingMode(stream.getVideoTracks()[0]?.getSettings().facingMode ?? null);
+      const actualFacing = stream.getVideoTracks()[0]?.getSettings().facingMode ?? null;
+      actualCameraRef.current = actualFacing;
+      setCameraFacingMode(actualFacing);
       video.srcObject = stream;
       await video.play();
       if (currentRequest !== requestId.current) return;
@@ -139,6 +145,28 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     }
   }, []);
 
+  const switchCamera = useCallback(async () => {
+    if (busy.current) return;
+    const actual = actualCameraRef.current;
+    const current: PhysicalCamera = actual === "user" || actual === "environment"
+      ? actual
+      : requestedCameraRef.current;
+    const next: PhysicalCamera = current === "user" ? "environment" : "user";
+
+    requestId.current++;
+    detectorRef.current?.stop();
+    detectorRef.current = null;
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    actualCameraRef.current = null;
+    setCameraFacingMode(null);
+    setLive(false);
+    setPhase("idle");
+    if (videoRef.current) videoRef.current.srcObject = null;
+
+    await start(next);
+  }, [start]);
+
   useEffect(() => () => {
     requestId.current++;
     detectorRef.current?.stop();
@@ -146,7 +174,49 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     streamRef.current = null;
   }, []);
 
-  return { videoRef, canvasRef, error, live, phase, start, cameraFacingMode };
+  return {
+    videoRef,
+    canvasRef,
+    error,
+    live,
+    phase,
+    start,
+    switchCamera,
+    cameraFacingMode,
+    requestedCamera,
+  };
+}
+
+
+async function openCameraStream(camera: PhysicalCamera): Promise<MediaStream> {
+  const base = {
+    audio: false as const,
+    video: {
+      width: { ideal: 1280 },
+      height: { ideal: 720 },
+    },
+  };
+
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      ...base,
+      video: {
+        ...base.video,
+        facingMode: { exact: camera },
+      },
+    });
+  } catch (reason) {
+    if (!(reason instanceof DOMException) || (reason.name !== "OverconstrainedError" && reason.name !== "NotFoundError")) {
+      throw reason;
+    }
+    return navigator.mediaDevices.getUserMedia({
+      ...base,
+      video: {
+        ...base.video,
+        facingMode: { ideal: camera },
+      },
+    });
+  }
 }
 
 function cameraError(reason: unknown): string {
