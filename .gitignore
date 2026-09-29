@@ -15,6 +15,7 @@ backend/models/*.task
 result/
 debug/
 *.mp4
+!test-data/mock-videos/**/*.mp4
 !docs/**
 .DS_Store
 .idea/
