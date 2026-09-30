@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getDrill } from "../api";
-import { CheckpointProgress } from "../components/CheckpointProgress";
+import { CheckpointStoryboard } from "../components/CheckpointStoryboard";
 import { LiveFeedback } from "../components/LiveFeedback";
 import { LivePoseCanvas } from "../components/LivePoseCanvas";
 import { TargetPose } from "../components/TargetPose";
@@ -253,10 +253,12 @@ export function DrillPage() {
             </div>
           </section>
 
-          <CheckpointProgress
-            count={drill.checkpoints.length}
+          <CheckpointStoryboard
+            drill={drill}
             index={runtime.checkpointIndex}
             completed={runtime.state === "completed"}
+            facing={facing}
+            cameraView={cameraView}
           />
 
           <div className="training-controls">
