@@ -76,9 +76,10 @@
         "holdMs": 350,
         "passThreshold": 0.55,
         "requiredFeatures": [
-          "hand_center_y"
+          "hand_center_y",
+          "hand_center_x"
         ],
-        "cue": "Высокая готовая позиция. Для beginner-mode важнее высота рук и общий силуэт, чем точное копирование суставов.",
+        "cue": "Меч у правого плеча. Правая кисть у гарды, левая ниже на рукояти. Локти опусти; лицо остаётся открытым.",
         "featureTolerances": {
           "hand_center_x": 0.46,
           "hand_center_y": 0.42,
@@ -185,6 +186,11 @@
         "id": "guard",
         "title": "Vom Tag",
         "targetPoseId": "vom-tag",
+        "cue": "Меч у правого плеча. Правая кисть у гарды, левая ниже на рукояти. Локти опусти; лицо остаётся открытым.",
+        "requiredFeatures": [
+          "hand_center_x",
+          "hand_center_y"
+        ],
         "holdMs": 350,
         "passThreshold": 0.62,
         "featureTolerances": {
@@ -486,6 +492,11 @@
         "id": "guard",
         "title": "Vom Tag",
         "targetPoseId": "vom-tag",
+        "cue": "Меч у правого плеча. Правая кисть у гарды, левая ниже на рукояти. Локти опусти; лицо остаётся открытым.",
+        "requiredFeatures": [
+          "hand_center_x",
+          "hand_center_y"
+        ],
         "holdMs": 350,
         "passThreshold": 0.62,
         "featureTolerances": {
@@ -554,6 +565,11 @@
         "id": "guard",
         "title": "Vom Tag",
         "targetPoseId": "vom-tag",
+        "cue": "Меч у правого плеча. Правая кисть у гарды, левая ниже на рукояти. Локти опусти; лицо остаётся открытым.",
+        "requiredFeatures": [
+          "hand_center_x",
+          "hand_center_y"
+        ],
         "holdMs": 350,
         "passThreshold": 0.62,
         "featureTolerances": {
@@ -640,6 +656,11 @@
         "id": "guard",
         "title": "Vom Tag",
         "targetPoseId": "vom-tag",
+        "cue": "Меч у правого плеча. Правая кисть у гарды, левая ниже на рукояти. Локти опусти; лицо остаётся открытым.",
+        "requiredFeatures": [
+          "hand_center_x",
+          "hand_center_y"
+        ],
         "holdMs": 350,
         "passThreshold": 0.62,
         "featureTolerances": {
@@ -726,6 +747,11 @@
         "id": "guard",
         "title": "Vom Tag",
         "targetPoseId": "vom-tag",
+        "cue": "Меч у правого плеча. Правая кисть у гарды, левая ниже на рукояти. Локти опусти; лицо остаётся открытым.",
+        "requiredFeatures": [
+          "hand_center_x",
+          "hand_center_y"
+        ],
         "holdMs": 350,
         "passThreshold": 0.62,
         "featureTolerances": {

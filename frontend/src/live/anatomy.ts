@@ -156,7 +156,7 @@ export function retargetPose(target: TargetPose, profile: BodyProfile | null): T
     sword.tip.y += dy;
   }
 
-  return { landmarks, sword };
+  return { ...target, landmarks, sword };
 }
 
 export function measureBodyRatios(pose: RawPose): Partial<BodyProfile> {
@@ -295,6 +295,7 @@ function median(values: number[]): number {
 }
 function clonePose(target: TargetPose): TargetPose {
   return {
+    ...target,
     landmarks: Object.fromEntries(Object.entries(target.landmarks).map(([name, point]) => [name, { ...point }])),
     sword: target.sword ? { grip: { ...target.sword.grip }, tip: { ...target.sword.tip } } : undefined,
   };

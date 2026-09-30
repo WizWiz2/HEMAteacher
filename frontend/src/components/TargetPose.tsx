@@ -1,7 +1,9 @@
 import type { LiveCue } from "../drill/feedback";
 import { targetPoseFor } from "../drill/posePresets";
-import type { Checkpoint, TargetLandmark, TargetPose as TargetPoseData } from "../drill/types";
+import type { Checkpoint, TargetPose as TargetPoseData } from "../drill/types";
 import type { CameraView, Facing } from "../live/normalize";
+
+import { EngravingFigure, engravingJoints } from "./EngravingFigure";
 
 const EDGES: Array<[string, string]> = [
   ["left_shoulder", "right_shoulder"],
@@ -18,17 +20,6 @@ const EDGES: Array<[string, string]> = [
   ["right_knee", "right_ankle"],
   ["left_ankle", "left_foot_index"],
   ["right_ankle", "right_foot_index"],
-];
-
-const LIMBS: Array<[string, string, number]> = [
-  ["right_hip", "right_knee", 27],
-  ["right_knee", "right_ankle", 23],
-  ["right_shoulder", "right_elbow", 23],
-  ["right_elbow", "right_wrist", 19],
-  ["left_hip", "left_knee", 29],
-  ["left_knee", "left_ankle", 24],
-  ["left_shoulder", "left_elbow", 24],
-  ["left_elbow", "left_wrist", 20],
 ];
 
 const KEY_POINTS = [
@@ -98,27 +89,30 @@ function EngravingPose({
   cue: LiveCue | null;
   calibrating: boolean;
 }) {
-  const point = (name: string) => {
-    const value = pose.landmarks[name];
-    return value ? projectLandmark(value, cameraView, facing) : null;
-  };
+  const joints = engravingJoints(pose, cameraView, facing);
+  const point = (name: string) => joints[name] ?? null;
 
-  const nose = point("nose");
-  const ls = point("left_shoulder");
-  const rs = point("right_shoulder");
-  const lh = point("left_hip");
-  const rh = point("right_hip");
-
-  const torso = ls && rs && lh && rh
-    ? `${ls[0]},${ls[1]} ${rs[0]},${rs[1]} ${rh[0]},${rh[1]} ${lh[0]},${lh[1]}`
-    : "";
-
-  const swordGrip = pose.sword && cameraView === "side"
-    ? projectXY(pose.sword.grip.x * (facing === "right" ? 1 : -1), pose.sword.grip.y, cameraView)
+  const hands = joints.left_wrist && joints.right_wrist ? midpoint2(joints.left_wrist, joints.right_wrist) : null;
+  const swordGrip = pose.sword && hands ? hands : null;
+  const bladeX = pose.sword ? pose.sword.tip.x - pose.sword.grip.x : 0;
+  const bladeY = pose.sword ? pose.sword.tip.y - pose.sword.grip.y : 0;
+  const bladeZ = pose.sword ? (pose.sword.tip.z ?? 0) - (pose.sword.grip.z ?? 0) : 0;
+  const bladeScale = 105 / (Math.hypot(bladeX, bladeY, bladeZ) || 1);
+  const swordTip: [number, number] | null = pose.sword && swordGrip
+    ? cameraView === "side"
+      ? [swordGrip[0] + bladeX * bladeScale * (facing === "right" ? 1 : -1), swordGrip[1] - bladeY * bladeScale]
+      // Match the illustration's 90:80 frontal projection, so the hilt
+      // stays collinear with both wrists rather than drifting across them.
+      : [swordGrip[0] - bladeZ * bladeScale * 90 / 80, swordGrip[1] - bladeY * bladeScale]
     : null;
-  const swordTip = pose.sword && cameraView === "side"
-    ? projectXY(pose.sword.tip.x * (facing === "right" ? 1 : -1), pose.sword.tip.y, cameraView)
-    : null;
+  const visiblePoints = [...Object.values(joints), ...[swordGrip, swordTip].filter((p): p is [number, number] => p !== null)];
+  const top = Math.min(...visiblePoints.map(p => p[1]), (joints.left_shoulder?.[1] ?? 176) - 58) - 18;
+  const bottom = Math.max(...visiblePoints.map(p => p[1])) + 25;
+  const left = Math.min(...visiblePoints.map(p => p[0])) - 40;
+  const right = Math.max(...visiblePoints.map(p => p[0])) + 40;
+  const figureScale = Math.min(1, 284 / Math.max(1, bottom - top), 300 / Math.max(1, right - left));
+  const figureX = 180 - (left + right) / 2 * figureScale;
+  const figureY = 369 - bottom * figureScale;
 
   const focus = cue
     ? focusJoints(cue.name)
@@ -143,20 +137,6 @@ function EngravingPose({
       role="img"
       aria-label={`${title}. ${cameraView === "front" ? "Вид спереди" : "Вид сбоку"}${cue ? `. ${cue.text}` : calibrating ? ". Повтори позу на рисунке" : ""}`}
     >
-      <defs>
-        <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
-          <line x1="0" y1="0" x2="0" y2="7" stroke="#3e2a18" strokeWidth="1.2" opacity=".55" />
-        </pattern>
-        <pattern id="clothHatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(26)">
-          <rect width="8" height="8" fill="#caa86f" />
-          <line x1="0" y1="0" x2="0" y2="8" stroke="#6a492a" strokeWidth="1.1" opacity=".5" />
-        </pattern>
-        <filter id="roughInk" x="-20%" y="-20%" width="140%" height="140%">
-          <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="11" result="noise" />
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale=".8" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-      </defs>
-
       <rect width="360" height="430" rx="10" fill="#ead5a7" />
       <rect x="9" y="9" width="342" height="412" fill="none" stroke="#6a3e22" strokeWidth="2" />
       <rect x="15" y="15" width="330" height="400" fill="none" stroke="#9a6b3d" strokeWidth="1" />
@@ -165,68 +145,25 @@ function EngravingPose({
       <text x="26" y="67" fill="#6a3e22" fontFamily="Georgia, serif" fontSize="11">
         FIGURA EXEMPLARIS · {cameraView === "front" ? "фронтальный ракурс" : "боковой ракурс"}
       </text>
-      <line x1="28" y1="355" x2="332" y2="355" stroke="#6a3e22" strokeWidth="2" />
+      <line x1="28" y1="373" x2="332" y2="373" stroke="#6a3e22" strokeWidth="2" />
 
-      <g filter="url(#roughInk)" opacity=".98">
-        {LIMBS.slice(0,4).map(([a,b,width]) => (
-          <EngravedLimb key={`rear-${a}-${b}`} from={point(a)} to={point(b)} width={width} faded />
-        ))}
-
-        {torso && (
-          <polygon
-            points={torso}
-            fill="url(#hatch)"
-            stroke="#3e2a18"
-            strokeWidth="8"
-            strokeLinejoin="round"
-          />
-        )}
-
-        {ls && rs && <JointBridge from={ls} to={rs} width={16} />}
-        {lh && rh && <JointBridge from={lh} to={rh} width={18} />}
-
-        {nose && (
-          <>
-            <circle cx={nose[0]} cy={nose[1]-2} r="23" fill="#d5b47c" stroke="#3e2a18" strokeWidth="5" />
-            <path
-              d={`M ${nose[0]-12} ${nose[1]-4} q 12 -7 25 1 M ${nose[0]-8} ${nose[1]+7} q 9 5 18 0`}
-              fill="none"
-              stroke="#3e2a18"
-              strokeWidth="2"
-            />
-          </>
-        )}
-
-        {LIMBS.slice(4).map(([a,b,width]) => (
-          <EngravedLimb key={`front-${a}-${b}`} from={point(a)} to={point(b)} width={width} />
-        ))}
-
-        <EngravedFoot ankle={point("right_ankle")} toe={point("right_foot_index")} heel={point("right_heel")} faded />
-        <EngravedFoot ankle={point("left_ankle")} toe={point("left_foot_index")} heel={point("left_heel")} />
-
-        {["left_elbow","right_elbow","left_knee","right_knee"].map((name) => {
-          const p = point(name);
-          return p ? <circle key={name} cx={p[0]} cy={p[1]} r="8" fill="url(#clothHatch)" stroke="#3e2a18" strokeWidth="3" /> : null;
-        })}
-      </g>
+      <g className="fitted-engraving" transform={`translate(${figureX} ${figureY}) scale(${figureScale})`}>
+      <EngravingFigure joints={joints} view={cameraView} facing={facing} />
 
       {swordGrip && swordTip && (
-        <g filter="url(#roughInk)">
-          <line x1={swordGrip[0]} y1={swordGrip[1]} x2={swordTip[0]} y2={swordTip[1]} stroke="#342313" strokeWidth="8" strokeLinecap="round" />
-          <line x1={swordGrip[0]-14} y1={swordGrip[1]+3} x2={swordGrip[0]+14} y2={swordGrip[1]-3} stroke="#342313" strokeWidth="5" />
-        </g>
+        <SwordDiagram grip={swordGrip} tip={swordTip} handSpan={Math.hypot(joints.left_wrist[0] - joints.right_wrist[0], joints.left_wrist[1] - joints.right_wrist[1])} />
       )}
 
       <g className="machine-overlay">
         {EDGES.map(([a, b]) => {
           const pa = point(a), pb = point(b);
           return pa && pb ? (
-            <line key={`skeleton-${a}${b}`} x1={pa[0]} y1={pa[1]} x2={pb[0]} y2={pb[1]} stroke="#a51d17" strokeWidth="2.6" strokeLinecap="round" opacity=".92" />
+            <line key={`skeleton-${a}${b}`} x1={pa[0]} y1={pa[1]} x2={pb[0]} y2={pb[1]} stroke="#a51d17" strokeWidth="1.1" strokeLinecap="round" opacity=".38" />
           ) : null;
         })}
         {KEY_POINTS.map((name) => {
           const p = point(name);
-          return p ? <circle key={name} cx={p[0]} cy={p[1]} r="5.7" fill="#b8211b" stroke="#f0d9a7" strokeWidth="1.5" /> : null;
+          return p ? <circle key={name} cx={p[0]} cy={p[1]} r="3.6" fill="#b8211b" stroke="#f0d9a7" strokeWidth="1.5" /> : null;
         })}
       </g>
 
@@ -250,72 +187,26 @@ function EngravingPose({
         </g>
       )}
 
-      <text x="28" y="390" fill="#4c321d" fontFamily="Georgia, serif" fontSize="12">Красные линии — то, что сравнивает система.</text>
+      </g>
+      <text x="28" y="390" fill="#4c321d" fontFamily="Georgia, serif" fontSize="12">Красные метки — контрольные суставы.</text>
       <text x="28" y="407" fill="#4c321d" fontFamily="Georgia, serif" fontSize="12">
-        {cameraView === "front" ? "Фронтальный режим по глубине мягче." : "Гравюра и machine target — одна и та же поза."}
+        {cameraView === "front" ? "Повтори положение рук и ног." : "Повтори положение рук и ног."}
       </text>
     </svg>
   );
 }
 
-function EngravedLimb({
-  from,
-  to,
-  width,
-  faded = false,
-}: {
-  from: [number, number] | null;
-  to: [number, number] | null;
-  width: number;
-  faded?: boolean;
-}) {
-  if (!from || !to) return null;
-  return (
-    <g opacity={faded ? .72 : 1}>
-      <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} stroke="#3e2a18" strokeWidth={width + 8} strokeLinecap="round" />
-      <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} stroke="url(#clothHatch)" strokeWidth={width} strokeLinecap="round" />
-      <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} stroke="#4a311d" strokeWidth="1.4" strokeDasharray="4 6" strokeLinecap="round" opacity=".72" />
-    </g>
-  );
-}
-
-function JointBridge({
-  from,
-  to,
-  width,
-}: {
-  from: [number, number];
-  to: [number, number];
-  width: number;
-}) {
-  if (Math.hypot(to[0]-from[0], to[1]-from[1]) < 2) return null;
-  return (
-    <g opacity=".9">
-      <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} stroke="#3e2a18" strokeWidth={width + 6} strokeLinecap="round" />
-      <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} stroke="url(#hatch)" strokeWidth={width} strokeLinecap="round" />
-    </g>
-  );
-}
-
-function EngravedFoot({
-  ankle,
-  toe,
-  heel,
-  faded = false,
-}: {
-  ankle: [number, number] | null;
-  toe: [number, number] | null;
-  heel: [number, number] | null;
-  faded?: boolean;
-}) {
-  if (!ankle || !toe) return null;
-  const back = heel ?? ankle;
-  return (
-    <g opacity={faded ? .72 : 1}>
-      <line x1={back[0]} y1={back[1]} x2={toe[0]} y2={toe[1]} stroke="#3e2a18" strokeWidth="16" strokeLinecap="round" />
-      <line x1={back[0]} y1={back[1]} x2={toe[0]} y2={toe[1]} stroke="#8c633c" strokeWidth="10" strokeLinecap="round" />
-    </g>
-  );
+function SwordDiagram({ grip, tip, handSpan }: { grip: [number, number]; tip: [number, number]; handSpan: number }) {
+  const length = Math.hypot(tip[0] - grip[0], tip[1] - grip[1]);
+  const angle = Math.atan2(tip[1] - grip[1], tip[0] - grip[0]) * 180 / Math.PI + 90;
+  const guard = -handSpan / 2 - 7;
+  const pommel = handSpan / 2 + 9;
+  return <g className="target-sword" aria-label={length < 12 ? "Меч направлен вдоль линии взгляда" : "Положение меча"}
+    transform={`translate(${grip[0]} ${grip[1]}) rotate(${length < 1 ? 0 : angle})`} stroke="#342313" strokeLinejoin="round">
+    <path d={`M -3 ${guard} L -2 ${-Math.max(12, length) + 7} L 0 ${-Math.max(12, length)} L 2 ${-Math.max(12, length) + 7} L 3 ${guard} Z`} fill="#f4e7c9" strokeWidth="1.5" />
+    <path d={`M -12 ${guard} L 12 ${guard} M 0 ${guard + 2} L 0 ${pommel}`} fill="none" strokeWidth="3" strokeLinecap="round" />
+    <circle cy={pommel} r="3" fill="#d1b684" strokeWidth="1.5" />
+  </g>;
 }
 
 function focusJoints(feature: string): string[] {
@@ -326,18 +217,6 @@ function focusJoints(feature: string): string[] {
   if (feature.startsWith("left_")) return [feature.includes("knee") ? "left_knee" : feature.includes("elbow") ? "left_elbow" : "left_ankle"];
   if (feature.startsWith("right_")) return [feature.includes("knee") ? "right_knee" : feature.includes("elbow") ? "right_elbow" : "right_ankle"];
   return [];
-}
-
-function projectLandmark(point: TargetLandmark, cameraView: CameraView, facing: Facing): [number, number] {
-  const horizontal = cameraView === "front"
-    ? -point.z
-    : point.x * (facing === "right" ? 1 : -1);
-  return projectXY(horizontal, point.y, cameraView);
-}
-
-function projectXY(horizontal: number, y: number, cameraView: CameraView): [number, number] {
-  const xScale = cameraView === "front" ? 180 : 82;
-  return [180 + horizontal * xScale, 345 - (y + 1.1) * 97];
 }
 
 function midpoint2(a: [number, number], b: [number, number]): [number, number] {

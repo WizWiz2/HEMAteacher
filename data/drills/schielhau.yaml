@@ -12,6 +12,8 @@ checkpoints:
   - id: guard
     title: Vom Tag
     targetPoseId: vom-tag
+    cue: Меч у правого плеча. Правая кисть у гарды, левая ниже на рукояти. Локти опусти; лицо остаётся открытым.
+    requiredFeatures: [hand_center_x, hand_center_y]
     holdMs: 350
 
     passThreshold: 0.62

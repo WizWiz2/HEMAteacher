@@ -1,4 +1,5 @@
 import type { TargetPose, TargetLandmark } from "./types";
+import { solveElbow } from "./armGeometry";
 
 function lm(x: number, y: number, z = 0): TargetLandmark {
   return { x, y, z, visibility: 1 };
@@ -85,10 +86,20 @@ export const POSE_PRESETS: Record<string, TargetPose> = {
     value.landmarks.right_ankle.x = -0.05;
     return value;
   })(),
-  "vom-tag": pose({
-    hand: [0.02, 1.3], leftElbow: [-0.08, 1.05], rightElbow: [0.16, 1.05],
-    sword: [[0.02, 1.3], [-0.15, 1.95]],
-  }),
+  "vom-tag": (() => {
+    const value = pose({ hand: [.66, 1.015], leftElbow: [.39, .78], rightElbow: [.39, .63],
+      sword: [[.632, 1.218], [.50, 2.175]] });
+    // Preserve the hand centre from the supplied shoulder-guard report.
+    // Both fists and the blade share one axis; equal bones determine elbows.
+    value.landmarks.left_wrist = lm(.68, .87, .23);
+    value.landmarks.right_wrist = lm(.64, 1.16, .27);
+    value.landmarks.left_elbow = solveElbow(value.landmarks.left_shoulder, value.landmarks.left_wrist, lm(.25, .35, -.12));
+    value.landmarks.right_elbow = solveElbow(value.landmarks.right_shoulder, value.landmarks.right_wrist, lm(.30, .3, .30));
+    value.sword!.grip.z = .278;
+    value.sword!.tip.z = .41;
+    value.illustration = "right-shoulder-guard";
+    return value;
+  })(),
   "ochs": pose({
     hand: [0.38, 1.14], leftElbow: [0.12, 1.1], rightElbow: [0.18, 0.98],
     sword: [[0.38, 1.14], [1.42, 1.3]],

@@ -21,9 +21,10 @@ export interface TargetLandmark {
 
 export interface TargetPose {
   landmarks: Record<string, TargetLandmark>;
+  illustration?: "right-shoulder-guard";
   sword?: {
-    grip: { x: number; y: number };
-    tip: { x: number; y: number };
+    grip: { x: number; y: number; z?: number };
+    tip: { x: number; y: number; z?: number };
   };
 }
 

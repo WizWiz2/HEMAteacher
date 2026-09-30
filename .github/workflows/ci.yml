@@ -33,6 +33,9 @@ jobs:
         working-directory: frontend
       - run: npm test
         working-directory: frontend
+      - name: Validate Vom Tag against labelled Zornhau clips
+        run: node scripts/check-vom-tag-clips.mjs
+        working-directory: frontend
       - name: Validate standalone Sites output
         run: |
           node scripts/build-site.mjs
