@@ -3,6 +3,14 @@ import { Link } from "react-router-dom";
 import { listDrills } from "../api";
 import type { Drill } from "../drill/types";
 
+const pointPluralRules = new Intl.PluralRules("ru");
+
+function pointCountLabel(count: number): string {
+  const form = pointPluralRules.select(count);
+  const word = form === "one" ? "точка" : form === "few" ? "точки" : "точек";
+  return `${count} ${word}`;
+}
+
 export function HomePage() {
   const [drills, setDrills] = useState<Drill[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +52,7 @@ export function HomePage() {
                     <span className="rubric">{drill.trackingMode === "upper_body" ? "камера ближе" : "всё тело"}</span>
                     <h3>{drill.name}</h3>
                   </div>
-                  <span className="badge">{drill.checkpoints.length} точек</span>
+                  <span className="badge">{pointCountLabel(drill.checkpoints.length)}</span>
                 </div>
                 <p>{drill.description}</p>
                 <span className="start-rune">Открыть упражнение →</span>
