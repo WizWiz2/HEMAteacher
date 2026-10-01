@@ -14,9 +14,10 @@ import { adaptDrillForCameraView } from "../drill/cameraView";
 import type { Drill, DrillRuntime, WeaponMarkers } from "../drill/types";
 import { matchWeaponAngle } from "../drill/weaponMatch";
 import type { CameraView, Facing } from "../live/normalize";
-import { BodyProfileCalibrator, profileCoverage, type BodyProfile } from "../live/anatomy";
+import { profileCoverage, type BodyProfile } from "../live/anatomy";
 import { clearBodyProfile, loadBodyProfile, saveBodyProfile } from "../live/bodyProfileStorage";
 import { useCoachVoice } from "../live/useCoachVoice";
+import { CalibrationGate } from "../live/calibrationGate";
 import { useLivePose, type LiveSample } from "../live/useLivePose";
 import { DrillResultPage, formatElapsed } from "./DrillResultPage";
 
@@ -44,9 +45,8 @@ export function DrillPage() {
   const cameraPaneRef = useRef<HTMLDivElement>(null);
   const drillRef = useRef<Drill | null>(null);
   const bodyProfileRef = useRef(bodyProfile);
-  const calibratorRef = useRef(new BodyProfileCalibrator());
+  const calibratorRef = useRef(new CalibrationGate());
   const profileRefinedRef = useRef(false);
-  const qualitySince = useRef<number | null>(null);
   const lastFraming = useRef("");
   runtimeRef.current = runtime;
   bodyProfileRef.current = bodyProfile;
@@ -59,7 +59,6 @@ export function DrillPage() {
         setWeaponMarkersEnabled(false);
         calibratorRef.current.reset();
         profileRefinedRef.current = false;
-        qualitySince.current = null;
       })
       .catch((reason: Error) => setError(reason.message));
   }, [id]);
@@ -97,7 +96,7 @@ export function DrillPage() {
       trackingMode,
       weaponTracking: activeWeaponTracking,
       targetPose,
-      targetGhost: targetGhostEnabled,
+      targetGhost: targetGhostEnabled && (!motionPatternFor(id) || trainingMode === "poses" || runtime.state === "calibrating"),
       cameraView,
     },
   );
@@ -105,47 +104,42 @@ export function DrillPage() {
   useEffect(() => {
     if (!live.live) return;
     const facingMode = live.cameraFacingMode ?? live.requestedCamera;
-    setMirrorPreview(facingMode === "user");
-  }, [live.live, live.cameraFacingMode, live.requestedCamera]);
+    setMirrorPreview(live.source === "camera" && facingMode === "user");
+  }, [live.live, live.cameraFacingMode, live.requestedCamera, live.source]);
+
+  useEffect(() => {
+    if (!live.ended || live.source !== "video" || runtimeRef.current.state === "completed" || runtimeRef.current.state === "failed") return;
+    const current = runtimeRef.current;
+    const next: DrillRuntime = {...current, state: "failed", finishedAt: performance.now(), motion: {
+      ...(current.motion ?? {samples: []}), phase: "failed", outcome: current.state === "calibrating" ? "tracking_lost" : "incomplete",
+      message: current.state === "calibrating" ? "Ролик закончился до завершения калибровки" : "Ролик закончился: цельное движение не удалось распознать",
+    }};
+    runtimeRef.current = next; setRuntime(next);
+  }, [live.ended, live.source]);
 
   function onSample(sample: LiveSample) {
     const current = drillRef.current;
     if (!current) return;
 
-    if (sample.normalized && sample.framing.ready) {
-      calibratorRef.current.push(sample.normalized);
-      if (!profileRefinedRef.current && calibratorRef.current.ready(current.trackingMode ?? "full_body", 18)) {
-        const nextProfile = calibratorRef.current.build(bodyProfileRef.current);
-        if (nextProfile && profileCoverage(nextProfile, current.trackingMode ?? "full_body") >= 0.8) {
-          bodyProfileRef.current = nextProfile;
-          setBodyProfile(nextProfile);
-          saveBodyProfile(nextProfile);
-          profileRefinedRef.current = true;
-        }
-      }
+    const calibrated = calibratorRef.current.push(sample, current.trackingMode ?? "full_body", bodyProfileRef.current);
+    if (!profileRefinedRef.current && calibratorRef.current.refined) {
+      const profile = calibratorRef.current.profile;
+      bodyProfileRef.current = profile;
+      setBodyProfile(profile);
+      if (profile && live.source === "camera") saveBodyProfile(profile);
+      profileRefinedRef.current = true;
     }
 
-    if (sample.framing.message !== lastFraming.current) {
-      lastFraming.current = sample.framing.message;
-      setFramingMessage(sample.framing.message);
-      setFramingReady(sample.framing.ready);
+    const framing = trainingMode === "motion" && motionPatternFor(current.id) && runtimeRef.current.state !== "calibrating" ? sample.motionFraming ?? sample.framing : sample.framing;
+    if (framing.message !== lastFraming.current) {
+      lastFraming.current = framing.message;
+      setFramingMessage(framing.message);
+      setFramingReady(framing.ready);
     }
     if (current.weaponTracking === "optional") setWeaponMarkers(sample.weapon);
 
     let next = runtimeRef.current;
-    if (next.state === "calibrating") {
-      const anatomyReady =
-        profileRefinedRef.current &&
-        profileCoverage(bodyProfileRef.current, current.trackingMode ?? "full_body") >= 0.8;
-      if (sample.usable && anatomyReady) {
-        qualitySince.current ??= sample.timeMs;
-        if (sample.timeMs - qualitySince.current >= 450) {
-          next = stepDrill(next, current, { type: "quality", ok: true });
-        }
-      } else {
-        qualitySince.current = null;
-      }
-    }
+    if (next.state === "calibrating" && calibrated) next = stepDrill(next, current, {type: "quality", ok: true});
 
     if (next.state === "ready" || next.state === "running") {
       const beforeIndex = next.checkpointIndex;
@@ -154,7 +148,7 @@ export function DrillPage() {
         type: "sample",
         timeMs: sample.timeMs,
         features: motionPatternFor(current.id) && trainingMode === "motion" ? sample.features : sample.smoothed,
-        enoughSamples: motionPatternFor(current.id) && trainingMode === "motion" ? sample.usable : sample.enough,
+        enoughSamples: motionPatternFor(current.id) && trainingMode === "motion" ? sample.motionUsable ?? sample.usable : sample.enough,
         cameraView, mode: trainingMode,
       });
       if ((!(motionPatternFor(current.id) && trainingMode === "motion") && next.checkpointIndex !== beforeIndex) || (beforeState !== next.state && next.state === "completed")) {
@@ -174,7 +168,6 @@ export function DrillPage() {
     setWeaponMarkersEnabled(false);
     calibratorRef.current.reset();
     profileRefinedRef.current = false;
-    qualitySince.current = null;
     const next = createDrillRuntime();
     runtimeRef.current = next;
     setRuntime(next);
@@ -183,7 +176,6 @@ export function DrillPage() {
   async function switchPhysicalCamera() {
     calibratorRef.current.reset();
     profileRefinedRef.current = false;
-    qualitySince.current = null;
     const next = createDrillRuntime();
     runtimeRef.current = next;
     setRuntime(next);
@@ -193,6 +185,12 @@ export function DrillPage() {
   function retry() {
     const current = drillRef.current;
     if (!current) return;
+    if (live.source === "video") {
+      calibratorRef.current.reset(); profileRefinedRef.current = false;
+      bodyProfileRef.current = null; setBodyProfile(null);
+      runtimeRef.current = createDrillRuntime(); setRuntime(runtimeRef.current);
+      void live.replay(); return;
+    }
     const next = runtimeRef.current.state === "calibrating" ? createDrillRuntime() : stepDrill(runtimeRef.current, current, { type: "retry" });
     runtimeRef.current = next;
     setRuntime(next);
@@ -207,7 +205,6 @@ export function DrillPage() {
     bodyProfileRef.current = null;
     calibratorRef.current.reset();
     profileRefinedRef.current = false;
-    qualitySince.current = null;
     const next = createDrillRuntime();
     runtimeRef.current = next;
     setRuntime(next);
@@ -223,7 +220,7 @@ export function DrillPage() {
   const continuous = Boolean(drill && motionPatternFor(drill.id)) && trainingMode === "motion";
   const cue = continuous ? null : primaryCue(runtime.match);
   const calibrationMessage = runtime.state === "calibrating" && framingReady && !anatomyReady
-    ? "ПОВТОРИ ПОЗУ НА СТЕНДЕ · ЗАДЕРЖИСЬ"
+    ? "СТОЙ СПОКОЙНО · ОПРЕДЕЛЯЮ ПРОПОРЦИИ"
     : framingMessage;
   const spokenText = runtime.state === "completed"
     ? "Готово"
@@ -273,6 +270,20 @@ export function DrillPage() {
             <span>{continuous ? "Приготовься → выполни движение → результат. Не замирай на промежуточных картинках." : "Удерживай каждую позу отдельно."}</span>
           </div>}
           <div className="training-controls">
+            <label>Видео вместо камеры <input type="file" accept="video/*" disabled={live.phase === "loading" || live.phase === "requesting"} onChange={event => {
+              const file = event.target.files?.[0];
+              if (!file) return;
+              calibratorRef.current.reset();
+              profileRefinedRef.current = false;
+              bodyProfileRef.current = null;
+              setBodyProfile(null);
+              runtimeRef.current = createDrillRuntime();
+              setRuntime(runtimeRef.current);
+              setMirrorPreview(false);
+              void live.startVideo(file);
+              event.target.value = "";
+            }} /></label>
+            {live.source === "video" && <button type="button" className="ghost" onClick={() => {calibratorRef.current.reset(); profileRefinedRef.current = false; const profile = loadBodyProfile(); bodyProfileRef.current = profile; setBodyProfile(profile); runtimeRef.current = createDrillRuntime(); setRuntime(runtimeRef.current); void live.start();}}>Вернуться к камере</button>}
             <div className="control-group">
               <span className="control-label">Ракурс анализа</span>
               <button type="button" className={cameraView === "side" ? "ghost active" : "ghost"} onClick={() => changeCameraView("side")}>Сбоку</button>
@@ -345,7 +356,7 @@ export function DrillPage() {
               >
                 {cameraExpanded ? "✕ Свернуть" : "⛶ На весь экран"}
               </button>
-              {live.live && (
+              {live.live && live.source === "camera" && (
                 <button
                   type="button"
                   className="camera-switch-button"
@@ -389,7 +400,7 @@ export function DrillPage() {
               <div className="camera-status">
                 <span>
                   {cameraView === "front" ? "Спереди" : "Сбоку"} · {trackingMode === "upper_body" ? "верх тела" : "всё тело"}
-                  {live.live ? ` · ${(live.cameraFacingMode ?? live.requestedCamera) === "user" ? "селфи" : "основная камера"}` : ""}
+                  {live.live ? live.source === "video" ? " · видео" : ` · ${(live.cameraFacingMode ?? live.requestedCamera) === "user" ? "селфи" : "основная камера"}` : ""}
                 </span>
                 <span className={runtime.state === "completed" || (framingReady && anatomyReady) ? "status-ok" : "status-warn"}>
                   {runtime.state === "completed" ? "УПРАЖНЕНИЕ · ГОТОВО" : calibrationMessage}
@@ -410,8 +421,8 @@ export function DrillPage() {
               {!continuous && checkpoint?.cue && <span className="target-cue">{checkpoint.cue}</span>}
             </div>
             <div className="metric">
-              <span>{continuous ? "сходство траектории" : "условий проходит"}</span>
-              <strong>{continuous ? runtime.motion?.similarity == null ? "—" : `${runtime.motion.similarity}%` : `${Math.round((runtime.match?.passScore ?? 0) * 100)}%`}</strong>
+              <span>{continuous ? "распознавание" : "условий проходит"}</span>
+              <strong>{continuous ? runtime.motion?.outcome === "recognized" ? "✓" : "—" : `${Math.round((runtime.match?.passScore ?? 0) * 100)}%`}</strong>
             </div>
             <div className="metric">
               <span>время</span>
@@ -419,8 +430,8 @@ export function DrillPage() {
             </div>
           </section>
 
-          {runtime.state === "completed" && <DrillResultPage elapsedMs={elapsed} onRetry={retry} continuous={continuous} />}
-          {runtime.state === "failed" && <div className="result-banner"><h2>Попытка не засчитана</h2><p>{runtime.motion?.message}</p><button type="button" onClick={retry}>Повторить</button></div>}
+          {runtime.state === "completed" && <DrillResultPage elapsedMs={elapsed} onRetry={retry} continuous={continuous} feedback={runtime.motion?.feedback} />}
+          {runtime.state === "failed" && <div className="result-banner"><h2>{runtime.motion?.outcome === "tracking_lost" ? "Не удалось отследить движение" : "Попытка не распознана"}</h2><p>{runtime.motion?.message}</p><button type="button" onClick={retry}>Повторить</button></div>}
           <Link className="muted back-link" to="/">← К упражнениям</Link>
         </>
       )}

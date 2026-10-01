@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PoseFrame } from "../types";
 import type { TargetPose, TrackingMode, WeaponMarkers, WeaponTrackingMode } from "../drill/types";
-import { assessFraming, type FramingAssessment } from "./framing";
-import { liveFeatures, poseUsable, type FeatureMap } from "./features";
+import { type FramingAssessment } from "./framing";
+import { type FeatureMap } from "./features";
 import type { RawPose } from "./landmarks";
-import { normalizePose, torsoPixels, TorsoScale, type CameraView, type Facing } from "./normalize";
+import { type CameraView, type Facing } from "./normalize";
 import { MediaPipeLivePose } from "./poseLandmarker";
-import { smoothFeatures, trimHistory, type TimedSample } from "./smoothing";
+import { LiveSampleProcessor } from "./sampleProcessor";
 import { detectWeaponMarkers } from "./weaponMarkers";
 import { projectTargetGhost } from "./targetGhost";
 
@@ -19,6 +19,8 @@ export interface LiveSample {
   enough: boolean;
   usable: boolean;
   framing: FramingAssessment;
+  motionUsable?: boolean;
+  motionFraming?: FramingAssessment;
   weapon: WeaponMarkers | null;
 }
 
@@ -46,6 +48,10 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
   const [requestedCamera, setRequestedCamera] = useState<PhysicalCamera>("environment");
   const requestedCameraRef = useRef<PhysicalCamera>("environment");
   const actualCameraRef = useRef<string | null>(null);
+  const replayFile = useRef<File | null>(null);
+  const replayUrl = useRef<string | null>(null);
+  const [ended, setEnded] = useState(false);
+  const [source, setSource] = useState<"camera" | "video">("camera");
   const streamRef = useRef<MediaStream | null>(null);
   const detectorRef = useRef<MediaPipeLivePose | null>(null);
   const requestId = useRef(0);
@@ -54,7 +60,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
   facingRef.current = facing;
   optionsRef.current = options;
 
-  const start = useCallback(async (camera: PhysicalCamera = requestedCameraRef.current) => {
+  const start = useCallback(async (camera: PhysicalCamera = requestedCameraRef.current, file?: File) => {
     if (busy.current) return;
     busy.current = true;
     const currentRequest = ++requestId.current;
@@ -65,12 +71,23 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
       setError("Экран камеры ещё не готов. Попробуй ещё раз.");
       return;
     }
+    detectorRef.current?.stop();
+    streamRef.current?.getTracks().forEach(track => track.stop());
+    streamRef.current = null;
+    video.pause();
+    video.srcObject = null;
+    video.removeAttribute("src");
+    if (replayUrl.current) URL.revokeObjectURL(replayUrl.current);
+    replayUrl.current = null;
+    replayFile.current = file ?? null;
+    setSource(file ? "video" : "camera");
     requestedCameraRef.current = camera;
     setRequestedCamera(camera);
+    setEnded(false);
     setError(null);
     setLive(false);
     setPhase("requesting");
-    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+    if (!file && (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia)) {
       busy.current = false;
       setPhase("idle");
       setError("Браузер не даёт доступ к камере. Открой сайт напрямую по HTTPS в Safari или Chrome.");
@@ -78,21 +95,16 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     }
     const detector = new MediaPipeLivePose();
     detectorRef.current = detector;
-    const scale = new TorsoScale();
+    const processor = new LiveSampleProcessor();
     const markerCanvas = document.createElement("canvas");
-    let history: TimedSample[] = [];
     let lastWeaponAt = 0;
     let weapon: WeaponMarkers | null = null;
 
     detector.onPose((raw) => {
       const active = optionsRef.current;
       const trackingMode = active.trackingMode ?? "full_body";
-      const smoothedScale = scale.push(torsoPixels(raw));
-      const normalized = smoothedScale ? normalizePose(raw, facingRef.current, smoothedScale, 0.5, active.cameraView ?? "side") : null;
-      const features = normalized ? liveFeatures(normalized.landmarks) : null;
-      history = trimHistory([...history, { timeMs: raw.timestampMs, features }], raw.timestampMs);
-      const smoothed = smoothFeatures(history, raw.timestampMs, active.smoothingMs ?? 100, 3, trackingMode);
-      const framing = assessFraming(raw, trackingMode);
+      const sample = processor.process(raw, facingRef.current, trackingMode, active.cameraView ?? "side", active.smoothingMs ?? 100);
+      const smoothedScale = processor.scale.current();
 
       if (active.weaponTracking === "optional" && raw.timestampMs - lastWeaponAt >= 90) {
         weapon = detectWeaponMarkers(video, markerCanvas);
@@ -102,33 +114,38 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
       }
 
       draw(canvas, video, raw, weapon, active.targetGhost ? active.targetPose ?? null : null, facingRef.current, smoothedScale, active.cameraView ?? "side");
-      onSampleRef.current({
-        timeMs: raw.timestampMs,
-        raw,
-        normalized,
-        features,
-        smoothed: smoothed.features,
-        enough: smoothed.enough,
-        usable: poseUsable(features, trackingMode) && framing.ready,
-        framing,
-        weapon,
-      });
+      onSampleRef.current({...sample, weapon});
     });
 
     try {
-      // Request the camera while the user's tap is still being handled.
-      const stream = await openCameraStream(camera);
-      if (currentRequest !== requestId.current) { stream.getTracks().forEach((track) => track.stop()); return; }
-      streamRef.current = stream;
-      const actualFacing = stream.getVideoTracks()[0]?.getSettings().facingMode ?? null;
-      actualCameraRef.current = actualFacing;
-      setCameraFacingMode(actualFacing);
-      video.srcObject = stream;
-      await video.play();
-      if (currentRequest !== requestId.current) return;
-      setLive(true);
-      setPhase("loading");
-      await detector.start(video);
+      if (file) {
+        replayUrl.current = URL.createObjectURL(file);
+        video.src = replayUrl.current;
+        video.loop = false;
+        video.muted = true;
+        video.load();
+        setPhase("loading");
+        await detector.initialize();
+        if (currentRequest !== requestId.current) return;
+        await video.play();
+        setLive(true);
+        setCameraFacingMode(null);
+        actualCameraRef.current = null;
+        await detector.start(video);
+      } else {
+        const stream = await openCameraStream(camera);
+        if (currentRequest !== requestId.current) { stream.getTracks().forEach(track => track.stop()); return; }
+        streamRef.current = stream;
+        const actualFacing = stream.getVideoTracks()[0]?.getSettings().facingMode ?? null;
+        actualCameraRef.current = actualFacing;
+        setCameraFacingMode(actualFacing);
+        video.srcObject = stream;
+        await video.play();
+        if (currentRequest !== requestId.current) return;
+        setLive(true);
+        setPhase("loading");
+        await detector.start(video);
+      }
       if (currentRequest !== requestId.current) return;
       setPhase("ready");
     } catch (reason) {
@@ -167,11 +184,19 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     await start(next);
   }, [start]);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    const finish = () => setEnded(true);
+    video?.addEventListener("ended", finish);
+    return () => video?.removeEventListener("ended", finish);
+  }, []);
+
   useEffect(() => () => {
     requestId.current++;
     detectorRef.current?.stop();
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
+    if (replayUrl.current) URL.revokeObjectURL(replayUrl.current);
   }, []);
 
   return {
@@ -184,6 +209,10 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     switchCamera,
     cameraFacingMode,
     requestedCamera,
+    source,
+    ended,
+    startVideo: (file: File) => start(requestedCameraRef.current, file),
+    replay: () => replayFile.current ? start(requestedCameraRef.current, replayFile.current) : Promise.resolve(),
   };
 }
 

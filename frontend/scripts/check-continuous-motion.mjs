@@ -35,5 +35,5 @@ try {
  const summary=Object.fromEntries([...new Set(rows.map(r=>r.scenario))].map(s=>[s,{passed:rows.filter(r=>r.scenario===s&&r.passed).length,total:rows.filter(r=>r.scenario===s).length}]));
  console.log(JSON.stringify(summary));
  if(process.argv.includes('--write'))writeFileSync('docs/continuous-motion-results.json',JSON.stringify({note:'Ground-truth landmark replay, not MediaPipe inference. Masters build templates; experienced/beginner are held out.',summary,baseline,rows},null,2)+'\n');
- if(rows.some(r=>['normal','fps10','fast'].includes(r.scenario)?(r.level!=='beginner' && !r.passed):r.passed))process.exitCode=1;
+ if(rows.some(r=>['normal','fps10','fast'].includes(r.scenario)?!r.passed:r.passed))process.exitCode=1;
 }finally{await v.close();}

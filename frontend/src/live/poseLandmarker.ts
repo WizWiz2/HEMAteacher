@@ -26,7 +26,7 @@ export class MediaPipeLivePose implements LivePoseDetector {
     this.callback = callback;
   }
 
-  async start(video: HTMLVideoElement): Promise<void> {
+  async initialize(): Promise<void> {
     if (!this.landmarker) {
       const vision = await FilesetResolver.forVisionTasks(`${import.meta.env.BASE_URL}wasm`);
       this.landmarker = await PoseLandmarker.createFromOptions(vision, {
@@ -47,6 +47,10 @@ export class MediaPipeLivePose implements LivePoseDetector {
         }),
       );
     }
+  }
+
+  async start(video: HTMLVideoElement): Promise<void> {
+    await this.initialize();
     this.running = true;
     this.lastVideoTime = -1;
     this.video = video as FrameVideo;
@@ -86,12 +90,19 @@ export class MediaPipeLivePose implements LivePoseDetector {
     this.lastVideoTime = video.currentTime;
     let timestamp = Math.round(performance.now());
     if (timestamp <= this.lastTimestamp) timestamp = this.lastTimestamp + 1;
+    return this.inferFrame(video, timestamp);
+  }
+
+  /** Shared by camera playback and deterministic MP4 regression runs. */
+  inferFrame(video: HTMLVideoElement, timestampMs: number): RawPose {
+    if (!this.landmarker) throw new Error("Pose detector is not initialized");
+    const timestamp = Math.max(this.lastTimestamp + 1, timestampMs);
     this.lastTimestamp = timestamp;
     const result = this.landmarker.detectForVideo(video, timestamp);
     const pose = result.landmarks?.[0];
-    if (!pose || pose.length === 0) return null;
+
     const landmarks: RawPose["landmarks"] = {};
-    pose.forEach((landmark, index) => {
+    pose?.forEach((landmark, index) => {
       const name = LANDMARK_NAMES[index];
       if (!name) return;
       const visibility = landmark.visibility ?? 0;

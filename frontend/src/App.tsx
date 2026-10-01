@@ -8,6 +8,8 @@ import { MovementPage } from "./pages/MovementPage";
 import { RecordPage } from "./pages/RecordPage";
 import { SessionPage } from "./pages/SessionPage";
 
+import { VideoRegressionPage } from "./pages/VideoRegressionPage";
+
 export function App() {
   return (
     <div className="app">
@@ -22,6 +24,7 @@ export function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/drills/:id" element={<DrillPage />} />
+        <Route path="/dev/video-regression" element={<VideoRegressionPage />} />
         <Route path="/dev/checkpoint-capture" element={<CheckpointCapturePage />} />
         <Route path="/analysis" element={<LibraryPage />} />
         <Route path="/movements/:id" element={<MovementPage />} />

@@ -2,11 +2,11 @@ import { angleDegrees, xyDistance, type LandmarkMap, type Vec3 } from "./landmar
 import type { TrackingMode } from "../drill/types";
 
 export const LIVE_FEATURES = [
-  "left_ankle_x", "left_ankle_y", "right_ankle_x", "right_ankle_y",
+  "root_x", "left_ankle_x", "left_ankle_y", "right_ankle_x", "right_ankle_y",
   "foot_distance", "pelvis_height", "left_knee_angle", "right_knee_angle",
   "torso_angle", "knee_over_foot_left", "knee_over_foot_right",
   "left_wrist_x", "left_wrist_y", "right_wrist_x", "right_wrist_y",
-  "hand_center_x", "hand_center_y", "hand_distance",
+  "hand_center_x", "hand_center_y", "hand_distance", "action_hand_x", "action_hand_y",
   "left_elbow_angle", "right_elbow_angle",
 ] as const;
 
@@ -35,6 +35,10 @@ export function liveFeatures(landmarks: LandmarkMap, minVisibility = MIN_VISIBIL
   const rightWrist = point("right_wrist");
 
   const features: FeatureMap = {};
+  // The near wrist remains observable when the far hand overlaps it in profile.
+  // This proxy is used for movement recognition, never two-hand technique checks.
+  const actionHand = rightWrist ?? leftWrist;
+  if (actionHand) { features.action_hand_x = actionHand.x; features.action_hand_y = actionHand.y; }
   if (leftAnkle) { features.left_ankle_x = leftAnkle.x; features.left_ankle_y = leftAnkle.y; }
   if (rightAnkle) { features.right_ankle_x = rightAnkle.x; features.right_ankle_y = rightAnkle.y; }
   if (leftAnkle && rightAnkle) {

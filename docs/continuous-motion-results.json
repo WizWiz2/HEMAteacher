@@ -2,15 +2,15 @@
   "note": "Ground-truth landmark replay, not MediaPipe inference. Masters build templates; experienced/beginner are held out.",
   "summary": {
     "normal": {
-      "passed": 24,
+      "passed": 30,
       "total": 30
     },
     "fast": {
-      "passed": 24,
+      "passed": 30,
       "total": 30
     },
     "fps10": {
-      "passed": 24,
+      "passed": 30,
       "total": 30
     },
     "slow": {
@@ -222,27 +222,30 @@
       "body": "short_broad_female",
       "level": "beginner",
       "scenario": "normal",
-      "passed": false,
-      "finishedAt": 3900,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 2900,
+      "message": "Движение распознано",
+      "similarity": 73
     },
     {
       "drill": "advance",
       "body": "short_broad_female",
       "level": "beginner",
       "scenario": "fast",
-      "passed": false,
-      "finishedAt": 3300,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 1879.98,
+      "message": "Движение распознано",
+      "similarity": 72
     },
     {
       "drill": "advance",
       "body": "short_broad_female",
       "level": "beginner",
       "scenario": "fps10",
-      "passed": false,
-      "finishedAt": 3900,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 3000,
+      "message": "Движение распознано",
+      "similarity": 74
     },
     {
       "drill": "advance",
@@ -275,7 +278,7 @@
       "level": "beginner",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3900,
+      "finishedAt": 5500,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -293,9 +296,9 @@
       "level": "experienced",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 1900,
+      "finishedAt": 2000,
       "message": "Движение распознано",
-      "similarity": 82
+      "similarity": 88
     },
     {
       "drill": "advance",
@@ -303,9 +306,9 @@
       "level": "experienced",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1180.02,
+      "finishedAt": 1300.0199999999998,
       "message": "Движение распознано",
-      "similarity": 78
+      "similarity": 77
     },
     {
       "drill": "advance",
@@ -313,9 +316,9 @@
       "level": "experienced",
       "scenario": "fps10",
       "passed": true,
-      "finishedAt": 1900,
+      "finishedAt": 2100,
       "message": "Движение распознано",
-      "similarity": 81
+      "similarity": 85
     },
     {
       "drill": "advance",
@@ -339,7 +342,8 @@
       "level": "experienced",
       "scenario": "reversed",
       "passed": false,
-      "message": "Двигайся без остановок"
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
     },
     {
       "drill": "advance",
@@ -347,7 +351,7 @@
       "level": "experienced",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3700,
+      "finishedAt": 5300,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -365,26 +369,6 @@
       "level": "master",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 2100,
-      "message": "Движение распознано",
-      "similarity": 96
-    },
-    {
-      "drill": "advance",
-      "body": "short_broad_female",
-      "level": "master",
-      "scenario": "fast",
-      "passed": true,
-      "finishedAt": 1320,
-      "message": "Движение распознано",
-      "similarity": 99
-    },
-    {
-      "drill": "advance",
-      "body": "short_broad_female",
-      "level": "master",
-      "scenario": "fps10",
-      "passed": true,
       "finishedAt": 2200,
       "message": "Движение распознано",
       "similarity": 96
@@ -393,6 +377,26 @@
       "drill": "advance",
       "body": "short_broad_female",
       "level": "master",
+      "scenario": "fast",
+      "passed": true,
+      "finishedAt": 1420.0199999999998,
+      "message": "Движение распознано",
+      "similarity": 86
+    },
+    {
+      "drill": "advance",
+      "body": "short_broad_female",
+      "level": "master",
+      "scenario": "fps10",
+      "passed": true,
+      "finishedAt": 2300,
+      "message": "Движение распознано",
+      "similarity": 92
+    },
+    {
+      "drill": "advance",
+      "body": "short_broad_female",
+      "level": "master",
       "scenario": "slow",
       "passed": false,
       "message": "Готов. Выполни движение целиком"
@@ -411,7 +415,8 @@
       "level": "master",
       "scenario": "reversed",
       "passed": false,
-      "message": "Двигайся без остановок"
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
     },
     {
       "drill": "advance",
@@ -419,7 +424,7 @@
       "level": "master",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3833.3,
+      "finishedAt": 5466.7,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -428,7 +433,7 @@
       "level": "master",
       "scenario": "gap",
       "passed": false,
-      "finishedAt": 1700,
+      "finishedAt": 1733.3,
       "message": "Камера потеряла движение. Повтори попытку"
     },
     {
@@ -436,27 +441,30 @@
       "body": "tall_slim_male",
       "level": "beginner",
       "scenario": "normal",
-      "passed": false,
-      "finishedAt": 3800,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 2666.7,
+      "message": "Движение распознано",
+      "similarity": 74
     },
     {
       "drill": "advance",
       "body": "tall_slim_male",
       "level": "beginner",
       "scenario": "fast",
-      "passed": false,
-      "finishedAt": 3240,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 1720.0199999999998,
+      "message": "Движение распознано",
+      "similarity": 73
     },
     {
       "drill": "advance",
       "body": "tall_slim_male",
       "level": "beginner",
       "scenario": "fps10",
-      "passed": false,
-      "finishedAt": 3800,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 2700,
+      "message": "Движение распознано",
+      "similarity": 76
     },
     {
       "drill": "advance",
@@ -480,7 +488,8 @@
       "level": "beginner",
       "scenario": "reversed",
       "passed": false,
-      "message": "Двигайся без остановок"
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
     },
     {
       "drill": "advance",
@@ -488,7 +497,7 @@
       "level": "beginner",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3800,
+      "finishedAt": 5400,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -506,9 +515,9 @@
       "level": "experienced",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 2033.3,
+      "finishedAt": 2200,
       "message": "Движение распознано",
-      "similarity": 81
+      "similarity": 85
     },
     {
       "drill": "advance",
@@ -516,91 +525,92 @@
       "level": "experienced",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1300.0199999999998,
+      "finishedAt": 1399.98,
       "message": "Движение распознано",
-      "similarity": 74
+      "similarity": 77
     },
     {
       "drill": "advance",
       "body": "tall_slim_male",
       "level": "experienced",
-      "scenario": "fps10",
-      "passed": true,
-      "finishedAt": 2100,
-      "message": "Движение распознано",
-      "similarity": 79
-    },
-    {
-      "drill": "advance",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "slow",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "advance",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "frozen",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "advance",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "reversed",
-      "passed": false,
-      "message": "Двигайся без остановок"
-    },
-    {
-      "drill": "advance",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "truncated",
-      "passed": false,
-      "finishedAt": 3866.7,
-      "message": "Слишком долго: выполни одно непрерывное движение"
-    },
-    {
-      "drill": "advance",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "gap",
-      "passed": false,
-      "finishedAt": 1733.3,
-      "message": "Камера потеряла движение. Повтори попытку"
-    },
-    {
-      "drill": "advance",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "normal",
-      "passed": true,
-      "finishedAt": 2100,
-      "message": "Движение распознано",
-      "similarity": 96
-    },
-    {
-      "drill": "advance",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "fast",
-      "passed": true,
-      "finishedAt": 1320,
-      "message": "Движение распознано",
-      "similarity": 96
-    },
-    {
-      "drill": "advance",
-      "body": "tall_slim_male",
-      "level": "master",
       "scenario": "fps10",
       "passed": true,
       "finishedAt": 2200,
       "message": "Движение распознано",
-      "similarity": 97
+      "similarity": 87
+    },
+    {
+      "drill": "advance",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "slow",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "advance",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "frozen",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "advance",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "reversed",
+      "passed": false,
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
+    },
+    {
+      "drill": "advance",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "truncated",
+      "passed": false,
+      "finishedAt": 5466.7,
+      "message": "Слишком долго: выполни одно непрерывное движение"
+    },
+    {
+      "drill": "advance",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "gap",
+      "passed": false,
+      "finishedAt": 1733.3,
+      "message": "Камера потеряла движение. Повтори попытку"
+    },
+    {
+      "drill": "advance",
+      "body": "tall_slim_male",
+      "level": "master",
+      "scenario": "normal",
+      "passed": true,
+      "finishedAt": 2200,
+      "message": "Движение распознано",
+      "similarity": 96
+    },
+    {
+      "drill": "advance",
+      "body": "tall_slim_male",
+      "level": "master",
+      "scenario": "fast",
+      "passed": true,
+      "finishedAt": 1420.0199999999998,
+      "message": "Движение распознано",
+      "similarity": 86
+    },
+    {
+      "drill": "advance",
+      "body": "tall_slim_male",
+      "level": "master",
+      "scenario": "fps10",
+      "passed": true,
+      "finishedAt": 2300,
+      "message": "Движение распознано",
+      "similarity": 93
     },
     {
       "drill": "advance",
@@ -624,7 +634,8 @@
       "level": "master",
       "scenario": "reversed",
       "passed": false,
-      "message": "Двигайся без остановок"
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
     },
     {
       "drill": "advance",
@@ -632,7 +643,7 @@
       "level": "master",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3866.7,
+      "finishedAt": 5466.7,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -650,9 +661,9 @@
       "level": "beginner",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 2766.7,
+      "finishedAt": 2866.7,
       "message": "Движение распознано",
-      "similarity": 81
+      "similarity": 88
     },
     {
       "drill": "passing-step-backward",
@@ -660,9 +671,9 @@
       "level": "beginner",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1720.0199999999998,
+      "finishedAt": 2200.02,
       "message": "Движение распознано",
-      "similarity": 83
+      "similarity": 91
     },
     {
       "drill": "passing-step-backward",
@@ -670,9 +681,9 @@
       "level": "beginner",
       "scenario": "fps10",
       "passed": true,
-      "finishedAt": 2800,
+      "finishedAt": 2900,
       "message": "Движение распознано",
-      "similarity": 81
+      "similarity": 88
     },
     {
       "drill": "passing-step-backward",
@@ -705,7 +716,7 @@
       "level": "beginner",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3900,
+      "finishedAt": 5500,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -723,7 +734,7 @@
       "level": "experienced",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 2366.7,
+      "finishedAt": 2466.7,
       "message": "Движение распознано",
       "similarity": 96
     },
@@ -733,9 +744,9 @@
       "level": "experienced",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1480.0199999999998,
+      "finishedAt": 1600.0199999999998,
       "message": "Движение распознано",
-      "similarity": 95
+      "similarity": 94
     },
     {
       "drill": "passing-step-backward",
@@ -743,9 +754,9 @@
       "level": "experienced",
       "scenario": "fps10",
       "passed": true,
-      "finishedAt": 2400,
+      "finishedAt": 2500,
       "message": "Движение распознано",
-      "similarity": 95
+      "similarity": 96
     },
     {
       "drill": "passing-step-backward",
@@ -778,7 +789,7 @@
       "level": "experienced",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3900,
+      "finishedAt": 5500,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -796,9 +807,9 @@
       "level": "master",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 2466.7,
+      "finishedAt": 2566.7,
       "message": "Движение распознано",
-      "similarity": 99
+      "similarity": 98
     },
     {
       "drill": "passing-step-backward",
@@ -806,7 +817,7 @@
       "level": "master",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1540.0199999999998,
+      "finishedAt": 1660.0199999999998,
       "message": "Движение распознано",
       "similarity": 98
     },
@@ -816,7 +827,7 @@
       "level": "master",
       "scenario": "fps10",
       "passed": true,
-      "finishedAt": 2500,
+      "finishedAt": 2600,
       "message": "Движение распознано",
       "similarity": 98
     },
@@ -851,7 +862,7 @@
       "level": "master",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3866.7,
+      "finishedAt": 5466.7,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -869,9 +880,9 @@
       "level": "beginner",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 2533.3,
+      "finishedAt": 2633.3,
       "message": "Движение распознано",
-      "similarity": 81
+      "similarity": 89
     },
     {
       "drill": "passing-step-backward",
@@ -879,9 +890,9 @@
       "level": "beginner",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1560,
+      "finishedAt": 1660.0199999999998,
       "message": "Движение распознано",
-      "similarity": 83
+      "similarity": 90
     },
     {
       "drill": "passing-step-backward",
@@ -889,9 +900,9 @@
       "level": "beginner",
       "scenario": "fps10",
       "passed": true,
-      "finishedAt": 2600,
+      "finishedAt": 2700,
       "message": "Движение распознано",
-      "similarity": 83
+      "similarity": 90
     },
     {
       "drill": "passing-step-backward",
@@ -924,7 +935,7 @@
       "level": "beginner",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3733.3,
+      "finishedAt": 5333.3,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -942,7 +953,7 @@
       "level": "experienced",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 2266.7,
+      "finishedAt": 2366.7,
       "message": "Движение распознано",
       "similarity": 96
     },
@@ -952,237 +963,237 @@
       "level": "experienced",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1420.0199999999998,
-      "message": "Движение распознано",
-      "similarity": 95
-    },
-    {
-      "drill": "passing-step-backward",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "fps10",
-      "passed": true,
-      "finishedAt": 2300,
-      "message": "Движение распознано",
-      "similarity": 95
-    },
-    {
-      "drill": "passing-step-backward",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "slow",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "passing-step-backward",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "frozen",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "passing-step-backward",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "reversed",
-      "passed": false,
-      "finishedAt": 1000,
-      "message": "Поза резко перескочила. Повтори движение перед камерой"
-    },
-    {
-      "drill": "passing-step-backward",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "truncated",
-      "passed": false,
-      "finishedAt": 3800,
-      "message": "Слишком долго: выполни одно непрерывное движение"
-    },
-    {
-      "drill": "passing-step-backward",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "gap",
-      "passed": false,
-      "finishedAt": 1666.7,
-      "message": "Камера потеряла движение. Повтори попытку"
-    },
-    {
-      "drill": "passing-step-backward",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "normal",
-      "passed": true,
-      "finishedAt": 2466.7,
-      "message": "Движение распознано",
-      "similarity": 99
-    },
-    {
-      "drill": "passing-step-backward",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "fast",
-      "passed": true,
       "finishedAt": 1540.0199999999998,
       "message": "Движение распознано",
-      "similarity": 98
+      "similarity": 94
     },
     {
       "drill": "passing-step-backward",
       "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "fps10",
-      "passed": true,
-      "finishedAt": 2500,
-      "message": "Движение распознано",
-      "similarity": 98
-    },
-    {
-      "drill": "passing-step-backward",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "slow",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "passing-step-backward",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "frozen",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "passing-step-backward",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "reversed",
-      "passed": false,
-      "finishedAt": 1000,
-      "message": "Поза резко перескочила. Повтори движение перед камерой"
-    },
-    {
-      "drill": "passing-step-backward",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "truncated",
-      "passed": false,
-      "finishedAt": 3866.7,
-      "message": "Слишком долго: выполни одно непрерывное движение"
-    },
-    {
-      "drill": "passing-step-backward",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "gap",
-      "passed": false,
-      "finishedAt": 1733.3,
-      "message": "Камера потеряла движение. Повтори попытку"
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "normal",
-      "passed": true,
-      "finishedAt": 2566.7,
-      "message": "Движение распознано",
-      "similarity": 81
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "fast",
-      "passed": true,
-      "finishedAt": 1600.0199999999998,
-      "message": "Движение распознано",
-      "similarity": 84
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "fps10",
-      "passed": true,
-      "finishedAt": 2600,
-      "message": "Движение распознано",
-      "similarity": 83
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "slow",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "frozen",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "reversed",
-      "passed": false,
-      "finishedAt": 1000,
-      "message": "Поза резко перескочила. Повтори движение перед камерой"
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "truncated",
-      "passed": false,
-      "finishedAt": 3933.3,
-      "message": "Слишком долго: выполни одно непрерывное движение"
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "gap",
-      "passed": false,
-      "finishedAt": 1800,
-      "message": "Камера потеряла движение. Повтори попытку"
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "experienced",
-      "scenario": "normal",
-      "passed": true,
-      "finishedAt": 2300,
-      "message": "Движение распознано",
-      "similarity": 95
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "experienced",
-      "scenario": "fast",
-      "passed": true,
-      "finishedAt": 1440,
-      "message": "Движение распознано",
-      "similarity": 95
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
       "level": "experienced",
       "scenario": "fps10",
       "passed": true,
       "finishedAt": 2400,
       "message": "Движение распознано",
+      "similarity": 96
+    },
+    {
+      "drill": "passing-step-backward",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "slow",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "passing-step-backward",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "frozen",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "passing-step-backward",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "reversed",
+      "passed": false,
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
+    },
+    {
+      "drill": "passing-step-backward",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "truncated",
+      "passed": false,
+      "finishedAt": 5400,
+      "message": "Слишком долго: выполни одно непрерывное движение"
+    },
+    {
+      "drill": "passing-step-backward",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "gap",
+      "passed": false,
+      "finishedAt": 1666.7,
+      "message": "Камера потеряла движение. Повтори попытку"
+    },
+    {
+      "drill": "passing-step-backward",
+      "body": "tall_slim_male",
+      "level": "master",
+      "scenario": "normal",
+      "passed": true,
+      "finishedAt": 2566.7,
+      "message": "Движение распознано",
+      "similarity": 98
+    },
+    {
+      "drill": "passing-step-backward",
+      "body": "tall_slim_male",
+      "level": "master",
+      "scenario": "fast",
+      "passed": true,
+      "finishedAt": 1660.0199999999998,
+      "message": "Движение распознано",
+      "similarity": 98
+    },
+    {
+      "drill": "passing-step-backward",
+      "body": "tall_slim_male",
+      "level": "master",
+      "scenario": "fps10",
+      "passed": true,
+      "finishedAt": 2600,
+      "message": "Движение распознано",
+      "similarity": 98
+    },
+    {
+      "drill": "passing-step-backward",
+      "body": "tall_slim_male",
+      "level": "master",
+      "scenario": "slow",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "passing-step-backward",
+      "body": "tall_slim_male",
+      "level": "master",
+      "scenario": "frozen",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "passing-step-backward",
+      "body": "tall_slim_male",
+      "level": "master",
+      "scenario": "reversed",
+      "passed": false,
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
+    },
+    {
+      "drill": "passing-step-backward",
+      "body": "tall_slim_male",
+      "level": "master",
+      "scenario": "truncated",
+      "passed": false,
+      "finishedAt": 5466.7,
+      "message": "Слишком долго: выполни одно непрерывное движение"
+    },
+    {
+      "drill": "passing-step-backward",
+      "body": "tall_slim_male",
+      "level": "master",
+      "scenario": "gap",
+      "passed": false,
+      "finishedAt": 1733.3,
+      "message": "Камера потеряла движение. Повтори попытку"
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "beginner",
+      "scenario": "normal",
+      "passed": true,
+      "finishedAt": 2666.7,
+      "message": "Движение распознано",
+      "similarity": 87
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "beginner",
+      "scenario": "fast",
+      "passed": true,
+      "finishedAt": 2059.98,
+      "message": "Движение распознано",
+      "similarity": 91
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "beginner",
+      "scenario": "fps10",
+      "passed": true,
+      "finishedAt": 2700,
+      "message": "Движение распознано",
+      "similarity": 87
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "beginner",
+      "scenario": "slow",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "beginner",
+      "scenario": "frozen",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "beginner",
+      "scenario": "reversed",
+      "passed": false,
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "beginner",
+      "scenario": "truncated",
+      "passed": false,
+      "finishedAt": 5500,
+      "message": "Слишком долго: выполни одно непрерывное движение"
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "beginner",
+      "scenario": "gap",
+      "passed": false,
+      "finishedAt": 1766.7,
+      "message": "Камера потеряла движение. Повтори попытку"
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "experienced",
+      "scenario": "normal",
+      "passed": true,
+      "finishedAt": 2400,
+      "message": "Движение распознано",
+      "similarity": 96
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "experienced",
+      "scenario": "fast",
+      "passed": true,
+      "finishedAt": 1540.0199999999998,
+      "message": "Движение распознано",
+      "similarity": 95
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "experienced",
+      "scenario": "fps10",
+      "passed": true,
+      "finishedAt": 2500,
+      "message": "Движение распознано",
       "similarity": 95
     },
     {
@@ -1216,7 +1227,7 @@
       "level": "experienced",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3866.7,
+      "finishedAt": 5433.3,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -1225,91 +1236,91 @@
       "level": "experienced",
       "scenario": "gap",
       "passed": false,
-      "finishedAt": 1733.3,
+      "finishedAt": 1700,
       "message": "Камера потеряла движение. Повтори попытку"
     },
     {
       "drill": "passing-step-forward",
       "body": "short_broad_female",
       "level": "master",
-      "scenario": "normal",
-      "passed": true,
-      "finishedAt": 2466.7,
-      "message": "Движение распознано",
-      "similarity": 99
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "master",
-      "scenario": "fast",
-      "passed": true,
-      "finishedAt": 1540.0199999999998,
-      "message": "Движение распознано",
-      "similarity": 98
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "master",
-      "scenario": "fps10",
-      "passed": true,
-      "finishedAt": 2500,
-      "message": "Движение распознано",
-      "similarity": 98
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "master",
-      "scenario": "slow",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "master",
-      "scenario": "frozen",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "master",
-      "scenario": "reversed",
-      "passed": false,
-      "finishedAt": 1000,
-      "message": "Поза резко перескочила. Повтори движение перед камерой"
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "master",
-      "scenario": "truncated",
-      "passed": false,
-      "finishedAt": 3866.7,
-      "message": "Слишком долго: выполни одно непрерывное движение"
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "short_broad_female",
-      "level": "master",
-      "scenario": "gap",
-      "passed": false,
-      "finishedAt": 1733.3,
-      "message": "Камера потеряла движение. Повтори попытку"
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "tall_slim_male",
-      "level": "beginner",
       "scenario": "normal",
       "passed": true,
       "finishedAt": 2566.7,
       "message": "Движение распознано",
-      "similarity": 81
+      "similarity": 98
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "master",
+      "scenario": "fast",
+      "passed": true,
+      "finishedAt": 1660.0199999999998,
+      "message": "Движение распознано",
+      "similarity": 97
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "master",
+      "scenario": "fps10",
+      "passed": true,
+      "finishedAt": 2600,
+      "message": "Движение распознано",
+      "similarity": 98
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "master",
+      "scenario": "slow",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "master",
+      "scenario": "frozen",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "master",
+      "scenario": "reversed",
+      "passed": false,
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "master",
+      "scenario": "truncated",
+      "passed": false,
+      "finishedAt": 5433.3,
+      "message": "Слишком долго: выполни одно непрерывное движение"
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "short_broad_female",
+      "level": "master",
+      "scenario": "gap",
+      "passed": false,
+      "finishedAt": 1700,
+      "message": "Камера потеряла движение. Повтори попытку"
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "tall_slim_male",
+      "level": "beginner",
+      "scenario": "normal",
+      "passed": true,
+      "finishedAt": 2666.7,
+      "message": "Движение распознано",
+      "similarity": 87
     },
     {
       "drill": "passing-step-forward",
@@ -1317,9 +1328,9 @@
       "level": "beginner",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1600.0199999999998,
+      "finishedAt": 2080.02,
       "message": "Движение распознано",
-      "similarity": 83
+      "similarity": 91
     },
     {
       "drill": "passing-step-forward",
@@ -1327,9 +1338,9 @@
       "level": "beginner",
       "scenario": "fps10",
       "passed": true,
-      "finishedAt": 2600,
+      "finishedAt": 2700,
       "message": "Движение распознано",
-      "similarity": 82
+      "similarity": 88
     },
     {
       "drill": "passing-step-forward",
@@ -1362,7 +1373,7 @@
       "level": "beginner",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3866.7,
+      "finishedAt": 5433.3,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -1371,7 +1382,7 @@
       "level": "beginner",
       "scenario": "gap",
       "passed": false,
-      "finishedAt": 1733.3,
+      "finishedAt": 1700,
       "message": "Камера потеряла движение. Повтори попытку"
     },
     {
@@ -1380,7 +1391,7 @@
       "level": "experienced",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 2166.7,
+      "finishedAt": 2266.7,
       "message": "Движение распознано",
       "similarity": 96
     },
@@ -1390,7 +1401,7 @@
       "level": "experienced",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1360.0199999999998,
+      "finishedAt": 1480.0199999999998,
       "message": "Движение распознано",
       "similarity": 95
     },
@@ -1400,9 +1411,9 @@
       "level": "experienced",
       "scenario": "fps10",
       "passed": true,
-      "finishedAt": 2200,
+      "finishedAt": 2300,
       "message": "Движение распознано",
-      "similarity": 95
+      "similarity": 96
     },
     {
       "drill": "passing-step-forward",
@@ -1435,7 +1446,7 @@
       "level": "experienced",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3700,
+      "finishedAt": 5300,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -1453,17 +1464,7 @@
       "level": "master",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 2466.7,
-      "message": "Движение распознано",
-      "similarity": 99
-    },
-    {
-      "drill": "passing-step-forward",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "fast",
-      "passed": true,
-      "finishedAt": 1540.0199999999998,
+      "finishedAt": 2566.7,
       "message": "Движение распознано",
       "similarity": 98
     },
@@ -1471,9 +1472,19 @@
       "drill": "passing-step-forward",
       "body": "tall_slim_male",
       "level": "master",
+      "scenario": "fast",
+      "passed": true,
+      "finishedAt": 1660.0199999999998,
+      "message": "Движение распознано",
+      "similarity": 97
+    },
+    {
+      "drill": "passing-step-forward",
+      "body": "tall_slim_male",
+      "level": "master",
       "scenario": "fps10",
       "passed": true,
-      "finishedAt": 2500,
+      "finishedAt": 2600,
       "message": "Движение распознано",
       "similarity": 98
     },
@@ -1508,7 +1519,7 @@
       "level": "master",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3866.7,
+      "finishedAt": 5433.3,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -1517,7 +1528,7 @@
       "level": "master",
       "scenario": "gap",
       "passed": false,
-      "finishedAt": 1733.3,
+      "finishedAt": 1700,
       "message": "Камера потеряла движение. Повтори попытку"
     },
     {
@@ -1525,27 +1536,30 @@
       "body": "short_broad_female",
       "level": "beginner",
       "scenario": "normal",
-      "passed": false,
-      "finishedAt": 3800,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 2733.3,
+      "message": "Движение распознано",
+      "similarity": 65
     },
     {
       "drill": "retreat",
       "body": "short_broad_female",
       "level": "beginner",
       "scenario": "fast",
-      "passed": false,
-      "finishedAt": 3240,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 1759.98,
+      "message": "Движение распознано",
+      "similarity": 65
     },
     {
       "drill": "retreat",
       "body": "short_broad_female",
       "level": "beginner",
       "scenario": "fps10",
-      "passed": false,
-      "finishedAt": 3800,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 2800,
+      "message": "Движение распознано",
+      "similarity": 67
     },
     {
       "drill": "retreat",
@@ -1569,7 +1583,8 @@
       "level": "beginner",
       "scenario": "reversed",
       "passed": false,
-      "message": "Двигайся без остановок"
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
     },
     {
       "drill": "retreat",
@@ -1577,7 +1592,7 @@
       "level": "beginner",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3800,
+      "finishedAt": 5400,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -1595,9 +1610,9 @@
       "level": "experienced",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 1900,
+      "finishedAt": 2000,
       "message": "Движение распознано",
-      "similarity": 80
+      "similarity": 86
     },
     {
       "drill": "retreat",
@@ -1605,9 +1620,9 @@
       "level": "experienced",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1180.02,
+      "finishedAt": 1300.0199999999998,
       "message": "Движение распознано",
-      "similarity": 78
+      "similarity": 76
     },
     {
       "drill": "retreat",
@@ -1615,9 +1630,9 @@
       "level": "experienced",
       "scenario": "fps10",
       "passed": true,
-      "finishedAt": 1900,
+      "finishedAt": 2100,
       "message": "Движение распознано",
-      "similarity": 81
+      "similarity": 84
     },
     {
       "drill": "retreat",
@@ -1641,7 +1656,8 @@
       "level": "experienced",
       "scenario": "reversed",
       "passed": false,
-      "message": "Двигайся без остановок"
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
     },
     {
       "drill": "retreat",
@@ -1649,7 +1665,7 @@
       "level": "experienced",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3700,
+      "finishedAt": 5300,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -1667,9 +1683,9 @@
       "level": "master",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 2100,
+      "finishedAt": 2200,
       "message": "Движение распознано",
-      "similarity": 97
+      "similarity": 98
     },
     {
       "drill": "retreat",
@@ -1677,9 +1693,9 @@
       "level": "master",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1320,
+      "finishedAt": 1420.0199999999998,
       "message": "Движение распознано",
-      "similarity": 99
+      "similarity": 89
     },
     {
       "drill": "retreat",
@@ -1687,9 +1703,9 @@
       "level": "master",
       "scenario": "fps10",
       "passed": true,
-      "finishedAt": 2200,
+      "finishedAt": 2300,
       "message": "Движение распознано",
-      "similarity": 97
+      "similarity": 92
     },
     {
       "drill": "retreat",
@@ -1713,7 +1729,8 @@
       "level": "master",
       "scenario": "reversed",
       "passed": false,
-      "message": "Двигайся без остановок"
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
     },
     {
       "drill": "retreat",
@@ -1721,7 +1738,7 @@
       "level": "master",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3833.3,
+      "finishedAt": 5433.3,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -1738,27 +1755,30 @@
       "body": "tall_slim_male",
       "level": "beginner",
       "scenario": "normal",
-      "passed": false,
-      "finishedAt": 3933.3,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 2900,
+      "message": "Движение распознано",
+      "similarity": 70
     },
     {
       "drill": "retreat",
       "body": "tall_slim_male",
       "level": "beginner",
       "scenario": "fast",
-      "passed": false,
-      "finishedAt": 3319.98,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 1840.0199999999998,
+      "message": "Движение распознано",
+      "similarity": 69
     },
     {
       "drill": "retreat",
       "body": "tall_slim_male",
       "level": "beginner",
       "scenario": "fps10",
-      "passed": false,
-      "finishedAt": 4000,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 3000,
+      "message": "Движение распознано",
+      "similarity": 70
     },
     {
       "drill": "retreat",
@@ -1791,7 +1811,7 @@
       "level": "beginner",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3933.3,
+      "finishedAt": 5533.3,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -1809,9 +1829,9 @@
       "level": "experienced",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 1933.3,
+      "finishedAt": 2033.3,
       "message": "Движение распознано",
-      "similarity": 80
+      "similarity": 89
     },
     {
       "drill": "retreat",
@@ -1819,9 +1839,9 @@
       "level": "experienced",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1240.0199999999998,
+      "finishedAt": 1339.98,
       "message": "Движение распознано",
-      "similarity": 76
+      "similarity": 77
     },
     {
       "drill": "retreat",
@@ -1829,9 +1849,9 @@
       "level": "experienced",
       "scenario": "fps10",
       "passed": true,
-      "finishedAt": 2000,
+      "finishedAt": 2100,
       "message": "Движение распознано",
-      "similarity": 79
+      "similarity": 87
     },
     {
       "drill": "retreat",
@@ -1855,7 +1875,8 @@
       "level": "experienced",
       "scenario": "reversed",
       "passed": false,
-      "message": "Двигайся без остановок"
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
     },
     {
       "drill": "retreat",
@@ -1863,7 +1884,7 @@
       "level": "experienced",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3766.7,
+      "finishedAt": 5366.7,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -1881,199 +1902,131 @@
       "level": "master",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 2100,
-      "message": "Движение распознано",
-      "similarity": 97
-    },
-    {
-      "drill": "retreat",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "fast",
-      "passed": true,
-      "finishedAt": 1320,
-      "message": "Движение распознано",
-      "similarity": 99
-    },
-    {
-      "drill": "retreat",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "fps10",
-      "passed": true,
       "finishedAt": 2200,
       "message": "Движение распознано",
-      "similarity": 97
+      "similarity": 96
     },
     {
       "drill": "retreat",
       "body": "tall_slim_male",
       "level": "master",
-      "scenario": "slow",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "retreat",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "frozen",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "retreat",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "reversed",
-      "passed": false,
-      "message": "Двигайся без остановок"
-    },
-    {
-      "drill": "retreat",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "truncated",
-      "passed": false,
-      "finishedAt": 3833.3,
-      "message": "Слишком долго: выполни одно непрерывное движение"
-    },
-    {
-      "drill": "retreat",
-      "body": "tall_slim_male",
-      "level": "master",
-      "scenario": "gap",
-      "passed": false,
-      "finishedAt": 1700,
-      "message": "Камера потеряла движение. Повтори попытку"
-    },
-    {
-      "drill": "zornhau",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "normal",
-      "passed": false,
-      "finishedAt": 3633.3,
-      "message": "Слишком долго: выполни одно непрерывное движение"
-    },
-    {
-      "drill": "zornhau",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "fast",
-      "passed": false,
-      "finishedAt": 2899.98,
-      "message": "Слишком долго: выполни одно непрерывное движение"
-    },
-    {
-      "drill": "zornhau",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "fps10",
-      "passed": false,
-      "finishedAt": 3700,
-      "message": "Слишком долго: выполни одно непрерывное движение"
-    },
-    {
-      "drill": "zornhau",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "slow",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "zornhau",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "frozen",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "zornhau",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "reversed",
-      "passed": false,
-      "message": "Двигайся без остановок"
-    },
-    {
-      "drill": "zornhau",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "truncated",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "zornhau",
-      "body": "short_broad_female",
-      "level": "beginner",
-      "scenario": "gap",
-      "passed": false,
-      "finishedAt": 2100,
-      "message": "Камера потеряла движение. Повтори попытку"
-    },
-    {
-      "drill": "zornhau",
-      "body": "short_broad_female",
-      "level": "experienced",
-      "scenario": "normal",
-      "passed": true,
-      "finishedAt": 2133.3,
-      "message": "Движение распознано",
-      "similarity": 91
-    },
-    {
-      "drill": "zornhau",
-      "body": "short_broad_female",
-      "level": "experienced",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1320,
+      "finishedAt": 1420.0199999999998,
       "message": "Движение распознано",
-      "similarity": 94
+      "similarity": 86
     },
     {
-      "drill": "zornhau",
-      "body": "short_broad_female",
-      "level": "experienced",
+      "drill": "retreat",
+      "body": "tall_slim_male",
+      "level": "master",
       "scenario": "fps10",
       "passed": true,
-      "finishedAt": 2200,
+      "finishedAt": 2300,
       "message": "Движение распознано",
-      "similarity": 93
+      "similarity": 92
     },
     {
-      "drill": "zornhau",
-      "body": "short_broad_female",
-      "level": "experienced",
+      "drill": "retreat",
+      "body": "tall_slim_male",
+      "level": "master",
       "scenario": "slow",
       "passed": false,
       "message": "Готов. Выполни движение целиком"
     },
     {
-      "drill": "zornhau",
-      "body": "short_broad_female",
-      "level": "experienced",
+      "drill": "retreat",
+      "body": "tall_slim_male",
+      "level": "master",
       "scenario": "frozen",
       "passed": false,
       "message": "Готов. Выполни движение целиком"
     },
     {
-      "drill": "zornhau",
-      "body": "short_broad_female",
-      "level": "experienced",
+      "drill": "retreat",
+      "body": "tall_slim_male",
+      "level": "master",
       "scenario": "reversed",
       "passed": false,
       "finishedAt": 1000,
       "message": "Поза резко перескочила. Повтори движение перед камерой"
     },
     {
+      "drill": "retreat",
+      "body": "tall_slim_male",
+      "level": "master",
+      "scenario": "truncated",
+      "passed": false,
+      "finishedAt": 5466.7,
+      "message": "Слишком долго: выполни одно непрерывное движение"
+    },
+    {
+      "drill": "retreat",
+      "body": "tall_slim_male",
+      "level": "master",
+      "scenario": "gap",
+      "passed": false,
+      "finishedAt": 1733.3,
+      "message": "Камера потеряла движение. Повтори попытку"
+    },
+    {
       "drill": "zornhau",
       "body": "short_broad_female",
-      "level": "experienced",
+      "level": "beginner",
+      "scenario": "normal",
+      "passed": true,
+      "finishedAt": 2933.3,
+      "message": "Движение распознано",
+      "similarity": 88
+    },
+    {
+      "drill": "zornhau",
+      "body": "short_broad_female",
+      "level": "beginner",
+      "scenario": "fast",
+      "passed": true,
+      "finishedAt": 1879.98,
+      "message": "Движение распознано",
+      "similarity": 89
+    },
+    {
+      "drill": "zornhau",
+      "body": "short_broad_female",
+      "level": "beginner",
+      "scenario": "fps10",
+      "passed": true,
+      "finishedAt": 3000,
+      "message": "Движение распознано",
+      "similarity": 88
+    },
+    {
+      "drill": "zornhau",
+      "body": "short_broad_female",
+      "level": "beginner",
+      "scenario": "slow",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "zornhau",
+      "body": "short_broad_female",
+      "level": "beginner",
+      "scenario": "frozen",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "zornhau",
+      "body": "short_broad_female",
+      "level": "beginner",
+      "scenario": "reversed",
+      "passed": false,
+      "message": "Двигайся без остановок"
+    },
+    {
+      "drill": "zornhau",
+      "body": "short_broad_female",
+      "level": "beginner",
       "scenario": "truncated",
       "passed": false,
       "message": "Готов. Выполни движение целиком"
@@ -2081,31 +2034,103 @@
     {
       "drill": "zornhau",
       "body": "short_broad_female",
-      "level": "experienced",
+      "level": "beginner",
       "scenario": "gap",
       "passed": false,
-      "finishedAt": 2066.7,
+      "finishedAt": 2033.3,
       "message": "Камера потеряла движение. Повтори попытку"
     },
     {
       "drill": "zornhau",
       "body": "short_broad_female",
-      "level": "master",
+      "level": "experienced",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 1833.3,
+      "finishedAt": 2233.3,
+      "message": "Движение распознано",
+      "similarity": 96
+    },
+    {
+      "drill": "zornhau",
+      "body": "short_broad_female",
+      "level": "experienced",
+      "scenario": "fast",
+      "passed": true,
+      "finishedAt": 1519.98,
+      "message": "Движение распознано",
+      "similarity": 92
+    },
+    {
+      "drill": "zornhau",
+      "body": "short_broad_female",
+      "level": "experienced",
+      "scenario": "fps10",
+      "passed": true,
+      "finishedAt": 2300,
       "message": "Движение распознано",
       "similarity": 95
     },
     {
       "drill": "zornhau",
       "body": "short_broad_female",
+      "level": "experienced",
+      "scenario": "slow",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "zornhau",
+      "body": "short_broad_female",
+      "level": "experienced",
+      "scenario": "frozen",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "zornhau",
+      "body": "short_broad_female",
+      "level": "experienced",
+      "scenario": "reversed",
+      "passed": false,
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
+    },
+    {
+      "drill": "zornhau",
+      "body": "short_broad_female",
+      "level": "experienced",
+      "scenario": "truncated",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "zornhau",
+      "body": "short_broad_female",
+      "level": "experienced",
+      "scenario": "gap",
+      "passed": false,
+      "finishedAt": 1900,
+      "message": "Камера потеряла движение. Повтори попытку"
+    },
+    {
+      "drill": "zornhau",
+      "body": "short_broad_female",
+      "level": "master",
+      "scenario": "normal",
+      "passed": true,
+      "finishedAt": 1933.3,
+      "message": "Движение распознано",
+      "similarity": 98
+    },
+    {
+      "drill": "zornhau",
+      "body": "short_broad_female",
       "level": "master",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1240.0199999999998,
+      "finishedAt": 1339.98,
       "message": "Движение распознано",
-      "similarity": 84
+      "similarity": 92
     },
     {
       "drill": "zornhau",
@@ -2113,9 +2138,9 @@
       "level": "master",
       "scenario": "fps10",
       "passed": true,
-      "finishedAt": 1900,
+      "finishedAt": 2000,
       "message": "Движение распознано",
-      "similarity": 97
+      "similarity": 98
     },
     {
       "drill": "zornhau",
@@ -2148,7 +2173,7 @@
       "level": "master",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3300,
+      "finishedAt": 5366.7,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -2157,7 +2182,7 @@
       "level": "master",
       "scenario": "gap",
       "passed": false,
-      "finishedAt": 1766.7,
+      "finishedAt": 1633.3,
       "message": "Камера потеряла движение. Повтори попытку"
     },
     {
@@ -2165,27 +2190,30 @@
       "body": "tall_slim_male",
       "level": "beginner",
       "scenario": "normal",
-      "passed": false,
-      "finishedAt": 3433.3,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 2833.3,
+      "message": "Движение распознано",
+      "similarity": 87
     },
     {
       "drill": "zornhau",
       "body": "tall_slim_male",
       "level": "beginner",
       "scenario": "fast",
-      "passed": false,
-      "finishedAt": 2760,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 1819.98,
+      "message": "Движение распознано",
+      "similarity": 87
     },
     {
       "drill": "zornhau",
       "body": "tall_slim_male",
       "level": "beginner",
       "scenario": "fps10",
-      "passed": false,
-      "finishedAt": 3400,
-      "message": "Слишком долго: выполни одно непрерывное движение"
+      "passed": true,
+      "finishedAt": 2900,
+      "message": "Движение распознано",
+      "similarity": 87
     },
     {
       "drill": "zornhau",
@@ -2223,78 +2251,6 @@
       "drill": "zornhau",
       "body": "tall_slim_male",
       "level": "beginner",
-      "scenario": "gap",
-      "passed": false,
-      "finishedAt": 1900,
-      "message": "Камера потеряла движение. Повтори попытку"
-    },
-    {
-      "drill": "zornhau",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "normal",
-      "passed": true,
-      "finishedAt": 2033.3,
-      "message": "Движение распознано",
-      "similarity": 89
-    },
-    {
-      "drill": "zornhau",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "fast",
-      "passed": true,
-      "finishedAt": 1260,
-      "message": "Движение распознано",
-      "similarity": 87
-    },
-    {
-      "drill": "zornhau",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "fps10",
-      "passed": true,
-      "finishedAt": 2100,
-      "message": "Движение распознано",
-      "similarity": 92
-    },
-    {
-      "drill": "zornhau",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "slow",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "zornhau",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "frozen",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "zornhau",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "reversed",
-      "passed": false,
-      "finishedAt": 1000,
-      "message": "Поза резко перескочила. Повтори движение перед камерой"
-    },
-    {
-      "drill": "zornhau",
-      "body": "tall_slim_male",
-      "level": "experienced",
-      "scenario": "truncated",
-      "passed": false,
-      "message": "Готов. Выполни движение целиком"
-    },
-    {
-      "drill": "zornhau",
-      "body": "tall_slim_male",
-      "level": "experienced",
       "scenario": "gap",
       "passed": false,
       "finishedAt": 1966.7,
@@ -2303,12 +2259,85 @@
     {
       "drill": "zornhau",
       "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "normal",
+      "passed": true,
+      "finishedAt": 2133.3,
+      "message": "Движение распознано",
+      "similarity": 95
+    },
+    {
+      "drill": "zornhau",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "fast",
+      "passed": true,
+      "finishedAt": 1399.98,
+      "message": "Движение распознано",
+      "similarity": 94
+    },
+    {
+      "drill": "zornhau",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "fps10",
+      "passed": true,
+      "finishedAt": 2200,
+      "message": "Движение распознано",
+      "similarity": 95
+    },
+    {
+      "drill": "zornhau",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "slow",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "zornhau",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "frozen",
+      "passed": false,
+      "message": "Готов. Выполни движение целиком"
+    },
+    {
+      "drill": "zornhau",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "reversed",
+      "passed": false,
+      "finishedAt": 1000,
+      "message": "Поза резко перескочила. Повтори движение перед камерой"
+    },
+    {
+      "drill": "zornhau",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "truncated",
+      "passed": false,
+      "finishedAt": 5533.3,
+      "message": "Слишком долго: выполни одно непрерывное движение"
+    },
+    {
+      "drill": "zornhau",
+      "body": "tall_slim_male",
+      "level": "experienced",
+      "scenario": "gap",
+      "passed": false,
+      "finishedAt": 1800,
+      "message": "Камера потеряла движение. Повтори попытку"
+    },
+    {
+      "drill": "zornhau",
+      "body": "tall_slim_male",
       "level": "master",
       "scenario": "normal",
       "passed": true,
-      "finishedAt": 1833.3,
+      "finishedAt": 1933.3,
       "message": "Движение распознано",
-      "similarity": 90
+      "similarity": 98
     },
     {
       "drill": "zornhau",
@@ -2316,9 +2345,9 @@
       "level": "master",
       "scenario": "fast",
       "passed": true,
-      "finishedAt": 1240.0199999999998,
+      "finishedAt": 1339.98,
       "message": "Движение распознано",
-      "similarity": 80
+      "similarity": 92
     },
     {
       "drill": "zornhau",
@@ -2328,7 +2357,7 @@
       "passed": true,
       "finishedAt": 2000,
       "message": "Движение распознано",
-      "similarity": 83
+      "similarity": 98
     },
     {
       "drill": "zornhau",
@@ -2361,7 +2390,7 @@
       "level": "master",
       "scenario": "truncated",
       "passed": false,
-      "finishedAt": 3333.3,
+      "finishedAt": 5366.7,
       "message": "Слишком долго: выполни одно непрерывное движение"
     },
     {
@@ -2370,7 +2399,7 @@
       "level": "master",
       "scenario": "gap",
       "passed": false,
-      "finishedAt": 1800,
+      "finishedAt": 1633.3,
       "message": "Камера потеряла движение. Повтори попытку"
     }
   ]

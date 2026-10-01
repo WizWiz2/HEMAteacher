@@ -16,17 +16,18 @@ const LABELS: Record<string, string> = {
   right_ankle: "правую стопу",
 };
 
-export function assessFraming(pose: RawPose, mode: TrackingMode): FramingAssessment {
+export function assessFraming(pose: RawPose, mode: TrackingMode, movement = false): FramingAssessment {
   const required = mode === "upper_body"
     ? ["nose", "left_shoulder", "right_shoulder", "left_elbow", "right_elbow", "left_wrist", "right_wrist", "left_hip", "right_hip"]
     : ["nose", "left_shoulder", "right_shoulder", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle"];
 
-  const missing = required.filter((name) => {
+  const observed = movement ? required.filter(name => !name.endsWith("_knee")) : required;
+  const missing = observed.filter((name) => {
     const point = pose.landmarks[name];
     return !point || point.visibility < 0.42 || point.x < -0.03 || point.x > 1.03 || point.y < -0.03 || point.y > 1.03;
   });
 
-  const visible = required
+  const visible = observed
     .map((name) => pose.landmarks[name])
     .filter((point) => point && point.visibility >= 0.42);
   const ys = visible.map((point) => point.y);

@@ -21,8 +21,8 @@ export function LiveFeedback({
   if (completed) {
     return (
       <div className="coach-overlay complete">
-        <span className="coach-primary">ГОТОВО ✓</span>
-        <span className="coach-score">Упражнение завершено</span>
+        <span className="coach-primary">{motion ? "ДВИЖЕНИЕ РАСПОЗНАНО ✓" : "ГОТОВО ✓"}</span>
+        <span className="coach-score">{motion?.feedback?.[0] ?? "Упражнение завершено"}</span>
       </div>
     );
   }

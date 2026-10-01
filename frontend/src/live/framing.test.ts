@@ -30,4 +30,12 @@ describe("camera framing", () => {
     expect(result.ready).toBe(false);
     expect(result.message).toContain("СТОПЫ");
   });
+
+  it("allows an occluded knee for movement recognition while keeping calibration strict", () => {
+    const frame = pose(); frame.landmarks.left_knee.visibility = .1;
+    expect(assessFraming(frame, "full_body").ready).toBe(false);
+    expect(assessFraming(frame, "full_body", true).ready).toBe(true);
+    frame.landmarks.left_ankle.visibility = .1;
+    expect(assessFraming(frame, "full_body", true).ready).toBe(false);
+  });
 });
