@@ -36,6 +36,10 @@ jobs:
       - name: Validate Vom Tag against labelled Zornhau clips
         run: node scripts/check-vom-tag-clips.mjs
         working-directory: frontend
+      - name: Validate continuous movement on mock labels
+        run: |
+          node frontend/scripts/build-motion-patterns.mjs --check
+          node frontend/scripts/check-continuous-motion.mjs
       - name: Validate standalone Sites output
         run: |
           node scripts/build-site.mjs

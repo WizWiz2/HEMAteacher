@@ -94,9 +94,10 @@ export interface WeaponMatch {
   deltaDeg?: number;
 }
 
-export type DrillState = "calibrating" | "ready" | "running" | "completed";
+export type DrillState = "calibrating" | "ready" | "running" | "completed" | "failed";
 
 export interface DrillRuntime {
+  motion?: import("./continuousMotion").MotionAttempt;
   state: DrillState;
   checkpointIndex: number;
   startedAt?: number;

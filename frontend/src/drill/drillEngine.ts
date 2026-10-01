@@ -1,9 +1,10 @@
+import { motionPatternFor, stepContinuous } from "./continuousMotion";
 import { matchCheckpoint } from "./checkpointMatcher";
 import type { Drill, DrillRuntime } from "./types";
 
 export type DrillEvent =
   | { type: "quality"; ok: boolean }
-  | { type: "sample"; timeMs: number; features: Record<string, number> | null; enoughSamples: boolean }
+  | { type: "sample"; timeMs: number; features: Record<string, number> | null; enoughSamples: boolean; cameraView?: "side" | "front"; mode?: "motion" | "poses" }
   | { type: "retry" };
 
 export function createDrillRuntime(): DrillRuntime {
@@ -20,7 +21,11 @@ export function stepDrill(runtime: DrillRuntime, drill: Drill, event: DrillEvent
     }
     return runtime;
   }
-  if (runtime.state === "completed" || event.type !== "sample") return runtime;
+  if (runtime.state === "completed" || runtime.state === "failed" || event.type !== "sample") return runtime;
+  if (motionPatternFor(drill.id) && event.mode !== "poses") {
+    if (event.cameraView === "front") return { ...runtime, motion: { phase: "position", message: "Для распознавания движения повернись боком", samples: [] } };
+    return stepContinuous(runtime, drill.id, event.timeMs, event.features, event.enoughSamples, drill.checkpoints.length);
+  }
   const checkpoint = drill.checkpoints[runtime.checkpointIndex];
   if (!checkpoint) return runtime;
   const matched = matchCheckpoint(

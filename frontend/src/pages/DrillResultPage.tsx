@@ -1,9 +1,9 @@
-export function DrillResultPage({ elapsedMs, onRetry }: { elapsedMs: number; onRetry: () => void }) {
+export function DrillResultPage({ elapsedMs, onRetry, continuous = false }: { elapsedMs: number; onRetry: () => void; continuous?: boolean }) {
   return (
     <div className="result-banner">
       <h2>Готово</h2>
       <p className="elapsed">{formatElapsed(elapsedMs)}</p>
-      <p className="muted">Время от первой пройденной точки до последней. Это не оценка техники.</p>
+      <p className="muted">{continuous ? "Время цельной попытки. Сходство траектории не заменяет оценку техники тренером." : "Время от первой пройденной точки до последней. Это не оценка техники."}</p>
       <button type="button" onClick={onRetry}>Ещё раз</button>
     </div>
   );

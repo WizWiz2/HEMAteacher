@@ -1,3 +1,4 @@
+import { motionPatternFor } from "../drill/continuousMotion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getDrill } from "../api";
@@ -20,6 +21,7 @@ import { useLivePose, type LiveSample } from "../live/useLivePose";
 import { DrillResultPage, formatElapsed } from "./DrillResultPage";
 
 export function DrillPage() {
+  const [trainingMode, setTrainingMode] = useState<"motion" | "poses">("motion");
   const { id = "" } = useParams();
   const [drill, setDrill] = useState<Drill | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -151,10 +153,11 @@ export function DrillPage() {
       next = stepDrill(next, current, {
         type: "sample",
         timeMs: sample.timeMs,
-        features: sample.smoothed,
-        enoughSamples: sample.enough,
+        features: motionPatternFor(current.id) && trainingMode === "motion" ? sample.features : sample.smoothed,
+        enoughSamples: motionPatternFor(current.id) && trainingMode === "motion" ? sample.usable : sample.enough,
+        cameraView, mode: trainingMode,
       });
-      if (next.checkpointIndex !== beforeIndex || (beforeState !== next.state && next.state === "completed")) {
+      if ((!(motionPatternFor(current.id) && trainingMode === "motion") && next.checkpointIndex !== beforeIndex) || (beforeState !== next.state && next.state === "completed")) {
         chime();
         setFlash(true);
         window.setTimeout(() => setFlash(false), 350);
@@ -190,7 +193,7 @@ export function DrillPage() {
   function retry() {
     const current = drillRef.current;
     if (!current) return;
-    const next = stepDrill(runtimeRef.current, current, { type: "retry" });
+    const next = runtimeRef.current.state === "calibrating" ? createDrillRuntime() : stepDrill(runtimeRef.current, current, { type: "retry" });
     runtimeRef.current = next;
     setRuntime(next);
   }
@@ -217,7 +220,8 @@ export function DrillPage() {
     [cameraView, weaponMarkersEnabled, weaponMarkers, targetPose, facing],
   );
 
-  const cue = primaryCue(runtime.match);
+  const continuous = Boolean(drill && motionPatternFor(drill.id)) && trainingMode === "motion";
+  const cue = continuous ? null : primaryCue(runtime.match);
   const calibrationMessage = runtime.state === "calibrating" && framingReady && !anatomyReady
     ? "ПОВТОРИ ПОЗУ НА СТЕНДЕ · ЗАДЕРЖИСЬ"
     : framingMessage;
@@ -225,6 +229,8 @@ export function DrillPage() {
     ? "Готово"
     : runtime.state === "calibrating" && (!framingReady || !anatomyReady)
       ? calibrationMessage
+      : continuous && runtime.motion
+        ? runtime.motion.message
       : cue && !cue.ok
         ? cue.text
         : weaponMatch.available && !weaponMatch.passed
@@ -261,6 +267,11 @@ export function DrillPage() {
             cameraView={cameraView}
           />
 
+          {drill && motionPatternFor(drill.id) && <div className="training-controls">
+            <button type="button" className={trainingMode === "motion" ? "active" : "ghost"} onClick={() => {setTrainingMode("motion");retry();}}>Движение целиком</button>
+            <button type="button" className={trainingMode === "poses" ? "active" : "ghost"} onClick={() => {setTrainingMode("poses");retry();}}>Разбор поз</button>
+            <span>{continuous ? "Приготовься → выполни движение → результат. Не замирай на промежуточных картинках." : "Удерживай каждую позу отдельно."}</span>
+          </div>}
           <div className="training-controls">
             <div className="control-group">
               <span className="control-label">Ракурс анализа</span>
@@ -270,8 +281,8 @@ export function DrillPage() {
             {cameraView === "side" ? (
               <div className="control-group">
                 <span className="control-label">Направление</span>
-                <button type="button" className={facing === "left" ? "ghost active" : "ghost"} onClick={() => setFacing("left")}>Лицом ←</button>
-                <button type="button" className={facing === "right" ? "ghost active" : "ghost"} onClick={() => setFacing("right")}>Лицом →</button>
+                <button type="button" className={facing === "left" ? "ghost active" : "ghost"} onClick={() => {setFacing("left");retry();}}>Лицом ←</button>
+                <button type="button" className={facing === "right" ? "ghost active" : "ghost"} onClick={() => {setFacing("right");retry();}}>Лицом →</button>
               </div>
             ) : (
               <span className="view-reliability">Фронтальный режим · глубина оценивается мягче</span>
@@ -373,6 +384,7 @@ export function DrillPage() {
                 calibrating={runtime.state === "calibrating"}
                 weapon={weaponMatch}
                 completed={runtime.state === "completed"}
+                motion={continuous ? runtime.motion : undefined}
               />
               <div className="camera-status">
                 <span>
@@ -393,13 +405,13 @@ export function DrillPage() {
 
           <section className="drill-foot manuscript-panel">
             <div>
-              <span className="rubric">Текущая точка</span>
-              <strong>{checkpoint?.title ?? "—"}</strong>
-              {checkpoint?.cue && <span className="target-cue">{checkpoint.cue}</span>}
+              <span className="rubric">{continuous ? "Попытка" : "Текущая точка"}</span>
+              <strong>{continuous ? runtime.motion?.message ?? "Прими исходную позицию" : checkpoint?.title ?? "—"}</strong>
+              {!continuous && checkpoint?.cue && <span className="target-cue">{checkpoint.cue}</span>}
             </div>
             <div className="metric">
-              <span>условий проходит</span>
-              <strong>{Math.round((runtime.match?.passScore ?? 0) * 100)}%</strong>
+              <span>{continuous ? "сходство траектории" : "условий проходит"}</span>
+              <strong>{continuous ? runtime.motion?.similarity == null ? "—" : `${runtime.motion.similarity}%` : `${Math.round((runtime.match?.passScore ?? 0) * 100)}%`}</strong>
             </div>
             <div className="metric">
               <span>время</span>
@@ -407,7 +419,8 @@ export function DrillPage() {
             </div>
           </section>
 
-          {runtime.state === "completed" && <DrillResultPage elapsedMs={elapsed} onRetry={retry} />}
+          {runtime.state === "completed" && <DrillResultPage elapsedMs={elapsed} onRetry={retry} continuous={continuous} />}
+          {runtime.state === "failed" && <div className="result-banner"><h2>Попытка не засчитана</h2><p>{runtime.motion?.message}</p><button type="button" onClick={retry}>Повторить</button></div>}
           <Link className="muted back-link" to="/">← К упражнениям</Link>
         </>
       )}
