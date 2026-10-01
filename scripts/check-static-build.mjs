@@ -1,8 +1,10 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkEngravingAssets } from "./check-engraving-assets.mjs";
 
 const dist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "dist");
+checkEngravingAssets(path.join(dist, "theme"));
 const required = [
   "index.html",
   "content/drills.json",
