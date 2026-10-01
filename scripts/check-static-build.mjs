@@ -23,4 +23,10 @@ const scripts = assets.filter((file) => file.endsWith(".js"));
 if (scripts.some((file) => readFileSync(path.join(dist, "assets", file), "utf8").includes("/api/v1/"))) {
   throw new Error("Static build still refers to the server API");
 }
+for (const file of scripts) {
+  const source = readFileSync(path.join(dist, "assets", file), "utf8");
+  if (["/dev/video-regression", "Видео вместо камеры", "browser-video-results.json"].some(marker => source.includes(marker))) {
+    throw new Error(`Development video regression tool leaked into production: ${file}`);
+  }
+}
 console.log("Static build contains content, local MediaPipe assets, and the analysis worker; no /api/v1/ calls.");

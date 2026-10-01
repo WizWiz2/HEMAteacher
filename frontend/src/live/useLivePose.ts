@@ -48,10 +48,6 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
   const [requestedCamera, setRequestedCamera] = useState<PhysicalCamera>("environment");
   const requestedCameraRef = useRef<PhysicalCamera>("environment");
   const actualCameraRef = useRef<string | null>(null);
-  const replayFile = useRef<File | null>(null);
-  const replayUrl = useRef<string | null>(null);
-  const [ended, setEnded] = useState(false);
-  const [source, setSource] = useState<"camera" | "video">("camera");
   const streamRef = useRef<MediaStream | null>(null);
   const detectorRef = useRef<MediaPipeLivePose | null>(null);
   const requestId = useRef(0);
@@ -60,7 +56,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
   facingRef.current = facing;
   optionsRef.current = options;
 
-  const start = useCallback(async (camera: PhysicalCamera = requestedCameraRef.current, file?: File) => {
+  const start = useCallback(async (camera: PhysicalCamera = requestedCameraRef.current) => {
     if (busy.current) return;
     busy.current = true;
     const currentRequest = ++requestId.current;
@@ -77,17 +73,12 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     video.pause();
     video.srcObject = null;
     video.removeAttribute("src");
-    if (replayUrl.current) URL.revokeObjectURL(replayUrl.current);
-    replayUrl.current = null;
-    replayFile.current = file ?? null;
-    setSource(file ? "video" : "camera");
     requestedCameraRef.current = camera;
     setRequestedCamera(camera);
-    setEnded(false);
     setError(null);
     setLive(false);
     setPhase("requesting");
-    if (!file && (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia)) {
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
       busy.current = false;
       setPhase("idle");
       setError("Браузер не даёт доступ к камере. Открой сайт напрямую по HTTPS в Safari или Chrome.");
@@ -118,34 +109,18 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     });
 
     try {
-      if (file) {
-        replayUrl.current = URL.createObjectURL(file);
-        video.src = replayUrl.current;
-        video.loop = false;
-        video.muted = true;
-        video.load();
-        setPhase("loading");
-        await detector.initialize();
-        if (currentRequest !== requestId.current) return;
-        await video.play();
-        setLive(true);
-        setCameraFacingMode(null);
-        actualCameraRef.current = null;
-        await detector.start(video);
-      } else {
-        const stream = await openCameraStream(camera);
-        if (currentRequest !== requestId.current) { stream.getTracks().forEach(track => track.stop()); return; }
-        streamRef.current = stream;
-        const actualFacing = stream.getVideoTracks()[0]?.getSettings().facingMode ?? null;
-        actualCameraRef.current = actualFacing;
-        setCameraFacingMode(actualFacing);
-        video.srcObject = stream;
-        await video.play();
-        if (currentRequest !== requestId.current) return;
-        setLive(true);
-        setPhase("loading");
-        await detector.start(video);
-      }
+      const stream = await openCameraStream(camera);
+      if (currentRequest !== requestId.current) { stream.getTracks().forEach(track => track.stop()); return; }
+      streamRef.current = stream;
+      const actualFacing = stream.getVideoTracks()[0]?.getSettings().facingMode ?? null;
+      actualCameraRef.current = actualFacing;
+      setCameraFacingMode(actualFacing);
+      video.srcObject = stream;
+      await video.play();
+      if (currentRequest !== requestId.current) return;
+      setLive(true);
+      setPhase("loading");
+      await detector.start(video);
       if (currentRequest !== requestId.current) return;
       setPhase("ready");
     } catch (reason) {
@@ -184,19 +159,11 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     await start(next);
   }, [start]);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    const finish = () => setEnded(true);
-    video?.addEventListener("ended", finish);
-    return () => video?.removeEventListener("ended", finish);
-  }, []);
-
   useEffect(() => () => {
     requestId.current++;
     detectorRef.current?.stop();
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
-    if (replayUrl.current) URL.revokeObjectURL(replayUrl.current);
   }, []);
 
   return {
@@ -209,10 +176,6 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     switchCamera,
     cameraFacingMode,
     requestedCamera,
-    source,
-    ended,
-    startVideo: (file: File) => start(requestedCameraRef.current, file),
-    replay: () => replayFile.current ? start(requestedCameraRef.current, replayFile.current) : Promise.resolve(),
   };
 }
 

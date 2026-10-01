@@ -8,7 +8,10 @@ import { MovementPage } from "./pages/MovementPage";
 import { RecordPage } from "./pages/RecordPage";
 import { SessionPage } from "./pages/SessionPage";
 
-import { VideoRegressionPage } from "./pages/VideoRegressionPage";
+import { lazy, Suspense } from "react";
+const VideoRegressionPage = import.meta.env.DEV
+  ? lazy(() => import("./pages/VideoRegressionPage").then(module => ({ default: module.VideoRegressionPage })))
+  : null;
 
 export function App() {
   return (
@@ -24,7 +27,7 @@ export function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/drills/:id" element={<DrillPage />} />
-        <Route path="/dev/video-regression" element={<VideoRegressionPage />} />
+        {VideoRegressionPage && <Route path="/dev/video-regression" element={<Suspense fallback={<p>Загрузка тестового инструмента…</p>}><VideoRegressionPage /></Suspense>} />}
         <Route path="/dev/checkpoint-capture" element={<CheckpointCapturePage />} />
         <Route path="/analysis" element={<LibraryPage />} />
         <Route path="/movements/:id" element={<MovementPage />} />

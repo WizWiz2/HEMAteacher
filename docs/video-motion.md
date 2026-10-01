@@ -2,7 +2,9 @@
 
 ## Scope and status
 
-Training can use a local MP4 in place of the camera. Both inputs use `MediaPipeLivePose` with the local **lite** model, `LiveSampleProcessor`, the same visibility checks and `CalibrationGate`, then `stepDrill`. Uploading a training video does not save the avatar's proportions over the student's stored body profile. Replay resets calibration and detector history. Empty detections are emitted as empty frames rather than silently hiding tracking loss.
+MP4 input exists only in the development regression tool at `/dev/video-regression`. It is excluded from production builds, including its file picker and route. The training screen and `useLivePose` accept only camera input.
+
+Camera capture and the regression tool share `MediaPipeLivePose` with the local **lite** model, `LiveSampleProcessor`, visibility checks, `CalibrationGate`, and `stepDrill`. Each regression clip starts with empty calibration and detector history; no test avatar profile is saved as a student's profile. Empty detections are emitted as empty frames rather than silently hiding tracking loss.
 
 The browser/WASM path has been implemented but **has not been executed in this environment**. The supervised preview failed before application startup; a local browser installation also failed. There is no browser validation result. This is an outstanding verification step, not a passing check.
 
@@ -48,6 +50,6 @@ node frontend/scripts/check-continuous-motion.mjs
 
 The inferred-motion checker fails if any normal clip is unrecognized or a negative scenario completes. No saved calibration or annotations substitute for detections.
 
-For the required browser check, open `/dev/video-regression` in the running app, select the repository's `test-data/mock-videos` folder, run 30/15/10 FPS, and download the report. Each browser run freshly decodes the selected MP4, reruns the **camera detector**, starts with empty calibration, and uses the same downstream processing. The resulting report includes raw detections for inspection. This route does not upload files to a server.
+For the required browser check, open `/dev/video-regression` in a development run of the app (`npm run dev` in `frontend`), select the repository's `test-data/mock-videos` folder, run 30/15/10 FPS, and download the report. Each browser run freshly decodes the selected MP4, reruns the **camera detector**, starts with empty calibration, and uses the same downstream processing. The resulting report includes raw detections for inspection. This route does not upload files to a server.
 
-Also verify live replay timing, repeat, camera return, phone camera switching, and voice/visual feedback on actual devices. A coach should review the recognition and correction rules against real novice attempts before calling this a validated HEMA technique assessor.
+Also verify live camera timing, retry, phone camera switching, and voice/visual feedback on actual devices. A coach should review the recognition and correction rules against real novice attempts before calling this a validated HEMA technique assessor.

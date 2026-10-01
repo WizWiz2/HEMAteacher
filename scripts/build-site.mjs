@@ -5,6 +5,7 @@ import path from "node:path";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
+rmSync(path.join(root, "frontend", "dist"), { recursive: true, force: true });
 const build = spawnSync(npm, ["run", "build"], {
   cwd: path.join(root, "frontend"),
   stdio: "inherit",
