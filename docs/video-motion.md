@@ -1,3 +1,7 @@
+# Updated corpus
+
+The current 54-clip validation, including the four new strikes and personalised training path, is documented in [new-strike-calibration.md](new-strike-calibration.md). The 30-clip description below records the previous validation scope; `video-motion-results.json` now contains the current results.
+
 # Video input and beginner movement recognition
 
 ## Scope and status

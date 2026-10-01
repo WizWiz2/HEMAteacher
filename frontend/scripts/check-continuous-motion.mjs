@@ -20,7 +20,7 @@ try {
  const all=clips('test-data/mock-videos');
  for(const clip of all) {
   const seq=samples(clip,normalizePose,torsoPixels,liveFeatures), drill=drills.find(d=>d.id===clip.drill_id);
-  const end=clip.drill_id==='zornhau'?1.9:clip.drill_id.startsWith('passing')?2.39:2.02;
+  const end=clip.drill_id.endsWith('hau') && clip.drill_id!=='zornhau' ? clip.timeline_s.find(([_,phase])=>phase==='finish')[0] : clip.drill_id==='zornhau'?1.9:clip.drill_id.startsWith('passing')?2.39:2.02;
   const movement=seq.filter(s=>s.timeMs>=1000 && s.timeMs<=end*1000+500);
   const reversed=[...seq.filter(s=>s.timeMs<900),...movement.map((s,i)=>({...s,features:movement[movement.length-1-i].features,timeMs:1000+i*33.333}))];
   baseline.push({drill:clip.drill_id,level:clip.level,body:clip.body_type,frozenPassed:replay(drill,seq.map(s=>({...s,features:seq[0].features})),'frozen','poses').state==='completed'});

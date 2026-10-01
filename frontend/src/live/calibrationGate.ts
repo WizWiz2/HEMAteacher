@@ -10,9 +10,10 @@ export class CalibrationGate {
   reset() { this.calibrator.reset(); this.since = null; this.refined = false; this.profile = null; }
   push(sample: LiveSample, mode: TrackingMode, previous: BodyProfile | null = null) {
     if (sample.normalized && sample.framing.ready && !this.refined) {
-      this.calibrator.push(sample.normalized);
+      this.calibrator.push(sample.normalized, sample.cameraView);
       if (this.calibrator.ready(mode, 6)) {
-        this.profile = this.calibrator.build(previous);
+        // Do not blend a newly measured side-view profile with old depth-inflated lengths.
+        this.profile = this.calibrator.build(sample.cameraView === "side" ? null : previous);
         this.refined = profileCoverage(this.profile, mode) >= .8;
       }
     }

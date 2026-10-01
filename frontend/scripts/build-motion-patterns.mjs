@@ -5,9 +5,11 @@ try {
  const {liveFeatures}=await v.ssrLoadModule('/src/live/features.ts');
  const result={};
  for(const c of clips('test-data/mock-videos').filter(c=>c.level==='master')) {
-  const end=c.drill_id==='zornhau'?1.9:c.drill_id.startsWith('passing')?2.39:2.02;
-  const start=c.drill_id==='zornhau'?1.2:1.35;
-  const features=c.drill_id==='zornhau'?['action_hand_x','action_hand_y','left_ankle_x','right_ankle_x']:['left_ankle_x','right_ankle_x','left_ankle_y','right_ankle_y','root_x'];
+  const strike=c.drill_id.endsWith('hau');
+  const addedStrike=strike && c.drill_id!=='zornhau';
+  const end=(addedStrike ? c.timeline_s?.find(([_,phase])=>phase==='finish')?.[0] : undefined) ?? (c.drill_id==='zornhau'?1.9:c.drill_id.startsWith('passing')?2.39:2.02);
+  const start=addedStrike ? 1.45 : c.drill_id==='zornhau'?1.2:1.35;
+  const features=strike?['action_hand_x','action_hand_y','left_ankle_x','right_ankle_x']:['left_ankle_x','right_ankle_x','left_ankle_y','right_ankle_y','root_x'];
   const seq=samples(c,normalizePose,torsoPixels,liveFeatures);
   const frames=Array.from({length:25},(_,i)=>{
    const t=(start+(end-start)*i/24)*1000;

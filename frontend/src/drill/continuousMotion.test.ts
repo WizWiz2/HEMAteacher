@@ -9,6 +9,16 @@ const sample=(timeMs:number,vector:number[])=>({type:'sample' as const,timeMs,fe
 const ready=()=>stepDrill(createDrillRuntime(),drill,{type:'quality',ok:true});
 function armed(){let r=ready();for(let t=0;t<=300;t+=100)r=stepDrill(r,drill,sample(t,pattern.templates[0].frames[0]));return r;}
 describe('continuous attempts',()=>{
+ it('settles a completed strike despite alternating camera wrist jitter',()=>{
+  let r=armed();
+  for(let i=1;i<25;i++)r=stepDrill(r,drill,sample(400+i*30,pattern.templates[0].frames[i]));
+  for(let i=0;i<20;i++){
+   const vector=[...pattern.templates[0].frames[24]];
+   vector[0]+=(i%2 ? 1 : -1)*.045;
+   r=stepDrill(r,drill,sample(1200+i*33,vector));
+  }
+  expect(r.state).toBe('completed');
+ });
  it('a frozen guard never consumes checkpoints',()=>{let r=ready();for(let t=0;t<60000;t+=100)r=stepDrill(r,drill,sample(t,pattern.templates[0].frames[0]));expect(r.state).toBe('ready');expect(r.checkpointIndex).toBe(0);expect(r.motion?.phase).toBe('armed');});
  it('finishes a whole trajectory without any checkpoint holds',()=>{let r=armed();for(let i=1;i<25;i++)r=stepDrill(r,drill,sample(400+i*30,pattern.templates[0].frames[i]));for(let i=0;i<8;i++)r=stepDrill(r,drill,sample(1200+i*33,pattern.templates[0].frames[24]));expect(r.state).toBe('completed');expect(r.finishedAt! - r.startedAt!).toBeLessThan(1500);});
  it('loss of tracking during a strike produces a retryable failure',()=>{let r=armed();r=stepDrill(r,drill,sample(400,pattern.templates[0].frames[14]));r=stepDrill(r,drill,{type:'sample',timeMs:800,features:null,enoughSamples:false});expect(r.state).toBe('failed');r=stepDrill(r,drill,{type:'retry'});expect(r.state).toBe('ready');expect(r.motion).toBeUndefined();});

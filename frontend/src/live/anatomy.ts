@@ -1,4 +1,5 @@
 import type { TargetPose, TrackingMode } from "../drill/types";
+import type { CameraView } from "./normalize";
 import type { RawPose, Vec3 } from "./landmarks";
 
 export interface BodyProfile {
@@ -29,8 +30,8 @@ const METRICS: Metric[] = [
 
 export class BodyProfileCalibrator {
   private readonly values = new Map<Metric, number[]>();
-  push(pose: RawPose): void {
-    const measured = measureBodyRatios(pose);
+  push(pose: RawPose, cameraView: CameraView = "front"): void {
+    const measured = measureBodyRatios(pose, cameraView);
     for (const metric of METRICS) {
       const value = measured[metric];
       if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) continue;
@@ -159,10 +160,12 @@ export function retargetPose(target: TargetPose, profile: BodyProfile | null): T
   return { ...target, landmarks, sword };
 }
 
-export function measureBodyRatios(pose: RawPose): Partial<BodyProfile> {
+// In profile, screen-space lengths are observable; MediaPipe depth and
+// shoulder/hip width are not reliable body measurements from this view.
+export function measureBodyRatios(pose: RawPose, cameraView: CameraView = "front"): Partial<BodyProfile> {
   const p = (name: string) => {
     const value = pose.landmarks[name];
-    return value && value.visibility >= 0.55 ? value : null;
+    return value && value.visibility >= 0.55 ? (cameraView === "side" ? { ...value, z: 0 } : value) : null;
   };
   const ls = p("left_shoulder"), rs = p("right_shoulder");
   const le = p("left_elbow"), re = p("right_elbow");
@@ -173,8 +176,8 @@ export function measureBodyRatios(pose: RawPose): Partial<BodyProfile> {
   const lf = p("left_foot_index"), rf = p("right_foot_index");
 
   return {
-    shoulderWidth: d(ls, rs),
-    hipWidth: d(lh, rh),
+    shoulderWidth: cameraView === "side" ? undefined : d(ls, rs),
+    hipWidth: cameraView === "side" ? undefined : d(lh, rh),
     leftUpperArm: d(ls, le),
     rightUpperArm: d(rs, re),
     leftForearm: d(le, lw),

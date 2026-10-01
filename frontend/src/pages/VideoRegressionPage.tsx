@@ -4,9 +4,12 @@ import {MediaPipeLivePose} from '../live/poseLandmarker';
 import {LiveSampleProcessor} from '../live/sampleProcessor';
 import {CalibrationGate} from '../live/calibrationGate';
 import {createDrillRuntime, stepDrill} from '../drill/drillEngine';
+import {personalizeDrill} from '../drill/personalize';
+import {adaptDrillForCameraView} from '../drill/cameraView';
 
 export async function runVideoRegression(file: File, drillId: string, fps = 30) {
-  const drill = await getDrill(drillId);
+  const baseDrill = await getDrill(drillId);
+  let drill = baseDrill;
   const video = document.createElement('video');
   const url = URL.createObjectURL(file);
   const detector = new MediaPipeLivePose();
@@ -33,7 +36,10 @@ export async function runVideoRegression(file: File, drillId: string, fps = 30) 
       const sample = processor.process(raw, 'right', drill.trackingMode ?? 'full_body', 'side');
       total++; if (Object.keys(raw.landmarks).length) detected++; if (sample.motionUsable) usable++;
       const ready = calibration.push(sample, drill.trackingMode ?? 'full_body');
-      if (runtime.state === 'calibrating' && ready) runtime = stepDrill(runtime, drill, {type: 'quality', ok: true});
+      if (runtime.state === 'calibrating' && ready) {
+        drill = adaptDrillForCameraView(personalizeDrill(baseDrill, calibration.profile), 'side')!;
+        runtime = stepDrill(runtime, drill, {type: 'quality', ok: true});
+      }
       runtime = stepDrill(runtime, drill, {type: 'sample', timeMs: sample.timeMs, features: sample.features,
         enoughSamples: sample.motionUsable, cameraView: 'side', mode: 'motion'});
       if (index % 6 === 0) await new Promise(resolve => setTimeout(resolve, 0));

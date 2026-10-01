@@ -11,6 +11,7 @@ import { detectWeaponMarkers } from "./weaponMarkers";
 import { projectTargetGhost } from "./targetGhost";
 
 export interface LiveSample {
+  cameraView?: CameraView;
   timeMs: number;
   raw: RawPose;
   normalized: RawPose | null;

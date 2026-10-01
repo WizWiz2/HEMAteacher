@@ -49,6 +49,19 @@ const target:TargetPose={
 };
 
 describe("body anatomy calibration",()=>{
+  it("ignores unreliable depth and unobservable body widths in side view",()=>{
+    const pose=bodyPose();
+    const expected=measureBodyRatios(pose,"side");
+    for(const [i,p] of Object.values(pose.landmarks).entries()) p.z=i%2 ? 8 : -8;
+    const measured=measureBodyRatios(pose,"side");
+    expect(measured).toEqual(expected);
+    expect(measured.shoulderWidth).toBeUndefined();
+    expect(measured.hipWidth).toBeUndefined();
+    const calibrator=new BodyProfileCalibrator();
+    for(let i=0;i<12;i++) calibrator.push(pose,"side");
+    expect(calibrator.ready("full_body")).toBe(true);
+    expect(calibrator.build()?.leftUpperArm).toBeLessThan(1);
+  });
   it("measures limb lengths in torso-normalized space",()=>{
     const measured=measureBodyRatios(bodyPose());
     expect(measured.leftUpperArm).toBeGreaterThan(.3);

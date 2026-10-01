@@ -19,7 +19,7 @@ export class LiveSampleProcessor {
     const smoothed = smoothFeatures(this.history, raw.timestampMs, smoothingMs, 3, trackingMode);
     const framing = assessFraming(raw, trackingMode);
     const motionFraming = assessFraming(raw, trackingMode, true);
-    return {timeMs: raw.timestampMs, raw, normalized, features, smoothed: smoothed.features,
+    return {cameraView, timeMs: raw.timestampMs, raw, normalized, features, smoothed: smoothed.features,
       enough: smoothed.enough, usable: poseUsable(features, trackingMode) && framing.ready, motionUsable: poseUsable(features, trackingMode) && motionFraming.ready, framing, motionFraming, weapon: null};
   }
 }
