@@ -19,9 +19,9 @@ export const CONTINUOUS_DRILLS = ["zornhau", "scheitelhau", "krumphau", "zwerchh
 export const WEIGHTS: Record<(typeof CHANNELS)[number], number> = {
   hand_x: 1, hand_y: 1, hand_over_head: .7, forearm_cos: .7, forearm_sin: .7, elbow_angle: .5, shoulder_offset: .5,
   wrist_cross_x: .4, wrist_cross_y: .4, left_ankle_x: 1, right_ankle_x: 1, left_ankle_y: .5, right_ankle_y: .5,
-  root_dx: 1, torso_angle: .5, hand_dir_x: .5, hand_dir_y: .5,
+  root_dx: 1, torso_angle: .5, hand_dir_x: 1.5, hand_dir_y: 1.5,
 };
-export const POINTS = 32, BAND = 6, MARGIN = 1.15;
+export const POINTS = 32, BAND = 6, MARGIN = 1.05;
 /** Model-building options (defaults = shipped). Exposed so design experiments can vary them on train-body LOBO only. */
 export const TRAINING = { margin: MARGIN, perDrillAccept: false, acceptFloor: 0.75, acceptFactor: 1.5, fisherWeights: false, fisherGamma: 1, k: 1 };
 

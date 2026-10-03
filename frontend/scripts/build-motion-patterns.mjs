@@ -1,7 +1,8 @@
 // Builds the motion recognition model (src/drill/motionModel.json) and the trigger/feedback patterns
 // (src/drill/motionPatterns.json) reproducibly from the pose fixture (test-fixtures/motion-poses.json.gz).
-// Training split for the shipped model: main mock clips, master + experienced levels, all bodies in the fixture
-// (tall_slim_male, short_broad_female). Beginners, the held-out camera/body clips and guards-basic are never used.
+// Training split for the shipped model (isTrainClip): master + experienced levels of the main mock clips and the
+// bodies/angles train clips (docs/bodies-angles-split.md: 5 train bodies, random camera). Beginners, the held-out and
+// reserved test bodies/angles, and guards-basic are never used.
 // Usage (from the repo root): node frontend/scripts/build-motion-patterns.mjs [--check]
 import {createServer} from 'vite';import {writeFileSync,readFileSync} from 'node:fs';import {gunzipSync} from 'node:zlib';
 const v=await createServer({root:'frontend',server:{middlewareMode:true},optimizeDeps:{noDiscovery:true,include:[]},logLevel:'error'});
