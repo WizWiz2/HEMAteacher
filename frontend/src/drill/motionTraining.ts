@@ -63,7 +63,7 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
   for (const c of clips) {
     const seq = prepareSequence(movementSamples(c, names), scales, POINTS);
     if (seq) model.templates.push({ drill: c.drill, body: c.body, level: c.level, durationMs: c.move![1] - c.move![0],
-      seq: seq.map(r => r.map(v => (Number.isFinite(v) ? Math.round(v * 1e4) / 1e4 : null))) });
+      seq: seq.map(r => r.map(v => (Number.isFinite(v) ? Math.round(v * 1e3) / 1e3 : null))) });
   }
   for (const d of CONTINUOUS_DRILLS) {
     const ms = clips.filter(c => c.drill === d).map(c => c.move![1] - c.move![0]);
@@ -75,3 +75,6 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
   model.acceptDistance = Math.round(1.5 * Math.max(...loo.filter(Number.isFinite)) * 1e4) / 1e4;
   return model;
 }
+
+/** Training split of the shipped model: main mock clips of master and experienced performers. */
+export const isTrainClip = (c: FixtureClip) => c.variant === "main" && (c.level === "master" || c.level === "experienced") && CONTINUOUS_DRILLS.includes(c.drill);
