@@ -14,8 +14,10 @@ export interface StreamResult {
   lookedLike?: string; tempo?: number; failures: string[];
 }
 
-/** First completed attempt within the clip; failed attempts are retried like on the DrillPage. */
-export function streamClip(clip: FixtureClip, names: string[], base: Drill): StreamResult {
+/** Result of the first decided attempt (like the regression page). With `retry`, failed attempts are retried like on the
+ *  DrillPage; note the mock clips also contain the return movement (e.g. a retreat clip steps back forward), which a
+ *  retrying run may legitimately recognise as the inverse drill, so the confusion matrix uses retry = false. */
+export function streamClip(clip: FixtureClip, names: string[], base: Drill, retry = false): StreamResult {
   const processor = new LiveSampleProcessor(), calibration = new CalibrationGate();
   const mode = base.trackingMode ?? "full_body";
   let drill = base, runtime = createDrillRuntime();
@@ -27,6 +29,7 @@ export function streamClip(clip: FixtureClip, names: string[], base: Drill): Str
       drill = adaptDrillForCameraView(personalizeDrill(base, calibration.profile) ?? base, "side") ?? base;
       runtime = stepDrill(runtime, drill, { type: "quality", ok: true });
     }
+    if (runtime.state === "failed" && !retry) break;
     if (runtime.state === "failed") { failures.push(runtime.motion?.message ?? "failed"); runtime = stepDrill(runtime, drill, { type: "retry" }); }
     const continuous = !!motionPatternFor(drill.id);
     if (runtime.state === "ready" || runtime.state === "running")
