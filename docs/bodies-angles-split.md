@@ -28,18 +28,20 @@ The person faces +x. Azimuth is measured from pure profile: positive values swin
 - **Train clips.** Each clip gets its own random camera, seeded from the clip name:
   - azimuth uniform in [−25°, +45°];
   - h uniform in [1.0, 1.5] m;
-  - d uniform in [2.9, 3.9] m;
-  - lens uniform in [22, 28] mm.
+  - d uniform in [3.0, 3.9] m;
+  - lens uniform in [20, 26] mm.
+
+  Amended at 14:25, before any results existed, because d = 2.9 m with a 28 mm lens cuts off the feet of the tallest bodies.
 
   The existing train bodies get additional renders under this random-camera scheme. The original 0° clips stay in training.
 - **Test clips.** Test bodies are rendered on a fixed grid: azimuth 0°, +20°, +40° (front-side) and −20° (rear), at h = 1.25 m, d = 3.3 m, lens 24 mm. The existing held-out camrear25 clips (−25°) are also test data.
 - **Webcam degradation**, applied to both splits:
   - render at 640×360, with some train clips further downscaled to 480×270;
-  - Gaussian noise;
+  - sensor noise via `postprocess.py`, sigma uniform in [0.008, 0.03] (train);
   - H.264 at CRF 23–32;
   - dropped frames, simulated by duplicating the previous frame at random positions (about 3–8 % of frames).
 
-  Test clips use one fixed mid-level setting: 640×360, noise 4, CRF 28, 5 % dropped frames.
+  Test clips use one fixed mid-level setting: 640×360, noise sigma 0.02, CRF 28, 5 % dropped frames.
 
 ## Protocols reported
 
