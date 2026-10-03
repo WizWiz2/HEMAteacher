@@ -43,7 +43,13 @@ export function frameChannels(f: Record<string, number> = {}): number[] {
   if (finite(ex) && finite(ey) && finite(wx) && finite(wy)) {
     const l = Math.hypot(wx - ex, wy - ey); if (l > 1e-3) { fc = (wx - ex) / l; fs = (wy - ey) / l; }
   }
-  const elbow = right ? f.right_elbow_angle : f.left_elbow_angle;
+  // elbow angle in the screen plane (the live *_elbow_angle features include MediaPipe depth)
+  const sx = right ? f.right_shoulder_x : f.left_shoulder_x, sy = right ? f.right_shoulder_y : f.left_shoulder_y;
+  let elbow = NaN;
+  if (finite(sx) && finite(sy) && finite(ex) && finite(ey) && finite(wx) && finite(wy)) {
+    const ax = sx - ex, ay = sy - ey, bx = wx - ex, by = wy - ey, d = Math.hypot(ax, ay) * Math.hypot(bx, by);
+    if (d > 1e-8) elbow = Math.acos(Math.max(-1, Math.min(1, (ax * bx + ay * by) / d))) * 180 / Math.PI;
+  }
   const v = (x: number | undefined) => (finite(x) ? x : NaN);
   return [
     v(hx), v(hy), finite(hy) && finite(f.nose_y) ? hy - f.nose_y : NaN, fc, fs, finite(elbow) ? elbow / 180 : NaN,
