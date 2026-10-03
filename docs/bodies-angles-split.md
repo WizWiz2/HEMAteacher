@@ -43,6 +43,12 @@ The person faces +x. Azimuth is measured from pure profile: positive values swin
 
   Test clips use one fixed mid-level setting: 640×360, noise sigma 0.02, CRF 28, 5 % dropped frames.
 
+## Clip quality gate (fixed before any recognition result)
+
+- **Excluded:** clips with more than 9 clearance-failing frames (5 % of 180). This is the generator's pose-collision check.
+- **Recorded but not used to exclude:** face-hidden frames. At non-profile azimuths the guard (hands, grip, blade) covers the face; this is real camera-dependent occlusion and part of the angle-robustness test.
+- **Excluded:** clips whose render or degradation failed.
+
 ## Protocols reported
 
 1. **Before:** the PR #16 model (trained on the existing two bodies at 0°) evaluated on all TEST clips.
