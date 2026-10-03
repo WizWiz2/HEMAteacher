@@ -43,6 +43,7 @@ export function movementSamples(clip: FixtureClip, names: string[]): TimedFeatur
   return clipFeatures(clip, names).filter(s => s.timeMs >= a - 100 && s.timeMs <= b + 250);
 }
 
+const round4 = (x: number) => Math.round(x * 1e4) / 1e4;
 const median = (v: number[]) => { const s = [...v].sort((x, y) => x - y); return s[Math.floor((s.length - 1) / 2)]; };
 
 /** Build the recognition model from training clips only. Thresholds come from the training clips themselves
@@ -58,13 +59,29 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
     return Math.max(.05, Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / v.length));
   });
   scales[15] = scales[16] = .5; // unit direction components
-  const model: RecognitionModel = { version: 2, channels: CHANNELS, weights: CHANNELS.map(c => WEIGHTS[c]), scales,
-    points: POINTS, band: BAND, acceptDistance: Infinity, margin: MARGIN, typicalMs: {}, templates: [] };
+  const model: RecognitionModel = { version: 2, channels: CHANNELS, weights: CHANNELS.map(c => WEIGHTS[c]), scales: [...scales],
+    pathScales: scales.map(round4), points: POINTS, band: BAND, acceptDistance: Infinity, margin: MARGIN, typicalMs: {}, templates: [] };
   for (const c of clips) {
     const seq = prepareSequence(movementSamples(c, names), scales, POINTS);
     if (seq) model.templates.push({ drill: c.drill, body: c.body, level: c.level, durationMs: c.move![1] - c.move![0],
       seq: seq.map(r => r.map(v => (Number.isFinite(v) ? Math.round(v * 1e3) / 1e3 : null))) });
   }
+  // Matching scales: within-drill spread of the training templates (performer/body variation the matcher must
+  // tolerate), so channels that differ between bodies but not between drills weigh less. Floor = landmark noise.
+  model.scales = CHANNELS.map((_, j) => {
+    let s = 0, n = 0;
+    for (const d of CONTINUOUS_DRILLS) {
+      const ts = model.templates.filter(t => t.drill === d);
+      if (ts.length < 2) continue;
+      for (let p = 0; p < POINTS; p++) {
+        const v = ts.map(t => t.seq[p][j]).filter((x): x is number => x !== null);
+        if (v.length < 2) continue;
+        const mean = v.reduce((a, b) => a + b, 0) / v.length;
+        for (const x of v) { s += (x - mean) ** 2; n++; }
+      }
+    }
+    return n ? round4(Math.max(j >= 15 ? .25 : .03, Math.sqrt(s / n))) : round4(scales[j]);
+  });
   for (const d of CONTINUOUS_DRILLS) {
     const ms = clips.filter(c => c.drill === d).map(c => c.move![1] - c.move![0]);
     if (ms.length) model.typicalMs[d] = median(ms);

@@ -10,12 +10,17 @@ export const CHANNELS = [
   "wrist_cross_x", "wrist_cross_y", "left_ankle_x", "right_ankle_x", "left_ankle_y", "right_ankle_y",
   "root_dx", "torso_angle", "hand_dir_x", "hand_dir_y",
 ] as const;
+// Channels expressed as displacement from the attempt start: stance width, foot height and torso posture differ
+// between bodies far more than between drills, so only their change during the movement is compared.
+const RELATIVE_CHANNELS = [6, 9, 10, 11, 12, 13, 14];
 // Channels that define path length (and therefore the time-invariant parameterisation).
 const PATH_CHANNELS = [0, 1, 9, 10, 13];
 
 export interface RecognitionTemplate { drill: string; body: string; level: string; durationMs: number; seq: (number | null)[][] }
 export interface RecognitionModel {
   version: 2; channels: readonly string[]; weights: number[]; scales: number[];
+  /** Scales of the path-length parameterisation (overall channel spread). */
+  pathScales: number[];
   points: number; band: number; acceptDistance: number; margin: number;
   /** Median duration of the training attempts per drill (for the tempo note). */
   typicalMs: Record<string, number>;
@@ -28,7 +33,7 @@ export interface Recognition {
 
 const finite = (v: number | undefined): v is number => typeof v === "number" && Number.isFinite(v);
 
-/** Per-frame channels (NaN where a landmark is not observed). root_dx is filled in relative to the attempt start. */
+/** Per-frame channels (NaN where a landmark is not observed). RELATIVE_CHANNELS become relative to the attempt start. */
 export function frameChannels(f: Record<string, number> = {}): number[] {
   const right = finite(f.right_wrist_x);
   const hx = f.action_hand_x, hy = f.action_hand_y;
@@ -51,11 +56,14 @@ export function frameChannels(f: Record<string, number> = {}): number[] {
 }
 
 /** Attempt samples -> path-length re-sampled sequence of `points` x CHANNELS (null for unobserved). */
-export function prepareSequence(samples: TimedFeatures[], scales: number[], points: number): number[][] | null {
+export function prepareSequence(samples: TimedFeatures[], pathScales: number[], points: number): number[][] | null {
   if (samples.length < 3) return null;
   let rows = samples.map(s => frameChannels(s.features));
-  const root0 = rows.map(r => r[13]).find(Number.isFinite);
-  rows = rows.map(r => { const c = [...r]; c[13] = Number.isFinite(root0!) ? c[13] - root0! : NaN; return c; });
+  const start = RELATIVE_CHANNELS.map(j => {
+    const v = rows.slice(0, 5).map(r => r[j]).filter(Number.isFinite).sort((a, b) => a - b);
+    return v.length ? v[Math.floor((v.length - 1) / 2)] : rows.map(r => r[j]).find(Number.isFinite) ?? NaN;
+  });
+  rows = rows.map(r => { const c = [...r]; RELATIVE_CHANNELS.forEach((j, k) => { c[j] = c[j] - start[k]; }); return c; });
   // centred moving average (NaN-aware) suppresses per-frame landmark jitter before measuring path length
   const smooth = rows.map((_, i) => rows[0].map((__, j) => {
     const w = rows.slice(Math.max(0, i - 2), i + 3).map(r => r[j]).filter(Number.isFinite);
@@ -64,7 +72,7 @@ export function prepareSequence(samples: TimedFeatures[], scales: number[], poin
   const cum = [0];
   for (let i = 1; i < smooth.length; i++) {
     let s = 0, n = 0;
-    for (const j of PATH_CHANNELS) { const d = (smooth[i][j] - smooth[i - 1][j]) / scales[j]; if (Number.isFinite(d)) { s += d * d; n++; } }
+    for (const j of PATH_CHANNELS) { const d = (smooth[i][j] - smooth[i - 1][j]) / pathScales[j]; if (Number.isFinite(d)) { s += d * d; n++; } }
     cum.push(cum[i - 1] + (n ? Math.sqrt(s / n) : 0));
   }
   const total = cum.at(-1)!;
@@ -132,7 +140,7 @@ export type Decision =
 
 /** Decide for the drill the user selected. */
 export function decide(selected: string, samples: TimedFeatures[], m: RecognitionModel): Decision {
-  const seq = prepareSequence(samples, m.scales, m.points);
+  const seq = prepareSequence(samples, m.pathScales, m.points);
   const r = seq && recognize(seq, m);
   if (!r) return { kind: "unknown" };
   const own = r.distances[selected] ?? Infinity;
