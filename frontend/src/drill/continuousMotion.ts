@@ -37,6 +37,7 @@ export const DRILL_NAMES: Record<string, string> = {
 export const MAX_ATTEMPT_MS = 10000;
 /** Largest tolerated gap between pose frames inside an attempt. */
 export const MAX_GAP_MS = 400;
+const PRE_ROLL_MS = 300;
 const extentOf = (pattern: Pattern) => Math.min(...pattern.templates.map(t => Math.max(...t.frames.map(v => distance(v, t.frames[0])))));
 const distance = (a: number[], b: number[]) => Math.sqrt(a.reduce((sum,x,i)=>sum+(x-b[i])**2,0)/a.length);
 
@@ -85,10 +86,13 @@ export function stepContinuous(runtime: DrillRuntime, id: string, timeMs: number
     return {...runtime,validSince:since,match:null,motion:{phase:armed?'armed':'position',message:armed?'Готов. Выполни движение целиком':'Прими исходную позицию',baseline:vector,last:sample,samples:[]}};
   }
   if(attempt.phase==='armed') {
-    if(distance(vector,attempt.baseline!)<.045)return {...runtime,motion:{...attempt,last:sample}};
+    // keep a short pre-roll: onset is detected only after the pose has left the baseline, but the movement's start
+    // (windup, weight shift) belongs to the attempt for recognition.
+    const preRoll=[...attempt.samples.filter(s=>s.timeMs>=timeMs-PRE_ROLL_MS),attempt.last!].filter((s,i,a)=>a.indexOf(s)===i);
+    if(distance(vector,attempt.baseline!)<.045)return {...runtime,motion:{...attempt,last:sample,samples:preRoll}};
     const extent=Math.max(...pattern.templates.flatMap(t=>t.frames.map(v=>distance(v,t.frames[0]))));
     if(distance(vector,attempt.last!.vector)>extent*(id.endsWith('hau')?.45:.7) && timeMs-attempt.last!.timeMs<180)return fail('Поза резко перескочила. Повтори движение перед камерой');
-    attempt={...attempt,phase:'moving',message:'Двигайся без остановок',samples:[{timeMs:attempt.last!.timeMs,vector:attempt.baseline!,features:attempt.last!.features},sample],last:sample};
+    attempt={...attempt,phase:'moving',message:'Двигайся без остановок',samples:[...preRoll,sample],last:sample};
     return {...runtime,state:'running',startedAt:attempt.samples[0].timeMs,validSince:null,checkpointIndex:1,motion:attempt};
   }
   const startedAt=runtime.startedAt!;
@@ -109,7 +113,7 @@ export function stepContinuous(runtime: DrillRuntime, id: string, timeMs: number
   const progressIndex=Math.max(runtime.checkpointIndex,excursion>extent*.6?Math.min(2,count-1):1);
   if(settledSince!==undefined && timeMs-settledSince>=200 && timeMs-startedAt>=pattern.minMs) {
     // Time-invariant, discriminative decision over the whole attempt (all drills compete).
-    const segment=samples.filter(s=>s.timeMs<=settledSince) as TimedFeatures[];
+    const segment=samples as TimedFeatures[];
     const decision=decide(id,segment,model);
     if(decision.kind==='accepted') {
       const feedback=motionFeedback(id,samples,pattern);
