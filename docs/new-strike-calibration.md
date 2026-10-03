@@ -1,5 +1,7 @@
 # New strike corpus: calibration and continuous recognition
 
+> Recognition is superseded by the discriminative DTW recogniser described in [motion-recognition.md](motion-recognition.md). Its templates come from browser MediaPipe poses, not ground truth, so the ground-truth check below no longer reflects recognition quality. The calibration findings still apply.
+
 Source: commit `5bfd619d01bc6be7570f6275fa35ec1bf53a51c0`, including the README and landmark sidecars for Krumphau, Scheitelhau, Schielhau and Zwerchhau. Each has six MP4s: two body types and three levels. Together with the previous corpus there are 54 clips.
 
 ## Findings and repairs
