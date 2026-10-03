@@ -63,7 +63,7 @@ node frontend/scripts/build-motion-fixture.mjs frontend/test-fixtures/motion-pos
 - **Ground-truth skeletons.** `check-continuous-motion.mjs` (ground-truth Blender skeletons) no longer matches the template domain: 15/54 "normal". The templates are MediaPipe-based, and ground-truth landmark definitions differ (nose, wrists).
 - **Footwork stops early.** Footwork may be accepted at a mid-step pause, so its tempo estimate can be too low.
 - **guards-basic is unchanged.**
-  - The 3 female clips never finish calibration.
-  - The male clips stop at checkpoint 2.
-  - A visible-arm-only target was not evaluated here.
+  - The 3 female clips never finish calibration. In side view the far (left) elbow is below visibility 0.42 in 77–95 frames and elbow+wrist in 74–89 frames of 180. Framing for `upper_body` requires both elbows and both wrists, so only 10–22 frames per clip are ready, and calibration never completes.
+  - The male clips get through calibration (51–63 ready frames) but stop at checkpoint 2.
+  - The honest fix is a side-view framing rule that needs one complete near arm plus both shoulders and hips, together with checkpoints that only score the near arm and hand position. That changes framing for every upper-body drill and needs its own validation, so it is left for a follow-up and not faked here.
 - **Synthetic data only.** All data is synthetic: 3 bodies, one renderer and scripted motion. It does not establish reliability on real students.
