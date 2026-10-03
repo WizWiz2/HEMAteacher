@@ -17,6 +17,9 @@ const endLabelOf = drill => drill.endsWith('hau') ? 'finish' : drill.startsWith(
 function baClip(f, d, labels) {
   const [drill, split, name] = f.replace('.json', '').split('__');
   const side = JSON.parse(readFileSync(`${labels}/${split}/${drill}/${name}.json`));
+  // quality gate (docs/bodies-angles-split.md): more than 9 clearance-failing frames -> excluded
+  const failing = side.clearance_check.failing_frames.length;
+  if (failing > 9) { console.log(`excluded by clearance gate: ${f} (${failing} failing frames)`); return null; }
   const tl = side.timeline_s, end = endLabelOf(drill);
   return {id: `ba:${split}/${drill}/${name}`, drill, variant: `ba:${split}`, body: side.body_type, level: side.level,
     camera: side.ba_camera, degradation: side.ba_degradation, source: 'browser MediaPipe Lite (in-app MP4 regression page, 30 fps)',
@@ -27,7 +30,7 @@ for (const spec of dirs) {
   const [dir, variant = 'main', labels] = spec.split(':');
   for (const f of readdirSync(dir).filter(f => f.endsWith('.json')).sort()) {
     const d = JSON.parse(readFileSync(`${dir}/${f}`));
-    if (variant === 'ba') { clips.push(baClip(f, d, labels)); continue; }
+    if (variant === 'ba') { const c = baClip(f, d, labels); if (c) clips.push(c); continue; }
     const [drill, rest] = f.replace('.json', '').split('__');
     const m = rest.match(/^(?:(\w+?)_)?(tall_slim_male|short_broad_female|medium_stocky_male)_(master|experienced|beginner)$/);
     const first = d.frames[0];
