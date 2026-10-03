@@ -7,6 +7,8 @@ import { CHANNELS, activeDurationMs, prepareSequence, frameChannels, dtwDistance
 export interface FixtureClip {
   id: string; drill: string; variant: string; body: string; level: string; width: number; height: number;
   move: [number, number] | null; t: number[]; p: number[][];
+  camera?: { azimuth_deg: number; height_m: number; distance_m: number; lens_mm: number };
+  degradation?: { downscale_width: number; noise_sigma: number; crf: number; drop_fraction: number };
 }
 export interface Fixture { version: number; names: string[]; clips: FixtureClip[] }
 
@@ -93,5 +95,6 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
   return model;
 }
 
-/** Training split of the shipped model: main mock clips of master and experienced performers. */
-export const isTrainClip = (c: FixtureClip) => c.variant === "main" && (c.level === "master" || c.level === "experienced") && CONTINUOUS_DRILLS.includes(c.drill);
+/** Training split of the shipped model: main mock clips and the bodies/angles TRAIN renders (docs/bodies-angles-split.md),
+ *  master and experienced performers only. Reserved TEST bodies and angles are never used. */
+export const isTrainClip = (c: FixtureClip) => (c.variant === "main" || c.variant === "ba:train") && (c.level === "master" || c.level === "experienced") && CONTINUOUS_DRILLS.includes(c.drill);
