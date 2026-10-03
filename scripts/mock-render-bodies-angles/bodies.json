@@ -1,0 +1,12 @@
+{
+ "short_slim_male": {"desc": "short, slim young male (train)", "macro": {"gender": 1.0, "age": 0.35, "muscle": 0.4, "weight": 0.1, "proportions": 0.6, "height": 0.25, "cupsize": 0.5, "firmness": 0.5},
+  "race": {"asian": 0.7, "caucasian": 0.3, "african": 0.0}, "skin": "young_asian_male", "eyebrows": "eyebrow003", "hair": "short01", "clothes": ["male_casualsuit04", "shoes01"], "clothes_tint": {"male_casualsuit04": [0.45, 0.3, 0.25]}},
+ "tall_heavy_male": {"desc": "tall, heavy middle-aged male (train)", "macro": {"gender": 1.0, "age": 0.6, "muscle": 0.55, "weight": 0.9, "proportions": 0.5, "height": 0.85, "cupsize": 0.5, "firmness": 0.5},
+  "race": {"asian": 0.0, "caucasian": 0.9, "african": 0.1}, "skin": "middleage_caucasian_male", "eyebrows": "eyebrow004", "hair": "short03", "clothes": ["male_casualsuit06", "shoes03"], "clothes_tint": {"male_casualsuit06": [0.25, 0.32, 0.25]}},
+ "avg_longlimb_female": {"desc": "average female, long-limbed proportions (train)", "macro": {"gender": 0.0, "age": 0.45, "muscle": 0.5, "weight": 0.45, "proportions": 1.0, "height": 0.55, "cupsize": 0.5, "firmness": 0.5},
+  "race": {"asian": 0.1, "caucasian": 0.3, "african": 0.6}, "skin": "young_african_female", "eyebrows": "eyebrow006", "hair": "bob01", "clothes": ["female_sportsuit01", "shoes04"], "clothes_tint": {"female_sportsuit01": [0.3, 0.35, 0.55]}},
+ "tall_slim_female": {"desc": "tall, slim female (TEST, reserved)", "macro": {"gender": 0.0, "age": 0.4, "muscle": 0.45, "weight": 0.15, "proportions": 0.85, "height": 0.85, "cupsize": 0.5, "firmness": 0.5},
+  "race": {"asian": 0.0, "caucasian": 1.0, "african": 0.0}, "skin": "young_caucasian_female", "eyebrows": "eyebrow007", "hair": "braid01", "clothes": ["female_casualsuit02", "shoes06"], "clothes_tint": {"female_casualsuit02": [0.55, 0.45, 0.3]}},
+ "stocky_short_male": {"desc": "short, stocky older male (TEST, reserved)", "macro": {"gender": 1.0, "age": 0.7, "muscle": 0.7, "weight": 0.8, "proportions": 0.3, "height": 0.2, "cupsize": 0.5, "firmness": 0.5},
+  "race": {"asian": 0.1, "caucasian": 0.1, "african": 0.8}, "skin": "middleage_african_male", "eyebrows": "eyebrow005", "hair": "short04", "clothes": ["male_worksuit01", "shoes02"], "clothes_tint": {"male_worksuit01": [0.5, 0.45, 0.35]}}
+}
