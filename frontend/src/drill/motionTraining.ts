@@ -2,7 +2,7 @@
 // and by the fixture regression test). Input: the compact pose fixture (test-fixtures/motion-poses.json.gz).
 import { LiveSampleProcessor } from "../live/sampleProcessor";
 import type { RawPose } from "../live/landmarks";
-import { CHANNELS, prepareSequence, frameChannels, dtwDistance, type RecognitionModel, type TimedFeatures } from "./motionRecognition";
+import { CHANNELS, activeDurationMs, prepareSequence, frameChannels, dtwDistance, type RecognitionModel, type TimedFeatures } from "./motionRecognition";
 
 export interface FixtureClip {
   id: string; drill: string; variant: string; body: string; level: string; width: number; height: number;
@@ -83,7 +83,7 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
     return n ? round4(Math.max(j >= 15 ? .25 : .03, Math.sqrt(s / n))) : round4(scales[j]);
   });
   for (const d of CONTINUOUS_DRILLS) {
-    const ms = clips.filter(c => c.drill === d).map(c => c.move![1] - c.move![0]);
+    const ms = clips.filter(c => c.drill === d).map(c => activeDurationMs(movementSamples(c, names), model.pathScales));
     if (ms.length) model.typicalMs[d] = median(ms);
   }
   // acceptance distance: 1.5 x the largest leave-one-out same-drill distance among training templates

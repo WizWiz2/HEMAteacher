@@ -22,7 +22,7 @@ export interface RecognitionModel {
   /** Scales of the path-length parameterisation (overall channel spread). */
   pathScales: number[];
   points: number; band: number; acceptDistance: number; margin: number;
-  /** Median duration of the training attempts per drill (for the tempo note). */
+  /** Median active duration (activeDurationMs) of the training attempts per drill (for the tempo note). */
   typicalMs: Record<string, number>;
   templates: RecognitionTemplate[];
 }
@@ -55,9 +55,8 @@ export function frameChannels(f: Record<string, number> = {}): number[] {
   ];
 }
 
-/** Attempt samples -> path-length re-sampled sequence of `points` x CHANNELS (null for unobserved). */
-export function prepareSequence(samples: TimedFeatures[], pathScales: number[], points: number): number[][] | null {
-  if (samples.length < 3) return null;
+/** Smoothed channels and cumulative (scaled) path length of an attempt. */
+function pathProfile(samples: TimedFeatures[], pathScales: number[]) {
   let rows = samples.map(s => frameChannels(s.features));
   const start = RELATIVE_CHANNELS.map(j => {
     const v = rows.slice(0, 5).map(r => r[j]).filter(Number.isFinite).sort((a, b) => a - b);
@@ -75,6 +74,22 @@ export function prepareSequence(samples: TimedFeatures[], pathScales: number[], 
     for (const j of PATH_CHANNELS) { const d = (smooth[i][j] - smooth[i - 1][j]) / pathScales[j]; if (Number.isFinite(d)) { s += d * d; n++; } }
     cum.push(cum[i - 1] + (n ? Math.sqrt(s / n) : 0));
   }
+  return { smooth, cum };
+}
+
+/** Duration of the active part of the movement: from 5% to 95% of its path length (holds before/after excluded). */
+export function activeDurationMs(samples: TimedFeatures[], pathScales: number[]): number {
+  if (samples.length < 3) return 0;
+  const { cum } = pathProfile(samples, pathScales), total = cum.at(-1)!;
+  if (!(total > 1e-6)) return 0;
+  const at = (f: number) => samples[cum.findIndex(c => c >= total * f)].timeMs;
+  return at(.95) - at(.05);
+}
+
+/** Attempt samples -> path-length re-sampled sequence of `points` x CHANNELS (null for unobserved). */
+export function prepareSequence(samples: TimedFeatures[], pathScales: number[], points: number): number[][] | null {
+  if (samples.length < 3) return null;
+  const { smooth, cum } = pathProfile(samples, pathScales);
   const total = cum.at(-1)!;
   if (!(total > 1e-6)) return null;
   const out: number[][] = [];
@@ -146,7 +161,7 @@ export function decide(selected: string, samples: TimedFeatures[], m: Recognitio
   const own = r.distances[selected] ?? Infinity;
   const rival = Math.min(...Object.entries(r.distances).filter(([d]) => d !== selected).map(([, v]) => v));
   if (r.best === selected && own <= m.acceptDistance && rival >= own * m.margin) {
-    const durationMs = samples.at(-1)!.timeMs - samples[0].timeMs;
+    const durationMs = activeDurationMs(samples, m.pathScales);
     const tempo = m.typicalMs[selected] ? durationMs / m.typicalMs[selected] : 1;
     const masters = m.templates.filter(t => t.drill === selected && t.level === "master");
     const quality = masters.length ? Math.min(...masters.map(t => dtwDistance(seq!, t.seq, m))) : own;
