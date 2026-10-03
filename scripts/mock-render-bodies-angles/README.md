@@ -9,3 +9,5 @@ These scripts drive the existing Blender 4.5 + MPFB2 mock-video generator, which
 - `run_ba.sh <lane>`: resumable lane runner (run 2 lanes at most). It renders at 640×360 with 3 samples.
 
 Poses are extracted with the in-app regression page in headless Chrome (browser MediaPipe Lite). They are then packed into the fixture with `frontend/scripts/build-motion-fixture.mjs <out> <dumpDir>:ba:<clipsRoot>`.
+- `qa.py`: generation QA without any recognition results. It reports clearance-failing frames and face-hidden frames per clip; the quality gate excludes clips with more than 9 clearance-failing frames.
+- `extract_loop.sh`: detached browser pose extraction for finished clips (regression page, PR #16 app snapshot). It writes one `<drill>__<split>__<name>.json` per clip.
