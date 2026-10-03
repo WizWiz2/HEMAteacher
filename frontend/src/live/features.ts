@@ -8,6 +8,9 @@ export const LIVE_FEATURES = [
   "left_wrist_x", "left_wrist_y", "right_wrist_x", "right_wrist_y",
   "hand_center_x", "hand_center_y", "hand_distance", "action_hand_x", "action_hand_y",
   "left_elbow_angle", "right_elbow_angle",
+  // Screen-plane coordinates for motion recognition (torso-normalised, never MediaPipe depth).
+  "nose_x", "nose_y", "left_shoulder_x", "left_shoulder_y", "right_shoulder_x", "right_shoulder_y",
+  "left_elbow_x", "left_elbow_y", "right_elbow_x", "right_elbow_y",
 ] as const;
 
 export type LiveFeatureName = (typeof LIVE_FEATURES)[number];
@@ -34,7 +37,13 @@ export function liveFeatures(landmarks: LandmarkMap, minVisibility = MIN_VISIBIL
   const leftWrist = point("left_wrist");
   const rightWrist = point("right_wrist");
 
+  const nose = point("nose");
   const features: FeatureMap = {};
+  if (nose) { features.nose_x = nose.x; features.nose_y = nose.y; }
+  if (leftShoulder) { features.left_shoulder_x = leftShoulder.x; features.left_shoulder_y = leftShoulder.y; }
+  if (rightShoulder) { features.right_shoulder_x = rightShoulder.x; features.right_shoulder_y = rightShoulder.y; }
+  if (leftElbow) { features.left_elbow_x = leftElbow.x; features.left_elbow_y = leftElbow.y; }
+  if (rightElbow) { features.right_elbow_x = rightElbow.x; features.right_elbow_y = rightElbow.y; }
   // The near wrist remains observable when the far hand overlaps it in profile.
   // This proxy is used for movement recognition, never two-hand technique checks.
   const actionHand = rightWrist ?? leftWrist;
