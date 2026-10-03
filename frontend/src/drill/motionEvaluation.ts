@@ -87,3 +87,18 @@ export function confusion(rows: EvalRow[]) {
   return { own: own.filter(r => r.completed).length, ownTotal: own.length, other: other.filter(r => r.completed).length,
     otherTotal: other.length, text: ["source\\selected".padEnd(22) + CONTINUOUS_DRILLS.map(d => d.slice(0, 6).padStart(6)).join(" "), ...table].join("\n") };
 }
+
+/** Programmatic mutations of a fixture clip. reversed: guard hold, then the labelled movement played backwards
+ *  (finish -> guard), then a hold; frozen: the first pose for the whole clip; slowNx: timestamps stretched N times. */
+export function mutate(clip: FixtureClip, kind: "reversed" | "frozen" | "slow4x" | "slow12x"): FixtureClip {
+  if (kind === "frozen") return { ...clip, id: clip.id + "#frozen", p: clip.p.map(() => clip.p.find(p => p.length) ?? []) };
+  if (kind === "reversed") {
+    const [a, b] = clip.move!, idx = clip.t.map((t, i) => [t, i]).filter(([t]) => t >= a && t <= b).map(([, i]) => i);
+    const dt = clip.t[1] - clip.t[0], hold = Math.round(1500 / dt);
+    const end = clip.p[idx.at(-1)!], start = clip.p[idx[0]];
+    const p = [...Array(hold).fill(end), ...idx.reverse().map(i => clip.p[i]), ...Array(hold).fill(start)];
+    return { ...clip, id: clip.id + "#reversed", move: null, p, t: p.map((_, i) => clip.t[0] + i * dt) };
+  }
+  const k = kind === "slow4x" ? 4 : 12;
+  return { ...clip, id: clip.id + "#" + kind, t: clip.t.map(t => clip.t[0] + (t - clip.t[0]) * k) };
+}
