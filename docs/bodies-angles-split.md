@@ -1,6 +1,6 @@
 # Bodies and camera angles: data split (fixed before any results were seen)
 
-Written 2026-10-03 14:10 (UTC+5), before rendering or evaluating any new clip. These assignments must not change after results are seen.
+Written 2026-10-03 14:05 (UTC+5), before rendering or evaluating any new clip. These assignments must not change after results are seen.
 
 ## Bodies
 
@@ -31,7 +31,7 @@ The person faces +x. Azimuth is measured from pure profile: positive values swin
   - d uniform in [3.0, 3.9] m;
   - lens uniform in [20, 26] mm.
 
-  Amended at 14:25, before any results existed, because d = 2.9 m with a 28 mm lens cuts off the feet of the tallest bodies.
+  Amended at 14:08, before any results existed, because d = 2.9 m with a 28 mm lens cuts off the feet of the tallest bodies.
 
   The existing train bodies get additional renders under this random-camera scheme. The original 0° clips stay in training.
 - **Test clips.** Test bodies are rendered on a fixed grid: azimuth 0°, +20°, +40° (front-side) and −20° (rear), at h = 1.25 m, d = 3.3 m, lens 24 mm. The existing held-out camrear25 clips (−25°) are also test data.
