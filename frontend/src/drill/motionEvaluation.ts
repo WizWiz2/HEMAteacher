@@ -5,8 +5,9 @@ import { CalibrationGate } from "../live/calibrationGate";
 import { createDrillRuntime, stepDrill } from "./drillEngine";
 import { personalizeDrill } from "./personalize";
 import { adaptDrillForCameraView } from "./cameraView";
-import { motionPatternFor } from "./continuousMotion";
-import { rawFrames, type FixtureClip } from "./motionTraining";
+import { motionPatternFor, recognitionModel, setRecognitionModel } from "./continuousMotion";
+import { buildModel, CONTINUOUS_DRILLS, isTrainClip, rawFrames, type Fixture, type FixtureClip } from "./motionTraining";
+import type { RecognitionModel } from "./motionRecognition";
 import type { Drill } from "./types";
 
 export interface StreamResult {
@@ -43,4 +44,46 @@ export function streamClip(clip: FixtureClip, names: string[], base: Drill, retr
   const lastOther = [...failures].reverse().find(f => f.startsWith("Похоже на"));
   return { completed: runtime.state === "completed", state: runtime.state, similarity: m?.similarity, message: m?.message ?? lastOther,
     feedback: m?.feedback, lookedLike: m?.lookedLike, tempo: m?.tempo, failures };
+}
+
+export interface EvalRow {
+  protocol: "lobo" | "split" | "heldout"; clip: string; source: string; variant: string; body: string; level: string;
+  selected: string; completed: boolean; completedWithRetry: boolean; similarity?: number; tempo?: number; message?: string;
+  lookedLike?: string; feedback?: string[];
+}
+
+/** Honest protocols. lobo: templates from one body's master+experienced main clips, every main clip of the other body
+ *  tested. split: shipped model (both bodies' master+experienced) on the main beginner clips. heldout: shipped model on
+ *  the held-out camera-angle / new-body clips. Every clip is tested against every continuous drill. */
+export function evaluateProtocols(fx: Fixture, drills: Drill[]): EvalRow[] {
+  const rows: EvalRow[] = [];
+  const previous = recognitionModel();
+  const run = (protocol: EvalRow["protocol"], model: RecognitionModel, tests: FixtureClip[]) => {
+    setRecognitionModel(model);
+    for (const c of tests) for (const d of CONTINUOUS_DRILLS) {
+      const base = drills.find(x => x.id === d)!, r = streamClip(c, fx.names, base);
+      const retried = d === c.drill && !r.completed ? streamClip(c, fx.names, base, true) : r;
+      rows.push({ protocol, clip: c.id, source: c.drill, variant: c.variant, body: c.body, level: c.level, selected: d,
+        completed: r.completed, completedWithRetry: retried.completed, similarity: r.similarity, tempo: r.tempo,
+        message: r.message, lookedLike: r.lookedLike, feedback: r.feedback });
+    }
+  };
+  try {
+    const main = fx.clips.filter(c => c.variant === "main" && CONTINUOUS_DRILLS.includes(c.drill));
+    for (const body of [...new Set(main.map(c => c.body))])
+      run("lobo", buildModel(fx.clips.filter(c => isTrainClip(c) && c.body !== body), fx.names), main.filter(c => c.body === body));
+    const shipped = buildModel(fx.clips.filter(isTrainClip), fx.names);
+    run("split", shipped, main.filter(c => c.level === "beginner"));
+    run("heldout", shipped, fx.clips.filter(c => c.variant.startsWith("heldout")));
+  } finally { setRecognitionModel(previous); }
+  return rows;
+}
+
+export function confusion(rows: EvalRow[]) {
+  const own = rows.filter(r => r.source === r.selected), other = rows.filter(r => r.source !== r.selected);
+  const table = CONTINUOUS_DRILLS.filter(s => rows.some(r => r.source === s)).map(s =>
+    s.padEnd(22) + CONTINUOUS_DRILLS.map(d => { const x = rows.filter(r => r.source === s && r.selected === d);
+      return `${x.filter(r => r.completed).length}/${x.length}`.padStart(6); }).join(" "));
+  return { own: own.filter(r => r.completed).length, ownTotal: own.length, other: other.filter(r => r.completed).length,
+    otherTotal: other.length, text: ["source\\selected".padEnd(22) + CONTINUOUS_DRILLS.map(d => d.slice(0, 6).padStart(6)).join(" "), ...table].join("\n") };
 }

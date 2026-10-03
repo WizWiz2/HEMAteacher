@@ -2,7 +2,7 @@ import {describe,it,expect} from 'vitest';
 import {createDrillRuntime,stepDrill} from './drillEngine';
 import {motionPatternFor} from './continuousMotion';
 import type {Drill} from './types';
-import {loadMotionFixture,loadDrills} from './fixtureLoader';
+import {loadMotionFixture,loadDrills} from '../../test-fixtures/loadFixture.mjs';
 import {streamClip} from './motionEvaluation';
 import {clipFeatures} from './motionTraining';
 const drill:Drill={id:'zornhau',name:'Zornhau',description:'',cameraView:'side',checkpoints:Array.from({length:4},(_,i)=>({id:`${i}`,title:'test',holdMs:5000}))};
