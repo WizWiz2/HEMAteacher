@@ -11,6 +11,8 @@ export const LIVE_FEATURES = [
   // Screen-plane coordinates for motion recognition (torso-normalised, never MediaPipe depth).
   "nose_x", "nose_y", "left_shoulder_x", "left_shoulder_y", "right_shoulder_x", "right_shoulder_y",
   "left_elbow_x", "left_elbow_y", "right_elbow_x", "right_elbow_y",
+  // Blade points (experimental blade tracking, off by default): crossguard and tip, same normalisation as the joints.
+  "blade_guard_x", "blade_guard_y", "blade_tip_x", "blade_tip_y",
 ] as const;
 
 export type LiveFeatureName = (typeof LIVE_FEATURES)[number];
@@ -70,6 +72,8 @@ export function liveFeatures(landmarks: LandmarkMap, minVisibility = MIN_VISIBIL
     features.hand_center_y = (leftWrist.y + rightWrist.y) / 2;
     features.hand_distance = Math.hypot(leftWrist.x - rightWrist.x, leftWrist.y - rightWrist.y, leftWrist.z - rightWrist.z);
   }
+  const guard = point("blade_guard"), tip = point("blade_tip");
+  if (guard && tip) { features.blade_guard_x = guard.x; features.blade_guard_y = guard.y; features.blade_tip_x = tip.x; features.blade_tip_y = tip.y; }
   if (leftShoulder && leftElbow && leftWrist) features.left_elbow_angle = angleDegrees(leftShoulder, leftElbow, leftWrist);
   if (rightShoulder && rightElbow && rightWrist) features.right_elbow_angle = angleDegrees(rightShoulder, rightElbow, rightWrist);
   return features;

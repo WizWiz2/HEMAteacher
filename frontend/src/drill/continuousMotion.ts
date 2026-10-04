@@ -1,7 +1,7 @@
 import patternsData from './motionPatterns.json';
 import modelData from './motionModel.json';
 import type { DrillRuntime } from './types';
-import { decide, type RecognitionModel, type TimedFeatures } from './motionRecognition';
+import { BLADE, CHANNELS, decide, type RecognitionModel, type TimedFeatures } from './motionRecognition';
 
 interface Template { body: string; frames: number[][] }
 interface Pattern { features: string[]; minMs: number; maxMs: number; templates: Template[] }
@@ -30,7 +30,8 @@ const patterns: Record<string, Pattern> = patternsData;
 export const motionPatternFor = (id: string) => patterns[id];
 let model = modelData as unknown as RecognitionModel;
 /** Swap the recognition model (template evaluation and tests). */
-export function setRecognitionModel(next: RecognitionModel) { model = next; }
+/** Also syncs the blade-channel flag: a model built with blade channels turns them on. */
+export function setRecognitionModel(next: RecognitionModel) { model = next; BLADE.enabled = next.channels.length > CHANNELS.length; }
 export function recognitionModel() { return model; }
 export const DRILL_NAMES: Record<string, string> = {
   zornhau: 'Zornhau', scheitelhau: 'Scheitelhau', krumphau: 'Krumphau', zwerchhau: 'Zwerchhau', schielhau: 'Schielhau',

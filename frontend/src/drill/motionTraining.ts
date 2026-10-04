@@ -2,11 +2,13 @@
 // and by the fixture regression test). Input: the compact pose fixture (test-fixtures/motion-poses.json.gz).
 import { LiveSampleProcessor } from "../live/sampleProcessor";
 import type { RawPose } from "../live/landmarks";
-import { CHANNELS, activeDurationMs, kNearestMean, prepareSequence, frameChannels, dtwDistance, sequencePath, type RecognitionModel, type TimedFeatures } from "./motionRecognition";
+import { CHANNELS, BLADE_CHANNELS, activeChannels, activeDurationMs, kNearestMean, prepareSequence, frameChannels, dtwDistance, sequencePath, type RecognitionModel, type TimedFeatures } from "./motionRecognition";
 
 export interface FixtureClip {
   id: string; drill: string; variant: string; body: string; level: string; width: number; height: number;
   move: [number, number] | null; t: number[]; p: number[][];
+  /** Optional blade points per frame [guard x, guard y, tip x, tip y] (normalised image coords; null = not detected). */
+  b?: (number[] | null)[];
   camera?: { azimuth_deg: number; height_m: number; distance_m: number; lens_mm: number };
   degradation?: { downscale_width: number; noise_sigma: number; crf: number; drop_fraction: number };
 }
@@ -21,6 +23,11 @@ export const WEIGHTS: Record<(typeof CHANNELS)[number], number> = {
   wrist_cross_x: .4, wrist_cross_y: .4, left_ankle_x: 1, right_ankle_x: 1, left_ankle_y: .5, right_ankle_y: .5,
   root_dx: 1, torso_angle: .5, hand_dir_x: 1.5, hand_dir_y: 1.5,
 };
+/** Weights of the experimental blade channels (used only when BLADE.enabled). */
+export const BLADE_WEIGHTS: Record<(typeof BLADE_CHANNELS)[number], number> = {
+  blade_cos: 1, blade_sin: 1, tip_head_x: .7, tip_head_y: .7, tip_x: .7, tip_y: .7,
+};
+const weightOf = (c: string) => (WEIGHTS as Record<string, number>)[c] ?? (BLADE_WEIGHTS as Record<string, number>)[c] ?? 0;
 export const POINTS = 32, BAND = 6, MARGIN = 1.05;
 /** Model-building options (defaults = shipped). Exposed so design experiments can vary them on train-body LOBO only. */
 export const TRAINING = { completion: 0.65, endStance: 0.5, margin: MARGIN, perDrillAccept: false, acceptFloor: 0.75, acceptFactor: 1.5, fisherWeights: false, fisherGamma: 1, k: 1 };
@@ -29,6 +36,8 @@ export function rawFrames(clip: FixtureClip, names: string[]): RawPose[] {
   return clip.t.map((timestampMs, i) => {
     const p = clip.p[i], landmarks: RawPose["landmarks"] = {};
     if (p.length) names.forEach((n, k) => { landmarks[n] = { x: p[3 * k] / 1e4, y: p[3 * k + 1] / 1e4, z: 0, visibility: p[3 * k + 2] / 100 }; });
+    const b = clip.b?.[i];
+    if (p.length && b) { landmarks.blade_guard = { x: b[0], y: b[1], z: 0, visibility: 1 }; landmarks.blade_tip = { x: b[2], y: b[3], z: 0, visibility: 1 }; }
     return { timestampMs, width: clip.width, height: clip.height, landmarks };
   });
 }
@@ -56,14 +65,15 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
   const clips = train.filter(c => c.move && CONTINUOUS_DRILLS.includes(c.drill));
   // scales: spread of each channel over all training movement frames
   const frames = clips.flatMap(c => movementSamples(c, names).map(s => frameChannels(s.features)));
-  const scales = CHANNELS.map((_, j) => {
+  const CH = activeChannels();
+  const scales = CH.map((_, j) => {
     const v = frames.map(f => f[j]).filter(Number.isFinite);
     if (v.length < 10) return 1;
     const m = v.reduce((a, b) => a + b, 0) / v.length;
     return Math.max(.05, Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / v.length));
   });
   scales[15] = scales[16] = .5; // unit direction components
-  const model: RecognitionModel = { version: 2, channels: CHANNELS, weights: CHANNELS.map(c => WEIGHTS[c]), scales: [...scales],
+  const model: RecognitionModel = { version: 2, channels: CH, weights: CH.map(weightOf), scales: [...scales],
     pathScales: scales.map(round4), points: POINTS, band: BAND, acceptDistance: Infinity, margin: MARGIN, typicalMs: {}, templates: [] };
   for (const c of clips) {
     const seq = prepareSequence(movementSamples(c, names), scales, POINTS);
@@ -72,7 +82,7 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
   }
   // Matching scales: within-drill spread of the training templates (performer/body variation the matcher must
   // tolerate), so channels that differ between bodies but not between drills weigh less. Floor = landmark noise.
-  model.scales = CHANNELS.map((_, j) => {
+  model.scales = CH.map((_, j) => {
     let s = 0, n = 0;
     for (const d of CONTINUOUS_DRILLS) {
       const ts = model.templates.filter(t => t.drill === d);
@@ -84,7 +94,7 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
         for (const x of v) { s += (x - mean) ** 2; n++; }
       }
     }
-    return n ? round4(Math.max(j >= 15 ? .25 : .03, Math.sqrt(s / n))) : round4(scales[j]);
+    return n ? round4(Math.max(j === 15 || j === 16 ? .25 : j === 17 || j === 18 ? .1 : .03, Math.sqrt(s / n))) : round4(scales[j]);
   });
   if (TRAINING.fisherWeights) {
     // Discriminative channel weights fitted on the training templates only: how far apart the drills' mean
@@ -94,14 +104,14 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
       return v.length ? v.reduce((a, b) => a + b, 0) / v.length : NaN;
     };
     const drills = CONTINUOUS_DRILLS.filter(d => model.templates.some(t => t.drill === d));
-    const fisher = CHANNELS.map((_, j) => {
+    const fisher = CH.map((_, j) => {
       let s = 0, n = 0;
       for (const [a, b] of drills.flatMap((a, i) => drills.slice(i + 1).map(b => [a, b] as const)))
         for (let p = 0; p < POINTS; p++) { const x = Math.abs(mean(a, p, j) - mean(b, p, j)); if (Number.isFinite(x)) { s += x; n++; } }
       return n ? s / n / model.scales[j] : 0;
     });
     const med = [...fisher].sort((a, b) => a - b)[Math.floor(fisher.length / 2)];
-    model.weights = CHANNELS.map((c, j) => round4(WEIGHTS[c] * Math.min(4, Math.max(.25, (fisher[j] / med) ** TRAINING.fisherGamma))));
+    model.weights = CH.map((c, j) => round4(weightOf(c) * Math.min(4, Math.max(.25, (fisher[j] / med) ** TRAINING.fisherGamma))));
   }
   for (const d of CONTINUOUS_DRILLS) {
     const ms = clips.filter(c => c.drill === d).map(c => activeDurationMs(movementSamples(c, names), model.pathScales));
