@@ -50,6 +50,7 @@ An attempt counts as accepted only if the first decided attempt completes the se
 node frontend/scripts/build-motion-patterns.mjs [--check]     # model + patterns from the fixture
 node frontend/scripts/evaluate-motion-recognition.mjs [out]   # all confusion matrices
 node frontend/scripts/check-motion-mutations.mjs              # reversed / frozen / 4x / 12x slow
+node frontend/scripts/check-motion-scenarios.mjs              # CI gate: scenarios on recorded MediaPipe poses (below)
 # fixture rebuild from raw browser dumps:
 node frontend/scripts/build-motion-fixture.mjs frontend/test-fixtures/motion-poses.json.gz <rawdir>:main:test-data/mock-videos <rawdir>:heldout:<heldout root>
 ```
@@ -98,7 +99,24 @@ The framing check (nose required) did not block any angle on these renders. Medi
 
 - **Scheitelhau / Schielhau.** These are nearly identical in side-view 2D landmarks; their difference is mostly blade and edge rotation. Krumphau is also weak with single-body templates. Together they account for most leave-one-body-out misses.
 - **Camera angle.** Front angles up to 45° work once they are in the training data. Behind profile (−20/−25°) remains the weakest angle for strikes on the reserved test clips: own 13/22 and wrong-drill 7/176 (4.0%, the highest of any angle).
-- **Ground-truth skeletons.** `check-continuous-motion.mjs` (ground-truth Blender skeletons) no longer matches the template domain: 15/54 "normal". The templates are MediaPipe-based, and ground-truth landmark definitions differ (nose, wrists).
+- **Ground-truth skeletons.** `check-continuous-motion.mjs` (ground-truth Blender skeletons) no longer matches the template domain: 15/54 "normal". The templates are MediaPipe-based, and ground-truth landmark definitions differ (nose, wrists). It is kept as a diagnostic only. CI runs the same scenarios on the recorded MediaPipe poses instead (`check-motion-scenarios.mjs`, main clips, shipped model):
+
+  | scenario | expected | accepted |
+  |---|---|---|
+  | normal | accept | 54/54 |
+  | fast (0.6× time) | accept | 52/54 |
+  | 10 fps | accept | 51/54 (PR #16 model: 48/54) |
+  | 4× slow | accept | 50/54 (4 slow beginners exceed the 10 s bound) |
+  | reversed | reject | 0/54 |
+  | frozen | reject | 0/54 |
+  | 12× slow | reject | 0/54 |
+  | truncated half-way | reject | 21/54: footwork 19/24, strikes 2/30 (PR #16 model: 16/54, all footwork) |
+  | 500 ms tracking gap | reject | 0/54 |
+
+  The known gaps are allowed explicitly; any further unexpected outcome fails CI. **Regression of the bodies/angles model:** Scheitelhau master (both main bodies) frozen mid-drop is accepted. In side-view 2D the drop and the finish differ little, and the lower margin (1.05) no longer rejects it. The gate allows exactly these 2 strike clips.
+  - Footwork stopped half-way is accepted (see "Footwork stops early").
+  - A few footwork clips at 10 fps or 0.6× time are not accepted.
+  - Some 10 fps attempts stay open ("Продолжай движение до конца").
 - **Footwork stops early.** Footwork may be accepted at a mid-step pause, so its tempo estimate is too low: only 3/26 slow footwork beginners get the slow note (strikes 17/18). The same pause makes beginner passing steps the main wrong-drill accepts: passing step backward → retreat and forward → advance, 14/256 (5.5%) on test, above the 5% target for that subgroup.
 - **False slow note on fast attempts.** Some master/experienced attempts get an attempt window several times longer than the movement: 3 of 102 under train LOBO, two at about 5.5× the typical duration. In the earlier fixture the case was tall_heavy_male Schielhau master at 4.7×. The fixture test allows at most 3% until the attempt segmentation is fixed.
 - **2D ceiling for look-alike strikes.** Scheitelhau ↔ Schielhau/Zornhau and Krumphau ↔ Zwerchhau differ mostly in depth and blade rotation. Scheitelhau is the weakest drill: 7/18 own on test, 6/14 under LOBO. Strike LOBO stays at about 77%, below the 90% target, and the tried variants did not move it: per-drill accept distances, fitted channel weights, k-NN, and a wrist→index hand feature.

@@ -1,3 +1,7 @@
+// DIAGNOSTIC ONLY (not a CI gate since the discriminative recognizer): replays the ground-truth Blender skeletons of the
+// mock clips. The recognizer's templates are built from browser MediaPipe poses, and ground-truth landmark definitions
+// differ (nose, wrists), so most clips fall outside the template domain (docs/motion-recognition.md, Limitations).
+// The CI gate with the same scenarios on recorded MediaPipe poses is check-motion-scenarios.mjs.
 import {createServer} from 'vite';import {readFileSync,writeFileSync} from 'node:fs';import {clips,samples} from './mock-motion.mjs';
 const v=await createServer({root:'frontend',server:{middlewareMode:true},optimizeDeps:{noDiscovery:true,include:[]}});
 try {
