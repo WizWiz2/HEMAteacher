@@ -35,19 +35,27 @@ export class BladeNet {
   forward(crop: Float32Array): [number, number, number] {
     let n = 0, mean = 0; for (const v of crop) { mean += v; n++; } mean /= n;
     let sd = 0; for (const v of crop) sd += (v - mean) ** 2; sd = Math.sqrt(sd / n) / 255 + 1e-3;
-    let x = Float32Array.from(crop, v => (v - mean) / 255 / sd), size = NET_SIZE;
-    for (const l of this.convs) {
-      const o = size >> 1, y = new Float32Array(l.cout * o * o);
-      for (let co = 0; co < l.cout; co++) for (let oy = 0; oy < o; oy++) for (let ox = 0; ox < o; ox++) {
-        let s = l.b[co];
+    let size = NET_SIZE, x = new Float32Array((size + 2) * (size + 2) * 1);
+    // zero-padded planes (size+2)^2 per channel; 3x3 stride-2 convolution accumulated plane by plane (no bounds checks)
+    for (let v = 0; v < size; v++) for (let u = 0; u < size; u++) x[(v + 1) * (size + 2) + u + 1] = (crop[v * size + u] - mean) / 255 / sd;
+    for (let li = 0; li < this.convs.length; li++) {
+      const l = this.convs[li], o = size >> 1, P = size + 2, last = li === this.convs.length - 1;
+      const Q = last ? o : o + 2, y = new Float32Array(l.cout * Q * Q), pad = last ? 0 : 1;
+      const acc = new Float32Array(o * o);
+      for (let co = 0; co < l.cout; co++) {
+        acc.fill(l.b[co]);
         for (let ci = 0; ci < l.cin; ci++) {
-          const wb = (co * l.cin + ci) * 9, xb = ci * size * size;
-          for (let ky = 0; ky < 3; ky++) {
-            const iy = oy * 2 - 1 + ky; if (iy < 0 || iy >= size) continue;
-            for (let kx = 0; kx < 3; kx++) { const ix = ox * 2 - 1 + kx; if (ix >= 0 && ix < size) s += l.w[wb + ky * 3 + kx] * x[xb + iy * size + ix]; }
+          const xb = ci * P * P, wb = (co * l.cin + ci) * 9;
+          for (let ky = 0; ky < 3; ky++) for (let kx = 0; kx < 3; kx++) {
+            const wv = l.w[wb + ky * 3 + kx];
+            for (let oy = 0; oy < o; oy++) {
+              const row = xb + (oy * 2 + ky) * P + kx, ar = oy * o;
+              for (let ox = 0; ox < o; ox++) acc[ar + ox] += wv * x[row + ox * 2];
+            }
           }
         }
-        y[(co * o + oy) * o + ox] = s > 0 ? s : 0;
+        const yb = co * Q * Q;
+        for (let oy = 0; oy < o; oy++) for (let ox = 0; ox < o; ox++) { const v = acc[oy * o + ox]; y[yb + (oy + pad) * Q + ox + pad] = v > 0 ? v : 0; }
       }
       x = y; size = o;
     }
