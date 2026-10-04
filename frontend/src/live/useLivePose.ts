@@ -8,7 +8,7 @@ import { type CameraView, type Facing } from "./normalize";
 import { MediaPipeLivePose } from "./poseLandmarker";
 import { LiveSampleProcessor } from "./sampleProcessor";
 import { detectWeaponMarkers } from "./weaponMarkers";
-import { BladeTracker, bladeTrackingEnabled, loadBladeModel } from "./bladeTracking";
+import { BladeTracker, bladeTrackingEnabled, loadBladeModel, loadBladeNet } from "./bladeTracking";
 import { projectTargetGhost } from "./targetGhost";
 
 export interface LiveSample {
@@ -94,7 +94,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     let weapon: WeaponMarkers | null = null;
     // experimental blade tracking (off by default, docs/blade-tracking.md)
     const blade = bladeTrackingEnabled() ? new BladeTracker() : null;
-    if (blade) void loadBladeModel();
+    if (blade) { void loadBladeModel(); void loadBladeNet(); }
 
     detector.onPose((raw) => {
       const active = optionsRef.current;
