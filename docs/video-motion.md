@@ -49,7 +49,7 @@ From the repository root, prepare frontend dependencies/assets normally, then us
 python frontend/scripts/infer-mock-videos.py --output /tmp/hema-inferred
 node frontend/scripts/check-inferred-motion.mjs /tmp/hema-inferred docs/video-motion-results.json
 node frontend/scripts/build-motion-patterns.mjs --check
-node frontend/scripts/check-continuous-motion.mjs
+node frontend/scripts/check-continuous-motion.mjs   # diagnostic only (ground-truth skeletons); CI gate: node frontend/scripts/check-motion-scenarios.mjs
 ```
 
 The inferred-motion checker fails if any normal clip is unrecognized or a negative scenario completes. No saved calibration or annotations substitute for detections.

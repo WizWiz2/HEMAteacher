@@ -90,7 +90,20 @@ export function confusion(rows: EvalRow[]) {
 
 /** Programmatic mutations of a fixture clip. reversed: guard hold, then the labelled movement played backwards
  *  (finish -> guard), then a hold; frozen: the first pose for the whole clip; slowNx: timestamps stretched N times. */
-export function mutate(clip: FixtureClip, kind: "reversed" | "frozen" | "slow4x" | "slow12x"): FixtureClip {
+export type Mutation = "reversed" | "frozen" | "slow4x" | "slow12x" | "fast" | "fps10" | "truncated" | "gap";
+/** Programmatic scenario on a recorded clip. Positives: fast (0.6x time), fps10 (every 3rd frame), slow4x.
+ * Negatives: reversed movement, frozen pose, slow12x (beyond the 10 s bound), truncated (pose frozen from the middle of
+ * the labelled movement), gap (500 ms tracking dropout from 30% of the labelled movement, above the 400 ms gap limit). */
+export function mutate(clip: FixtureClip, kind: Mutation): FixtureClip {
+  if (kind === "fast") return { ...clip, id: clip.id + "#fast", t: clip.t.map(t => clip.t[0] + (t - clip.t[0]) * 0.6) };
+  if (kind === "fps10") { const keep = clip.t.map((_, i) => i).filter(i => i % 3 === 0);
+    return { ...clip, id: clip.id + "#fps10", t: keep.map(i => clip.t[i]), p: keep.map(i => clip.p[i]) }; }
+  if (kind === "truncated" || kind === "gap") {
+    const [a, b] = clip.move!, from = a + (b - a) * (kind === "truncated" ? 0.5 : 0.3);
+    const k = clip.t.findIndex(t => t >= from);
+    if (kind === "truncated") return { ...clip, id: clip.id + "#truncated", move: null, p: clip.p.map((p, i) => (i < k ? p : clip.p[k])) };
+    return { ...clip, id: clip.id + "#gap", move: null, p: clip.p.map((p, i) => (clip.t[i] >= clip.t[k] && clip.t[i] < clip.t[k] + 500 ? [] : p)) };
+  }
   if (kind === "frozen") return { ...clip, id: clip.id + "#frozen", p: clip.p.map(() => clip.p.find(p => p.length) ?? []) };
   if (kind === "reversed") {
     const [a, b] = clip.move!, idx = clip.t.map((t, i) => [t, i]).filter(([t]) => t >= a && t <= b).map(([, i]) => i);

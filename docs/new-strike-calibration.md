@@ -28,7 +28,7 @@ Detailed results: `continuous-motion-results.json` and `video-motion-results.jso
 
 ```sh
 node frontend/scripts/build-motion-patterns.mjs --check
-node frontend/scripts/check-continuous-motion.mjs --write
+node frontend/scripts/check-continuous-motion.mjs --write   # diagnostic only (ground-truth skeletons); CI gate: node frontend/scripts/check-motion-scenarios.mjs
 python frontend/scripts/infer-mock-videos.py --output /tmp/hema-inferred
 node frontend/scripts/check-inferred-motion.mjs /tmp/hema-inferred docs/video-motion-results.json
 npm --prefix frontend test
