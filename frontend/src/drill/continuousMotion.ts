@@ -1,5 +1,7 @@
 import patternsData from './motionPatterns.json';
+import modelData from './motionModel.json';
 import type { DrillRuntime } from './types';
+import { decide, type RecognitionModel, type TimedFeatures } from './motionRecognition';
 
 interface Template { body: string; frames: number[][] }
 interface Pattern { features: string[]; minMs: number; maxMs: number; templates: Template[] }
@@ -14,16 +16,30 @@ export interface MotionAttempt {
   similarity?: number;
   stages?: number[];
   feedback?: string[];
-  outcome?: 'recognized' | 'incomplete' | 'tracking_lost';
+  outcome?: 'recognized' | 'incomplete' | 'tracking_lost' | 'other_drill';
+  /** Drill the movement was recognised as, when it was not the selected one. */
+  lookedLike?: string;
+  /** The last settle was not a recognisable whole movement: wait for more movement before re-checking. */
+  awaitMove?: boolean;
+  tempo?: number;
 }
 const patterns: Record<string, Pattern> = patternsData;
 export const motionPatternFor = (id: string) => patterns[id];
-function segmentDistance(p: number[], a: number[], b: number[]) {
-  const d=b.map((v,i)=>v-a[i]);
-  const length=d.reduce((sum,v)=>sum+v*v,0);
-  const t=length?Math.max(0,Math.min(1,p.reduce((sum,v,i)=>sum+(v-a[i])*d[i],0)/length)):0;
-  return distance(p,a.map((v,i)=>v+t*d[i]));
-}
+let model = modelData as unknown as RecognitionModel;
+/** Swap the recognition model (template evaluation and tests). */
+export function setRecognitionModel(next: RecognitionModel) { model = next; }
+export function recognitionModel() { return model; }
+export const DRILL_NAMES: Record<string, string> = {
+  zornhau: 'Zornhau', scheitelhau: 'Scheitelhau', krumphau: 'Krumphau', zwerchhau: 'Zwerchhau', schielhau: 'Schielhau',
+  advance: 'шаг вперёд', retreat: 'шаг назад', 'passing-step-forward': 'проходной шаг вперёд', 'passing-step-backward': 'проходной шаг назад',
+};
+/** Sanity bound for one attempt (time-invariant matching replaces the old 4 s limit). */
+export const MAX_ATTEMPT_MS = 10000;
+/** Largest tolerated gap between pose frames inside an attempt. */
+export const MAX_GAP_MS = 400;
+const PRE_ROLL_MS = 300;
+const JUMP_HAND = .6, JUMP_FEET = .3;
+const extentOf = (pattern: Pattern) => Math.min(...pattern.templates.map(t => Math.max(...t.frames.map(v => distance(v, t.frames[0])))));
 const distance = (a: number[], b: number[]) => Math.sqrt(a.reduce((sum,x,i)=>sum+(x-b[i])**2,0)/a.length);
 
 export function trajectoryError(samples: MotionSample[], reference: number[][]): number {
@@ -55,10 +71,10 @@ export function stepContinuous(runtime: DrillRuntime, id: string, timeMs: number
   if(attempt.last && timeMs<=attempt.last.timeMs)return runtime;
   const vector=pattern.features.map(name=>features?.[name] ?? NaN);
   if(!enough || !vector.every(Number.isFinite)) {
-    if(attempt.phase==='moving' && attempt.last && timeMs-attempt.last.timeMs>250)return fail('Камера потеряла движение. Повтори попытку');
+    if(attempt.phase==='moving' && attempt.last && timeMs-attempt.last.timeMs>MAX_GAP_MS)return fail('Камера потеряла движение. Повтори попытку');
     return {...runtime,validSince:null,motion:attempt.phase==='moving'?{...attempt,message:'Покажи камере руки и стопы'}:{phase:'position',samples:[],message:'Покажи камере руки и стопы'}};
   }
-  if(attempt.last && timeMs-attempt.last.timeMs>250) {
+  if(attempt.last && timeMs-attempt.last.timeMs>MAX_GAP_MS) {
     if(attempt.phase==='moving')return fail('Слишком большой разрыв кадров. Повтори попытку');
     attempt={phase:'position',message:'Прими исходную позицию',samples:[]};
   }
@@ -71,48 +87,52 @@ export function stepContinuous(runtime: DrillRuntime, id: string, timeMs: number
     return {...runtime,validSince:since,match:null,motion:{phase:armed?'armed':'position',message:armed?'Готов. Выполни движение целиком':'Прими исходную позицию',baseline:vector,last:sample,samples:[]}};
   }
   if(attempt.phase==='armed') {
-    if(distance(vector,attempt.baseline!)<.045)return {...runtime,motion:{...attempt,last:sample}};
-    const extent=Math.max(...pattern.templates.flatMap(t=>t.frames.map(v=>distance(v,t.frames[0]))));
-    if(distance(vector,attempt.last!.vector)>extent*(id.endsWith('hau')?.45:.7) && timeMs-attempt.last!.timeMs<180)return fail('Поза резко перескочила. Повтори движение перед камерой');
-    attempt={...attempt,phase:'moving',message:'Двигайся без остановок',samples:[{timeMs:attempt.last!.timeMs,vector:attempt.baseline!},sample],last:sample,stages:pattern.templates.map(t=>{const extent=Math.max(...t.frames.map(v=>distance(v,t.frames[0])));let stage=0;while(stage<3 && segmentDistance(t.frames[[6,13,24][stage]].map((x,i)=>x-t.frames[0][i]+attempt.baseline![i]),attempt.baseline!,vector)<extent*(id.endsWith('hau')?.4:.32))stage++;return stage;})};
+    // keep a short pre-roll: onset is detected only after the pose has left the baseline, but the movement's start
+    // (windup, weight shift) belongs to the attempt for recognition.
+    const preRoll=[...attempt.samples.filter(s=>s.timeMs>=timeMs-PRE_ROLL_MS),attempt.last!].filter((s,i,a)=>a.indexOf(s)===i);
+    if(distance(vector,attempt.baseline!)<.045)return {...runtime,motion:{...attempt,last:sample,samples:preRoll}};
+    // A landmark teleport (e.g. a left/right ankle swap) at onset, not a fast but real movement: bounded in torso
+    // lengths per frame rather than by the template extent (a quick step moves the feet ~0.15 torso per frame).
+    if(distance(vector,attempt.last!.vector)>(id.endsWith('hau')?JUMP_HAND:JUMP_FEET) && timeMs-attempt.last!.timeMs<180)return fail('Поза резко перескочила. Повтори движение перед камерой');
+    attempt={...attempt,phase:'moving',message:'Двигайся без остановок',samples:[...preRoll,sample],last:sample};
     return {...runtime,state:'running',startedAt:attempt.samples[0].timeMs,validSince:null,checkpointIndex:1,motion:attempt};
   }
   const startedAt=runtime.startedAt!;
-  const templates=pattern.templates.map(t=>({...t,frames:t.frames.map(v=>v.map((x,i)=>x-t.frames[0][i]+attempt.baseline![i]))}));
-  if(timeMs-startedAt>4000)return fail('Слишком долго: выполни одно непрерывное движение');
-  const samples=[...attempt.samples,sample].slice(-240);
+  if(timeMs-startedAt>MAX_ATTEMPT_MS)return fail('Слишком долго: попытка длиннее 10 секунд. Выполни одно движение целиком');
+  const samples=[...attempt.samples,sample].slice(-600);
   // Estimate settling over a camera-time window: single-frame wrist jitter
-  // must not keep an otherwise finished strike running indefinitely.
+  // must not keep an otherwise finished movement running indefinitely.
   const anchor=samples.find(s=>s.timeMs>=timeMs-200) ?? attempt.last!;
   const speed=distance(vector,anchor.vector)/Math.max(1,timeMs-anchor.timeMs)*1000;
-  // Accept the whole path, not the last pose. Excursion prevents a frozen pose
-  // or an almost stationary wobble from matching a step that ends where it began.
-  const stages=(attempt.stages ?? pattern.templates.map(()=>0)).map((stage,i)=>{
-    if(stage>=3)return stage;
-    const frames=templates[i].frames;
-    const extent=Math.max(...frames.map(v=>distance(v,frames[0])));
-    while(stage<3 && segmentDistance(frames[[6,13,24][stage]],attempt.last!.vector,vector)<extent*(id.endsWith('hau')?.4:.32))stage++;
-    return stage;
-  });
-  const candidates=templates.map((t,i)=>{
-    const extent=Math.max(...t.frames.map(v=>distance(v,t.frames[0])));
-    const excursion=Math.max(...samples.map(s=>distance(s.vector,attempt.baseline!)));
-    return {t,extent,excursion,stage:stages[i],end:distance(vector,t.frames.at(-1)!)};
-  });
+  const extent=extentOf(pattern);
+  // Excursion prevents a frozen pose or an almost stationary wobble from being judged at all.
+  const excursion=Math.max(...samples.map(s=>distance(s.vector,attempt.baseline!)));
   const movingFrames=samples.filter((s,i)=>i>0 && distance(s.vector,samples[i-1].vector)>.015).length;
   const crossed=!id.startsWith('passing') || (attempt.baseline![0]-attempt.baseline![1])*(vector[0]-vector[1])<0 && Math.abs(vector[0]-vector[1])>.2;
-  const canFinish=crossed && movingFrames>=4 && candidates.some(c=>c.stage===3 && c.end<Math.max(.08,c.extent*(id.endsWith('hau')?.4:.3)) && c.excursion>Math.max(.08,c.extent*.6));
+  const awaitMove=attempt.awaitMove===true && speed<1;
+  const canFinish=!awaitMove && crossed && movingFrames>=4 && excursion>Math.max(.08,extent*.45);
   const settledSince=canFinish&&speed<.65?(attempt.settledSince??timeMs):undefined;
-  const finish=settledSince!==undefined && timeMs-settledSince>=200 && timeMs-startedAt>=pattern.minMs;
-  if(finish) {
-    const error=Math.min(...candidates.filter(c=>c.stage===3&&c.end<Math.max(.08,c.extent*(id.endsWith('hau')?.4:.3))&&c.excursion>Math.max(.08,c.extent*.6)).map(c=>trajectoryError(samples,c.t.frames)/c.extent));
-    if(error>.55)return fail('Движение не удалось уверенно распознать. Повтори цельную попытку');
-    const feedback = motionFeedback(id, samples, pattern);
-    return {...runtime,state:'completed',checkpointIndex:count-1,finishedAt:timeMs,validSince:null,match:null,
-      motion:{...attempt,phase:'passed',samples,last:sample,similarity:Math.round(Math.max(0,1-error)*100),message:'Движение распознано',outcome:'recognized',feedback}};
+  const progressIndex=Math.max(runtime.checkpointIndex,excursion>extent*.6?Math.min(2,count-1):1);
+  if(settledSince!==undefined && timeMs-settledSince>=200 && timeMs-startedAt>=pattern.minMs) {
+    // Time-invariant, discriminative decision over the whole attempt (all drills compete).
+    const segment=samples as TimedFeatures[];
+    const decision=decide(id,segment,model);
+    if(decision.kind==='accepted') {
+      const feedback=motionFeedback(id,samples,pattern);
+      if(decision.slow) feedback.unshift(`Движение распознано, но выполнено слишком медленно (примерно в ${decision.tempo.toFixed(1)} раза дольше образцов). Попробуй выполнить его слитно, без пауз.`);
+      return {...runtime,state:'completed',checkpointIndex:count-1,finishedAt:timeMs,validSince:null,match:null,
+        motion:{...attempt,phase:'passed',samples,last:sample,similarity:decision.similarity,tempo:decision.tempo,message:'Движение распознано',outcome:'recognized',feedback:feedback.slice(0,2)}};
+    }
+    if(decision.kind==='other') {
+      return {...runtime,state:'failed',finishedAt:timeMs,match:null,validSince:null,
+        motion:{...attempt,phase:'failed',samples,last:sample,lookedLike:decision.drill,outcome:'other_drill',
+          message:`Похоже на ${DRILL_NAMES[decision.drill] ?? decision.drill}, а не ${DRILL_NAMES[id] ?? id}. Повтори выбранное движение`}};
+    }
+    if(distance(vector,attempt.baseline!)<extent*.3)return fail('Движение не удалось уверенно распознать. Повтори цельную попытку');
+    // Not a recognisable whole movement yet (e.g. a pause mid-movement): keep the attempt open.
+    return {...runtime,checkpointIndex:progressIndex,motion:{...attempt,samples,last:sample,settledSince:undefined,awaitMove:true,message:'Продолжай движение до конца'}};
   }
-  const progress=Math.min(...candidates.map(c=>c.end));
-  return {...runtime,checkpointIndex:Math.max(runtime.checkpointIndex,progress<.25?count-1:Math.min(2,count-1)),motion:{...attempt,samples,last:sample,settledSince,stages,message:'Двигайся без остановок'}};
+  return {...runtime,checkpointIndex:progressIndex,motion:{...attempt,samples,last:sample,settledSince,awaitMove,message:awaitMove?'Продолжай движение до конца':'Двигайся без остановок'}};
 }
 
 /** Observable differences, separate from recognition; no claims about blade/edge. */
