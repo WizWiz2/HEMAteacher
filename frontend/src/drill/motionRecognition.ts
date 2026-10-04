@@ -22,6 +22,10 @@ export interface RecognitionModel {
   /** Scales of the path-length parameterisation (overall channel spread). */
   pathScales: number[];
   points: number; band: number; acceptDistance: number; margin: number;
+  /** Optional per-drill acceptance distances (fallback: acceptDistance). */
+  acceptByDrill?: Record<string, number>;
+  /** Per-drill distance = mean of the k nearest templates (default 1). */
+  k?: number;
   /** Median active duration (activeDurationMs) of the training attempts per drill (for the tempo note). */
   typicalMs: Record<string, number>;
   templates: RecognitionTemplate[];
@@ -141,12 +145,16 @@ export function dtwDistance(a: (number | null)[][], b: (number | null)[][], m: R
   return cost[n][n] / Math.max(1, steps[n][n]);
 }
 
+/** Mean of the k smallest distances (k-nearest templates of one drill). */
+export function kNearestMean(v: number[], k: number): number {
+  const s = [...v].sort((a, b) => a - b).slice(0, Math.max(1, Math.min(k, v.length)));
+  return s.reduce((a, b) => a + b, 0) / s.length;
+}
+
 export function recognize(seq: number[][], m: RecognitionModel, templates = m.templates): Recognition | null {
-  const distances: Record<string, number> = {};
-  for (const t of templates) {
-    const d = dtwDistance(seq, t.seq, m);
-    if (!(t.drill in distances) || d < distances[t.drill]) distances[t.drill] = d;
-  }
+  const all: Record<string, number[]> = {};
+  for (const t of templates) (all[t.drill] ??= []).push(dtwDistance(seq, t.seq, m));
+  const distances = Object.fromEntries(Object.entries(all).map(([d, v]) => [d, kNearestMean(v, m.k ?? 1)]));
   const ranked = Object.entries(distances).sort((x, y) => x[1] - y[1]);
   if (ranked.length < 1) return null;
   const [best, bestDistance] = ranked[0];
@@ -166,15 +174,16 @@ export function decide(selected: string, samples: TimedFeatures[], m: Recognitio
   if (!r) return { kind: "unknown" };
   const own = r.distances[selected] ?? Infinity;
   const rival = Math.min(...Object.entries(r.distances).filter(([d]) => d !== selected).map(([, v]) => v));
-  if (r.best === selected && own <= m.acceptDistance && rival >= own * m.margin) {
+  const accept = (d: string) => m.acceptByDrill?.[d] ?? m.acceptDistance;
+  if (r.best === selected && own <= accept(selected) && rival >= own * m.margin) {
     const durationMs = activeDurationMs(samples, m.pathScales);
     const tempo = m.typicalMs[selected] ? durationMs / m.typicalMs[selected] : 1;
     const masters = m.templates.filter(t => t.drill === selected && t.level === "master");
     const quality = masters.length ? Math.min(...masters.map(t => dtwDistance(seq!, t.seq, m))) : own;
-    let similarity = 100 * (1 - 0.5 * quality / m.acceptDistance);
+    let similarity = 100 * (1 - 0.5 * quality / accept(selected));
     if (tempo > 1.4) similarity -= Math.min(20, 25 * (tempo - 1.4));
     return { kind: "accepted", distance: own, similarity: Math.round(Math.max(0, Math.min(100, similarity))), slow: tempo > 1.6, tempo };
   }
-  if (r.best !== selected && r.bestDistance <= m.acceptDistance && own >= r.bestDistance * m.margin) return { kind: "other", drill: r.best };
+  if (r.best !== selected && r.bestDistance <= accept(r.best) && own >= r.bestDistance * m.margin) return { kind: "other", drill: r.best };
   return { kind: "unknown" };
 }

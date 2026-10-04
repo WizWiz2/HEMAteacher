@@ -47,36 +47,56 @@ export function streamClip(clip: FixtureClip, names: string[], base: Drill, retr
 }
 
 export interface EvalRow {
-  protocol: "lobo" | "split" | "heldout"; clip: string; source: string; variant: string; body: string; level: string;
-  selected: string; completed: boolean; completedWithRetry: boolean; similarity?: number; tempo?: number; message?: string;
-  lookedLike?: string; feedback?: string[];
+  protocol: "lobo" | "before" | "test"; clip: string; source: string; variant: string; body: string; level: string;
+  azimuth: number; selected: string; completed: boolean; completedWithRetry: boolean; similarity?: number; tempo?: number;
+  message?: string; lookedLike?: string; feedback?: string[];
 }
 
-/** Honest protocols. lobo: templates from one body's master+experienced main clips, every main clip of the other body
- *  tested. split: shipped model (both bodies' master+experienced) on the main beginner clips. heldout: shipped model on
- *  the held-out camera-angle / new-body clips. Every clip is tested against every continuous drill. */
-export function evaluateProtocols(fx: Fixture, drills: Drill[]): EvalRow[] {
+/** Camera azimuth of a clip in degrees (+ = toward the front, - = behind profile). */
+export const azimuthOf = (c: FixtureClip) => c.camera?.azimuth_deg ?? (c.variant === "heldout:camrear25" ? -25 : 0);
+/** Reserved test clips (docs/bodies-angles-split.md): bodies/angles test renders and the earlier held-out clips. */
+export const isTestClip = (c: FixtureClip) => c.variant === "ba:test" || c.variant.startsWith("heldout");
+/** Model of PR #16 (before the bodies/angles data): main clips, master + experienced, two bodies at profile. */
+export const isLegacyTrainClip = (c: FixtureClip) => c.variant === "main" && (c.level === "master" || c.level === "experienced") && CONTINUOUS_DRILLS.includes(c.drill);
+
+/** Honest protocols. lobo: leave-one-body-out over the TRAIN bodies (templates from the other train bodies'
+ *  master+experienced clips; every clip of the left-out body tested). before / test: the PR #16 model and the shipped
+ *  model on the reserved TEST clips. Every clip is tested against every continuous drill. */
+export function evaluateProtocols(fx: Fixture, drills: Drill[], protocols: EvalRow["protocol"][] = ["lobo", "before", "test"]): EvalRow[] {
   const rows: EvalRow[] = [];
+  for (const _ of evaluationSteps(fx, drills, protocols, rows)) { /* run to completion */ }
+  return rows;
+}
+
+/** Same as evaluateProtocols, but yields to the event loop after every clip (long runs inside a vitest worker must not
+ *  block its RPC channel, which times out after 60 s). */
+export async function evaluateProtocolsAsync(fx: Fixture, drills: Drill[], protocols: EvalRow["protocol"][] = ["lobo", "before", "test"]): Promise<EvalRow[]> {
+  const rows: EvalRow[] = [];
+  for (const _ of evaluationSteps(fx, drills, protocols, rows)) await new Promise(resolve => setTimeout(resolve, 0));
+  return rows;
+}
+
+function* evaluationSteps(fx: Fixture, drills: Drill[], protocols: EvalRow["protocol"][], rows: EvalRow[]): Generator<void> {
   const previous = recognitionModel();
-  const run = (protocol: EvalRow["protocol"], model: RecognitionModel, tests: FixtureClip[]) => {
+  function* run(protocol: EvalRow["protocol"], model: RecognitionModel, tests: FixtureClip[]) {
     setRecognitionModel(model);
-    for (const c of tests) for (const d of CONTINUOUS_DRILLS) {
+    for (const c of tests) { for (const d of CONTINUOUS_DRILLS) {
       const base = drills.find(x => x.id === d)!, r = streamClip(c, fx.names, base);
       const retried = d === c.drill && !r.completed ? streamClip(c, fx.names, base, true) : r;
-      rows.push({ protocol, clip: c.id, source: c.drill, variant: c.variant, body: c.body, level: c.level, selected: d,
-        completed: r.completed, completedWithRetry: retried.completed, similarity: r.similarity, tempo: r.tempo,
+      rows.push({ protocol, clip: c.id, source: c.drill, variant: c.variant, body: c.body, level: c.level, azimuth: azimuthOf(c),
+        selected: d, completed: r.completed, completedWithRetry: retried.completed, similarity: r.similarity, tempo: r.tempo,
         message: r.message, lookedLike: r.lookedLike, feedback: r.feedback });
-    }
-  };
+    } yield; }
+  }
   try {
-    const main = fx.clips.filter(c => c.variant === "main" && CONTINUOUS_DRILLS.includes(c.drill));
-    for (const body of [...new Set(main.map(c => c.body))])
-      run("lobo", buildModel(fx.clips.filter(c => isTrainClip(c) && c.body !== body), fx.names), main.filter(c => c.body === body));
-    const shipped = buildModel(fx.clips.filter(isTrainClip), fx.names);
-    run("split", shipped, main.filter(c => c.level === "beginner"));
-    run("heldout", shipped, fx.clips.filter(c => c.variant.startsWith("heldout")));
+    const trainPool = fx.clips.filter(c => (c.variant === "main" || c.variant === "ba:train") && CONTINUOUS_DRILLS.includes(c.drill));
+    const tests = fx.clips.filter(c => isTestClip(c) && CONTINUOUS_DRILLS.includes(c.drill));
+    if (protocols.includes("lobo"))
+      for (const body of [...new Set(trainPool.map(c => c.body))])
+        yield* run("lobo", buildModel(fx.clips.filter(c => isTrainClip(c) && c.body !== body), fx.names), trainPool.filter(c => c.body === body));
+    if (protocols.includes("before")) yield* run("before", buildModel(fx.clips.filter(isLegacyTrainClip), fx.names), tests);
+    if (protocols.includes("test")) yield* run("test", buildModel(fx.clips.filter(isTrainClip), fx.names), tests);
   } finally { setRecognitionModel(previous); }
-  return rows;
 }
 
 export function confusion(rows: EvalRow[]) {
