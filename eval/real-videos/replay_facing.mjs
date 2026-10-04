@@ -14,6 +14,8 @@ try {
   const {CalibrationGate} = await v.ssrLoadModule('/src/live/calibrationGate.ts');
   const {stepDrill, createDrillRuntime} = await v.ssrLoadModule('/src/drill/drillEngine.ts');
   const {motionPatternFor} = await v.ssrLoadModule('/src/drill/continuousMotion.ts');
+  const MR = await v.ssrLoadModule('/src/drill/motionRecognition.ts');
+  const MODEL = JSON.parse(readFileSync(fe + '/src/drill/motionModel.json'));
   const drillPage = !!process.env.DRILLPAGE;
   const personalize = personalises ? (await v.ssrLoadModule('/src/drill/personalize.ts')).personalizeDrill : null;
   const adapt = personalises ? (await v.ssrLoadModule('/src/drill/cameraView.ts')).adaptDrillForCameraView : null;
@@ -41,9 +43,15 @@ try {
       if (key !== prev) { events.push({frame: idx, state: runtime.state, cp: runtime.checkpointIndex, phase: runtime.motion?.phase, msg: runtime.motion?.message}); prev = key; }
     }
     const m = runtime.motion;
+    // diagnostic only (does not affect the result): how the recognizer scored the last open/finished attempt
+    let diag = null;
+    if (m?.samples?.length > 3) { const seq = MR.prepareSequence(m.samples, MODEL.pathScales, MODEL.points); const r = seq && MR.recognize(seq, MODEL);
+      if (r) { const acc = d => MODEL.acceptByDrill?.[d] ?? MODEL.acceptDistance; const dd = Object.entries(r.distances).sort((a, b) => a[1] - b[1]);
+        diag = {best: r.best, own: +(r.distances[drillId] ?? NaN).toFixed(3), accept: acc(drillId), top3: dd.slice(0, 3).map(([d, v]) => [d, +v.toFixed(3), acc(d)]),
+          pathRatio: MODEL.typicalPath?.[drillId] ? +(MR.sequencePath(seq, MODEL.pathScales) / MODEL.typicalPath[drillId]).toFixed(2) : null, endStance: +MR.endStanceRatio(m.samples).toFixed(2), decision: MR.decide(drillId, m.samples, MODEL).kind}; } }
     rows.push({drillId, file, facing, sourceDrill: clip.drill, state: runtime.state, checkpointIndex: runtime.checkpointIndex, nCheckpoints: base.checkpoints.length,
       startedAt: runtime.startedAt, finishedAt: runtime.finishedAt, calibratedAtFrame: calAt, calibrated: calibration.refined,
-      similarity: m?.similarity, outcome: m?.outcome, message: m?.message, feedback: m?.feedback, failures, events});
+      similarity: m?.similarity, outcome: m?.outcome, message: m?.message, feedback: m?.feedback, failures, events, diag});
   }
 } finally { await v.close(); }
 writeFileSync(out, JSON.stringify(rows, null, 1));

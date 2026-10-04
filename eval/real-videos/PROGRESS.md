@@ -36,3 +36,7 @@ worktree /workspace/hema-real (branch eval/public-real-videos from origin/main 0
   First result: real strikes end 'running cp=2 Продолжай движение до конца' = settled but decide() neither accepted nor 'other' (undecided). laurel_zwerch_02 accepted (slow 2.4x) with facing right.
   Added drey_zwerch_01, drey_krump_01, bjorn_zorn_02/03. Unusable: SFGB m6hc/scSb (vertical, feet cut), Drey Wunder bWlF (pairs dark), Ukolov s8_9 frontal, Gent AK1I unlabeled 7-cut sequence, Ottawa T-M_ no sword + frontal.
   step_find.py <id> -> step candidates from screen json.
+- 15:36 30 clips in manifest (all cut). vr_queue.sh (detached) runs browser pass for clips lacking rawframes. Screening workers STOPPED (CPU for browser).
+  run_replay.sh -> results/rp_own.json (manifest facing), rp_own_flipped.json, rp_cross.json, rp_cross_drillpage.json. replay_facing.mjs now adds 'diag' (best drill, own dist vs accept 2.735, pathRatio, endStance, decision).
+  Finding so far: real distances 3-9 >> accept 2.735 -> 'unknown' -> UI stays 'Продолжай движение до конца'. Steps with sword arm motion look like strikes (pathRatio 4-7).
+  NEXT: summarize.py -> results/summary.md; doc; PR.
