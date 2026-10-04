@@ -41,3 +41,22 @@ describe("blade detector", () => {
     try { expect(frameChannels(f).slice(CHANNELS.length)).toEqual([1, 0, 1, -1, 1, 0]); } finally { BLADE.enabled = false; }
   });
 });
+
+describe("blade track", () => {
+  it("keeps a weak blade inside the predicted window and drops it after the gap limit", async () => {
+    const { BladeTrack, BLADE_TRACK_DEFAULTS, scanBlade } = await import("./bladeDetector");
+    const opt = { ...BLADE_TRACK_DEFAULTS }, track = new BladeTrack(opt);
+    const strong = scene(-60), s1 = scanBlade(strong.img, strong.hands, 50)!;
+    expect(track.update(s1, 0)).not.toBeNull();
+    // weak frame: the blade at -63 degrees with low contrast plus a rival line far away
+    const weak = scene(-63);
+    for (let i = 0; i < weak.img.data.length; i++) if (weak.img.data[i] === 210) weak.img.data[i] = 158;
+    const sw = scanBlade(weak.img, weak.hands, 50)!;
+    opt.high = 1e9; // from here on only the track can accept
+    const d = track.update(sw, 33)!;
+    expect(d).not.toBeNull();
+    const a = Math.atan2((d.tip[1] - d.guard[1]) * 180, (d.tip[0] - d.guard[0]) * 320) * 180 / Math.PI;
+    expect(Math.abs(a + 63)).toBeLessThan(5);
+    expect(track.update(sw, 1000)).toBeNull();
+  });
+});

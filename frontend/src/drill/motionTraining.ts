@@ -30,7 +30,7 @@ export const BLADE_WEIGHTS: Record<(typeof BLADE_CHANNELS)[number], number> = {
 const weightOf = (c: string) => (WEIGHTS as Record<string, number>)[c] ?? (BLADE_WEIGHTS as Record<string, number>)[c] ?? 0;
 export const POINTS = 32, BAND = 6, MARGIN = 1.05;
 /** Model-building options (defaults = shipped). Exposed so design experiments can vary them on train-body LOBO only. */
-export const TRAINING = { completion: 0.65, endStance: 0.5, margin: MARGIN, perDrillAccept: false, acceptFloor: 0.75, acceptFactor: 1.5, fisherWeights: false, fisherGamma: 1, k: 1 };
+export const TRAINING = { bladeStrikesOnly: false, completion: 0.65, endStance: 0.5, margin: MARGIN, perDrillAccept: false, acceptFloor: 0.75, acceptFactor: 1.5, fisherWeights: false, fisherGamma: 1, k: 1 };
 
 export function rawFrames(clip: FixtureClip, names: string[]): RawPose[] {
   return clip.t.map((timestampMs, i) => {
@@ -77,8 +77,11 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
     pathScales: scales.map(round4), points: POINTS, band: BAND, acceptDistance: Infinity, margin: MARGIN, typicalMs: {}, templates: [] };
   for (const c of clips) {
     const seq = prepareSequence(movementSamples(c, names), scales, POINTS);
+    // bladeStrikesOnly: footwork templates carry no blade channels (the footwork renders have no sword, and the blade does
+    // not define a step), so strike-vs-footwork comparisons use the body channels only
+    const noBlade = TRAINING.bladeStrikesOnly && !c.drill.endsWith("hau");
     if (seq) model.templates.push({ drill: c.drill, body: c.body, level: c.level, durationMs: c.move![1] - c.move![0],
-      seq: seq.map(r => r.map(v => (Number.isFinite(v) ? Math.round(v * 1e3) / 1e3 : null))) });
+      seq: seq.map(r => r.map((v, j) => (noBlade && j >= CHANNELS.length ? null : Number.isFinite(v) ? Math.round(v * 1e3) / 1e3 : null))) });
   }
   // Matching scales: within-drill spread of the training templates (performer/body variation the matcher must
   // tolerate), so channels that differ between bodies but not between drills weigh less. Floor = landmark noise.

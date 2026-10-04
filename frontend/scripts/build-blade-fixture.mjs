@@ -4,7 +4,8 @@
 // the app). Frames are downscaled to <= 640 px wide and converted to grey with ffmpeg. Needs the rendered videos:
 // main clips under test-data/mock-videos, bodies/angles clips under <baRoot>/<split>/<drill>/<name>.mp4 and held-out
 // clips under <heldoutRoot>/<variant>/<drill>/<body>_<level>.mp4 (docs/blade-tracking.md).
-// Usage (repo root): node frontend/scripts/build-blade-fixture.mjs <baRoot> <heldoutRoot>
+// Usage (repo root): node frontend/scripts/build-blade-fixture.mjs <baRoot> <heldoutRoot> [strikes]
+// (experiments: env BLADE_TRACK='{"low":1.5}' overrides track options, BLADE_OUT another output path)
 import {createServer} from 'vite';import {writeFileSync,existsSync} from 'node:fs';import {spawnSync} from 'node:child_process';import {gzipSync} from 'node:zlib';
 const [baRoot,heldoutRoot,only]=process.argv.slice(2);
 const v=await createServer({root:'frontend',server:{middlewareMode:true,hmr:false},optimizeDeps:{noDiscovery:true,include:[]},logLevel:'error'});
@@ -22,7 +23,7 @@ try {
   const p=pathOf(c);if(!existsSync(p)){console.log('no video (skipped):',p);continue;}
   const W=Math.min(640,c.width),H=Math.round(c.height*W/c.width/2)*2;
   const buf=spawnSync('ffmpeg',['-v','error','-i',p,'-vf',`scale=${W}:${H}`,'-f','rawvideo','-pix_fmt','gray','-'],{maxBuffer:1<<30}).stdout;
-  const fsz=W*H,nf=Math.floor(buf.length/fsz),tors=[],track=new D.BladeTrack();let ms=0;
+  const fsz=W*H,nf=Math.floor(buf.length/fsz),tors=[],track=new D.BladeTrack({...D.BLADE_TRACK_DEFAULTS,...JSON.parse(process.env.BLADE_TRACK||'{}')});let ms=0;
   clips[c.id]=c.t.map((t,i)=>{const q=c.p[i];if(!q.length)return [];
    const lm={};for(const k of N)lm[k]={x:q[I[k]*3]/1e4,y:q[I[k]*3+1]/1e4,visibility:q[I[k]*3+2]/100};
    const tp=Math.hypot((lm.left_shoulder.x+lm.right_shoulder.x-lm.left_hip.x-lm.right_hip.x)/2*W,(lm.left_shoulder.y+lm.right_shoulder.y-lm.left_hip.y-lm.right_hip.y)/2*H);
@@ -34,6 +35,6 @@ try {
    return d?[...d.guard,...d.tip].map(x=>Math.round(x*1e4)).concat([Math.round(d.contrast*100)]):[];});
  }
  const out={version:1,source:'frontend/src/live/bladeDetector.ts (scanBlade + BladeTrack, defaults; accepted frames only) on the fixture clip videos (<=640 px grey), MediaPipe hands/torso from motion-poses.json.gz; per frame [guard x, guard y, tip x, tip y]*1e4 + confidence*100, [] = no pose',clips:Object.fromEntries(Object.entries(clips).sort())};
- writeFileSync('frontend/test-fixtures/motion-blade.json.gz',gzipSync(JSON.stringify(out),{level:9}));
+ writeFileSync(process.env.BLADE_OUT||'frontend/test-fixtures/motion-blade.json.gz',gzipSync(JSON.stringify(out),{level:9}));
  console.log(Object.keys(clips).length,'clips -> frontend/test-fixtures/motion-blade.json.gz',(cost.ms/cost.n).toFixed(2),'ms/frame (scan+track, node)');
 }finally{await v.close();}
