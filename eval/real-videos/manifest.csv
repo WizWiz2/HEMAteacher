@@ -21,3 +21,11 @@ stritschar_retreat_01,retreat,6xmG_vA7f7g,65.1,71.3,,right,profile ~10deg,1,inst
 stritschar_advance_01,advance,6xmG_vA7f7g,75.6,81.4,,right,profile ~10deg,1,instructor (strîtschar),shoulder (Zornhut-like),low,chapter 'Grundmerkmale'; approaches pell
 stritschar_advance_02,advance,6xmG_vA7f7g,82.9,87.0,,right,profile ~10deg,1,instructor (strîtschar),shoulder (Zornhut-like),low,chapter 'Grundmerkmale'
 stritschar_advance_03,advance,6xmG_vA7f7g,97.4,101.6,,right,profile ~10deg,1,instructor (strîtschar),shoulder (Zornhut-like),low,chapter 'Grundmerkmale'
+vcu_passfwd_01,passing-step-forward,JTuJ1j1hUL4,267.9,272.9,,right,~45deg front,1,instructor (VCU HEMA),fencing stance without sword,medium,chapter 'Passing Step'; NO sword in hands; dark background
+vcu_passback_01,passing-step-backward,JTuJ1j1hUL4,275.9,280.6,,right,~45deg front,1,instructor (VCU HEMA),fencing stance without sword,medium,chapter 'Passing Step'; NO sword in hands; dark background
+vcu_passback_02,passing-step-backward,JTuJ1j1hUL4,282.2,286.3,,right,~45deg front,1,instructor (VCU HEMA),fencing stance without sword,medium,chapter 'Passing Step'; NO sword in hands; dark background
+swc_passfwd_01,passing-step-forward,vZCeqNPYRSg,122.6,128.2,,right,~30deg front,1,instructor (Sword Carolina),longsword guard,medium,chapter 'Passing Step' of a footwork+attack drill: pass is combined with a sword action
+swc_passback_01,passing-step-backward,vZCeqNPYRSg,128.2,133.3,,right,~30deg front,1,instructor (Sword Carolina),longsword guard,medium,chapter 'Passing Step' of a footwork+attack drill: pass back combined with a sword action
+laurel_schielhau_01,schielhau,maVcL1HSkIE,295.5,302.5,,right,~20deg front,1,instructor (Laurel City),vom Tag (assumed),medium,'Lesson and Solo Exercise' outdoor solo segment; small figure
+laurel_schielhau_02,schielhau,maVcL1HSkIE,423.0,430.0,,right,~20deg front,1,instructor (Laurel City),vom Tag (assumed),medium,second outdoor solo segment; small figure
+becker_zornhau_01,zornhau,-c6Rhb3O6-0,20.5,27.0,0-0.6,right,profile 0deg,1-2 (partner partly inside crop),instructor (Paul Becker),vom Tag,medium,'Zornhau Ort' without stepping; partner on right
