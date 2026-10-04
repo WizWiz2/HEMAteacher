@@ -3,6 +3,8 @@
 // Training split for the shipped model (isTrainClip): master + experienced levels of the main mock clips and the
 // bodies/angles train clips (docs/bodies-angles-split.md: 5 train bodies, random camera). Beginners, the held-out and
 // reserved test bodies/angles, and guards-basic are never used.
+// Also builds the experimental blade-channel model (src/drill/motionModelBlade.json, docs/blade-tracking.md) from the
+// same training clips plus the blade detections of test-fixtures/motion-blade.json.gz (used only when the flag is on).
 // Usage (from the repo root): node frontend/scripts/build-motion-patterns.mjs [--check]
 import {createServer} from 'vite';import {writeFileSync,readFileSync} from 'node:fs';import {gunzipSync} from 'node:zlib';
 const v=await createServer({root:'frontend',server:{middlewareMode:true},optimizeDeps:{noDiscovery:true,include:[]},logLevel:'error'});
@@ -27,7 +29,14 @@ try {
   patterns[c.drill]??={features,maxMs:10000,minMs:180,templates:[]};
   patterns[c.drill].templates.push({body:c.body,frames});
  }
- const outputs=[['frontend/src/drill/motionPatterns.json',JSON.stringify(patterns,null,2)+'\n'],['frontend/src/drill/motionModel.json',JSON.stringify(model)+'\n']];
+ const {BLADE}=await v.ssrLoadModule('/src/drill/motionRecognition.ts');
+ const {BLADE_MIN_CONFIDENCE}=await v.ssrLoadModule('/src/live/bladeTracking.ts');
+ const {withBlade}=await import('../test-fixtures/loadFixture.mjs');
+ BLADE.enabled=true;
+ const bladeModel=buildModel(withBlade(fixture,BLADE_MIN_CONFIDENCE).clips.filter(isTrainClip),fixture.names);
+ BLADE.enabled=false;
+ const outputs=[['frontend/src/drill/motionPatterns.json',JSON.stringify(patterns,null,2)+'\n'],['frontend/src/drill/motionModel.json',JSON.stringify(model)+'\n'],
+  ['frontend/src/drill/motionModelBlade.json',JSON.stringify(bladeModel)+'\n']];
  for(const [file,text] of outputs) {
   if(process.argv.includes('--check')) {if(readFileSync(file,'utf8')!==text)throw new Error(`${file} is stale: rerun build-motion-patterns.mjs`);}
   else writeFileSync(file,text);

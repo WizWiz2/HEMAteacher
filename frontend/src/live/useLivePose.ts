@@ -8,6 +8,7 @@ import { type CameraView, type Facing } from "./normalize";
 import { MediaPipeLivePose } from "./poseLandmarker";
 import { LiveSampleProcessor } from "./sampleProcessor";
 import { detectWeaponMarkers } from "./weaponMarkers";
+import { BladeTracker, bladeTrackingEnabled, loadBladeModel } from "./bladeTracking";
 import { projectTargetGhost } from "./targetGhost";
 
 export interface LiveSample {
@@ -91,10 +92,14 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     const markerCanvas = document.createElement("canvas");
     let lastWeaponAt = 0;
     let weapon: WeaponMarkers | null = null;
+    // experimental blade tracking (off by default, docs/blade-tracking.md)
+    const blade = bladeTrackingEnabled() ? new BladeTracker() : null;
+    if (blade) void loadBladeModel();
 
     detector.onPose((raw) => {
       const active = optionsRef.current;
       const trackingMode = active.trackingMode ?? "full_body";
+      blade?.attach(raw, video, processor.scale.current());
       const sample = processor.process(raw, facingRef.current, trackingMode, active.cameraView ?? "side", active.smoothingMs ?? 100);
       const smoothedScale = processor.scale.current();
 
