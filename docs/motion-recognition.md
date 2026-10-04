@@ -30,7 +30,7 @@ Applies to the nine continuous drills: Zornhau, Scheitelhau, Krumphau, Zwerchhau
   - the frame-gap limit is relaxed from 250 to 400 ms.
 
   The onset jump check now uses fixed torso-length bounds per frame (0.6 for hands, 0.3 for feet) instead of the template extent, which had been rejecting real fast steps.
-- **Model.** `src/drill/motionModel.json` is built by `frontend/scripts/build-motion-patterns.mjs` from the pose fixture `frontend/test-fixtures/motion-poses.json.gz`. The fixture holds browser MediaPipe Lite poses of 68 clips: 54 main, 6 guards-basic and 8 held-out. The builder also writes the trigger/feedback patterns `src/drill/motionPatterns.json`, now from MediaPipe rather than ground truth.
+- **Model.** `src/drill/motionModel.json` is built by `frontend/scripts/build-motion-patterns.mjs` from the pose fixture `frontend/test-fixtures/motion-poses.json.gz`. The fixture holds browser MediaPipe Lite poses of 413 clips: 54 main, 6 guards-basic, 8 held-out and 345 bodies/angles clips (6 excluded by the clearance gate). The builder also writes the trigger/feedback patterns `src/drill/motionPatterns.json`, now from MediaPipe rather than ground truth.
   - Training split (`isTrainClip`): master + experienced of the main clips and of the bodies/angles train clips (five train bodies, random camera; `docs/bodies-angles-split.md`).
   - Matching scales: the within-drill spread of the training templates.
   - `acceptDistance`: 1.5× the largest leave-one-out same-drill distance among the training templates.
@@ -69,14 +69,39 @@ Tuning used leave-one-body-out over the train bodies only (strikes M/E):
 | hand path direction weight 0.5 → 1.5 | 51/66 (77%) | 5/528 (0.9%) |
 | + margin 1.15 → 1.05 (shipped) | 54/66 (82%) | 8/528 (1.5%) |
 
-The accept distance does not limit acceptance across bodies (own distances 0.6–2.5 vs `acceptDistance` ≈ 3.1); the misses are look-alike drills (Scheitelhau ↔ Schielhau/Zornhau, Krumphau ↔ Zwerchhau), whose difference lies mostly in depth and blade rotation. A lower margin trades those misses for slightly more wrong-drill accepts. The reserved test clips were evaluated once, after the model was frozen (`evaluate-motion-recognition.mjs … lobo,before,test`); see the PR / PROGRESS for the numbers. The framing check (nose required) did not block any angle on these renders: MediaPipe reports the nose as visible even when the guard covers the face, and motion framing was ready on all but the first frame at every azimuth.
+The accept distance does not limit acceptance across bodies (own distances 0.6–2.5 vs `acceptDistance` ≈ 3); the misses are look-alike drills (Scheitelhau ↔ Schielhau/Zornhau, Krumphau ↔ Zwerchhau), whose difference lies mostly in depth and blade rotation. A lower margin trades those misses for slightly more wrong-drill accepts.
+
+The settings were frozen (4fcba78) after tuning on the train strikes. The test clips were first evaluated once on the 62 test strike clips rendered by then. After all 351 renders finished, the fixture and model were rebuilt with the same settings (more training clips, no retuning) and evaluated once more on all reserved test clips. Command: `evaluate-motion-recognition.mjs <out> lobo,before,test`. "before" is the PR #16 model, trained on the main profile clips of two bodies.
+
+Own drill accepted | wrong drill accepted:
+
+| protocol | strikes M/E | steps M/E | strikes beginner | steps beginner |
+|---|---|---|---|---|
+| train LOBO (5 bodies) | 51/66 (77%) · 10/528 (1.9%) | 51/56 (91%) · 3/448 (0.7%) | 18/33 (55%) · 5/264 (1.9%) | 26/28 (93%) · 14/224 (6.2%) |
+| test, before (PR #16) | 36/84 (43%) · 4/672 (0.6%) | 17/64 (27%) · 1/512 (0.2%) | 6/44 (14%) · 0/352 | 5/32 (16%) · 0/256 |
+| test, after (shipped) | 65/84 (77%) · 13/672 (1.9%) | 57/64 (89%) · 3/512 (0.6%) | 31/44 (70%) · 8/352 (2.3%) | 28/32 (88%) · 14/256 (5.5%) |
+
+Reserved test clips, master/experienced, by azimuth (before → after):
+
+| azimuth | strikes own | strikes wrong | steps own | steps wrong |
+|---|---|---|---|---|
+| −20/−25° (behind profile) | 2/22 → 13/22 | 3/176 → 7/176 (4.0%) | 4/16 → 14/16 | 0/128 → 1/128 |
+| 0° (profile) | 20/22 → 17/22 | 1/176 → 2/176 | 13/16 → 15/16 | 1/128 → 2/128 |
+| +20° | 14/20 → 19/20 | 0/160 → 0/160 | 0/16 → 15/16 | 0/128 → 0/128 |
+| +40° | 0/20 → 16/20 | 0/160 → 4/160 | 0/16 → 13/16 | 0/128 → 0/128 |
+
+By test body (M/E, own after): stocky_short_male strikes 33/40, steps 29/32; tall_slim_female strikes 29/40, steps 28/32; medium_stocky_male (earlier held-out) 2/2. Mutations on the main clips are unchanged: reversed 0/54, frozen 0/54, 12× slow 0/54, and 4× slow 50/54 accepted.
+
+The framing check (nose required) did not block any angle on these renders. MediaPipe reports the nose as visible even when the guard covers the face, and motion framing was ready on all but the first frame at every azimuth.
 
 ## Limitations
 
 - **Scheitelhau / Schielhau.** These are nearly identical in side-view 2D landmarks; their difference is mostly blade and edge rotation. Krumphau is also weak with single-body templates. Together they account for most leave-one-body-out misses.
-- **Camera angle.** Front angles up to 45° work once they are in the training data, but cameras behind profile remain the weakest: on the reserved test clips at −20/−25° the shipped model accepted 4/8 own-drill strikes (M/E) with 4/64 wrong-drill accepts (6.3%). The PR #16 model, trained in profile only, recognised 0/13 at +40° and 1/8 at −20/−25°.
+- **Camera angle.** Front angles up to 45° work once they are in the training data. Behind profile (−20/−25°) remains the weakest angle for strikes on the reserved test clips: own 13/22 and wrong-drill 7/176 (4.0%, the highest of any angle).
 - **Ground-truth skeletons.** `check-continuous-motion.mjs` (ground-truth Blender skeletons) no longer matches the template domain: 15/54 "normal". The templates are MediaPipe-based, and ground-truth landmark definitions differ (nose, wrists).
-- **Footwork stops early.** Footwork may be accepted at a mid-step pause, so its tempo estimate can be too low.
+- **Footwork stops early.** Footwork may be accepted at a mid-step pause, so its tempo estimate is too low: only 3/26 slow footwork beginners get the slow note (strikes 17/18). The same pause makes beginner passing steps the main wrong-drill accepts: passing step backward → retreat and forward → advance, 14/256 (5.5%) on test, above the 5% target for that subgroup.
+- **False slow note on fast attempts.** Some master/experienced attempts get an attempt window several times longer than the movement: 3 of 102 under train LOBO, two at about 5.5× the typical duration. In the earlier fixture the case was tall_heavy_male Schielhau master at 4.7×. The fixture test allows at most 3% until the attempt segmentation is fixed.
+- **2D ceiling for look-alike strikes.** Scheitelhau ↔ Schielhau/Zornhau and Krumphau ↔ Zwerchhau differ mostly in depth and blade rotation. Scheitelhau is the weakest drill: 7/18 own on test, 6/14 under LOBO. Strike LOBO stays at about 77%, below the 90% target, and the tried variants did not move it: per-drill accept distances, fitted channel weights, k-NN, and a wrist→index hand feature.
 - **guards-basic is unchanged.**
   - The 3 female clips never finish calibration. In side view the far (left) elbow is below visibility 0.42 in 77–95 frames and elbow+wrist in 74–89 frames of 180. Framing for `upper_body` requires both elbows and both wrists, so only 10–22 frames per clip are ready, and calibration never completes.
   - The male clips get through calibration (51–63 ready frames) but stop at checkpoint 2.
