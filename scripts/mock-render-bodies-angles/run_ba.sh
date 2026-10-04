@@ -18,8 +18,16 @@ while true; do
   W=$BA/work/${drill}__$name; mkdir -p $W $BA/clips/$split/$drill; L=$BA/logs/${drill}__$name.txt
   OV="{\"script\":\"$S\",\"camera\":{\"az\":$az,\"h\":$h,\"d\":$d,\"lens\":$lens},\"bodies\":$BODIES}"
   t0=$(date +%s)
+  FR=180
   HEMA_BA_JSON="$OV" nice -n 15 $B -b -t 4 -P $BA/render_ba.py -- --drill $drill --body $body --level $level --samples 3 --seed $seed --pct 50 --out $W --frames-dir $W/frames > $L 2>&1
-  if [ -f $W/${body}_$level.json ] && [ $(ls $W/frames/*.png 2>/dev/null | wc -l) -ge 170 ]; then
+  # Slow beginner passing steps (graded pass + ungraded return) can exceed the 6 s clip for some seeds: the footwork
+  # generator refuses ("timeline too long"). Re-render the same seed as a 7 s clip (longer end hold) instead of
+  # re-drawing the seed, which would bias the beginner tempo towards faster attempts.
+  if grep -q "timeline too long" $L; then
+    FR=210; mv $L $L.6s
+    HEMA_BA_JSON="$OV" nice -n 15 $B -b -t 4 -P $BA/render_ba.py -- --drill $drill --body $body --level $level --samples 3 --seed $seed --pct 50 --frames $FR --out $W --frames-dir $W/frames > $L 2>&1
+  fi
+  if [ -f $W/${body}_$level.json ] && [ $(ls $W/frames/*.png 2>/dev/null | wc -l) -ge $((FR - 10)) ]; then
     nice -n 15 python3 $BA/degrade.py $W/frames $W/out.mp4 --seed $seed --drop $drop --scale $scale --noise $noise --crf $crf >> $L 2>&1 \
       && python3 - "$W/${body}_$level.json" "$BA/clips/$split/$drill/$name.json" "$az" "$h" "$d" "$lens" "$scale" "$noise" "$crf" "$drop" "$split" <<'PY' && mv $W/out.mp4 $out && rm -rf $W/frames
 import json, sys
