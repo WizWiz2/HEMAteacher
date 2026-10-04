@@ -26,6 +26,13 @@ export interface RecognitionModel {
   acceptByDrill?: Record<string, number>;
   /** Per-drill distance = mean of the k nearest templates (default 1). */
   k?: number;
+  /** Median path length (sequencePath) of the training templates per drill. */
+  typicalPath?: Record<string, number>;
+  /** Completion check: an attempt shorter than this fraction of typicalPath is not accepted (strikes stopped half-way). */
+  minPathRatio?: Record<string, number>;
+  /** End-stance check (advance/retreat): final foot spacing / starting foot spacing must reach this ratio, so a
+   *  passing step paused at the crossing (feet together) is not accepted as a simple step. */
+  minEndStance?: Record<string, number>;
   /** Median active duration (activeDurationMs) of the training attempts per drill (for the tempo note). */
   typicalMs: Record<string, number>;
   templates: RecognitionTemplate[];
@@ -85,6 +92,20 @@ function pathProfile(samples: TimedFeatures[], pathScales: number[]) {
     cum.push(cum[i - 1] + (n ? Math.sqrt(s / n) : 0));
   }
   return { smooth, cum };
+}
+
+/** Path length of a re-sampled sequence over the path channels (same metric as the path-length parameterisation). */
+export function sequencePath(seq: (number | null)[][], pathScales: number[]): number {
+  let total = 0;
+  for (let i = 1; i < seq.length; i++) {
+    let s = 0, n = 0;
+    for (const j of PATH_CHANNELS) {
+      const a = seq[i][j], b = seq[i - 1][j];
+      if (a !== null && b !== null && Number.isFinite(a) && Number.isFinite(b)) { s += ((a - b) / pathScales[j]) ** 2; n++; }
+    }
+    total += n ? Math.sqrt(s / n) : 0;
+  }
+  return total;
 }
 
 /** Duration of the active part of the movement: from 5% to 95% of its path length (holds before/after excluded). */
@@ -165,18 +186,35 @@ export function recognize(seq: number[][], m: RecognitionModel, templates = m.te
 export type Decision =
   | { kind: "accepted"; distance: number; similarity: number; slow: boolean; tempo: number }
   | { kind: "other"; drill: string }
-  | { kind: "unknown" };
+  /** complete: the selected drill was nearest, within the accept distance and its whole path was there (ambiguous only). */
+  | { kind: "unknown"; complete?: boolean; incomplete?: "path" | "stance" };
 
-/** Decide for the drill the user selected. */
-export function decide(selected: string, samples: TimedFeatures[], m: RecognitionModel): Decision {
+/** Final / starting foot spacing (medians of the first and last 5 observed frames); NaN without ankles. */
+export function endStanceRatio(samples: TimedFeatures[]): number {
+  const fd = samples.map(x => x.features?.foot_distance).filter((x): x is number => finite(x));
+  if (fd.length < 3) return NaN;
+  const med = (v: number[]) => [...v].sort((a, b) => a - b)[Math.floor((v.length - 1) / 2)];
+  const start = med(fd.slice(0, 5));
+  return start > 1e-6 ? med(fd.slice(-5)) / start : NaN;
+}
+
+/** Share of the selected drill's typical path covered by the attempt (NaN when the model has no typicalPath). */
+export const COMPLETE_PATH_RATIO = 0.85;
+
+/** Decide for the drill the user selected. tempoSamples: the part of the attempt the tempo is measured on (default:
+ *  all samples), e.g. up to the settle at which the whole movement was already observed. */
+export function decide(selected: string, samples: TimedFeatures[], m: RecognitionModel, tempoSamples = samples): Decision {
   const seq = prepareSequence(samples, m.pathScales, m.points);
   const r = seq && recognize(seq, m);
   if (!r) return { kind: "unknown" };
   const own = r.distances[selected] ?? Infinity;
   const rival = Math.min(...Object.entries(r.distances).filter(([d]) => d !== selected).map(([, v]) => v));
   const accept = (d: string) => m.acceptByDrill?.[d] ?? m.acceptDistance;
-  if (r.best === selected && own <= accept(selected) && rival >= own * m.margin) {
-    const durationMs = activeDurationMs(samples, m.pathScales);
+  const pathRatio = m.typicalPath?.[selected] ? sequencePath(seq!, m.pathScales) / m.typicalPath[selected] : NaN;
+  const incomplete = pathRatio < (m.minPathRatio?.[selected] ?? 0) ? "path" as const
+    : endStanceRatio(samples) < (m.minEndStance?.[selected] ?? 0) ? "stance" as const : undefined;
+  if (r.best === selected && own <= accept(selected) && rival >= own * m.margin && !incomplete) {
+    const durationMs = activeDurationMs(tempoSamples, m.pathScales);
     const tempo = m.typicalMs[selected] ? durationMs / m.typicalMs[selected] : 1;
     const masters = m.templates.filter(t => t.drill === selected && t.level === "master");
     const quality = masters.length ? Math.min(...masters.map(t => dtwDistance(seq!, t.seq, m))) : own;
@@ -185,5 +223,5 @@ export function decide(selected: string, samples: TimedFeatures[], m: Recognitio
     return { kind: "accepted", distance: own, similarity: Math.round(Math.max(0, Math.min(100, similarity))), slow: tempo > 1.6, tempo };
   }
   if (r.best !== selected && r.bestDistance <= accept(r.best) && own >= r.bestDistance * m.margin) return { kind: "other", drill: r.best };
-  return { kind: "unknown" };
+  return { kind: "unknown", incomplete, complete: r.best === selected && own <= accept(selected) && pathRatio >= COMPLETE_PATH_RATIO };
 }

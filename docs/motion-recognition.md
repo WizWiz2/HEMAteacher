@@ -95,6 +95,29 @@ By test body (M/E, own after): stocky_short_male strikes 33/40, steps 29/32; tal
 
 The framing check (nose required) did not block any angle on these renders. MediaPipe reports the nose as visible even when the guard covers the face, and motion framing was ready on all but the first frame at every azimuth.
 
+## Completion and tempo checks (fix/recognizer-completion-tempo)
+
+All thresholds were chosen on training clips only (main + bodies/angles train bodies).
+
+- **Strike completion.** An attempt is accepted only if its path length (the same metric as the path-length parameterisation) reaches 65% of the drill's median template path (`model.typicalPath`, `model.minPathRatio`). Whole strikes reach ≥ ~0.8 of it on train clips; strikes frozen half-way reach ≤ 0.55. Footwork paths overlap, so footwork has no path check. A strike stopped short stays open ("Продолжай движение до конца").
+- **End stance (advance/retreat).** The final foot spacing must be at least 0.5 × the starting spacing (`model.minEndStance`). Own advance/retreat attempts end at ≥ 0.87. Passing steps paused at the crossing (feet together) and accepted as advance/retreat end at ≤ 0.35 (one at 0.63). 0.75 would also have rejected fast (0.6× time) and 10 fps steps that settle before the trailing foot arrives. A step not yet back in stance is re-checked at the next settle.
+- **Tempo window.** If an earlier settle already contained the selected drill's whole movement (nearest drill, within the accept distance, ≥ 85% of the typical path) but was ambiguous, a later acceptance measures the tempo only up to that settle. This removes the ~5.5× false slow notes caused by the return movement being counted.
+
+Effect (full evaluation, own drill · wrong drill accepted):
+
+| | before (a4b7f73) | after |
+|---|---|---|
+| train LOBO M/E | 102/122 · 13/976 | 102/122 · 13/976 |
+| train LOBO beginners | 44/61 · 19/488 (3.9%) | 44/61 · 8/488 (1.6%) |
+| test strikes M/E | 65/84 · 13/672 (1.9%) | 65/84 · 11/672 (1.6%) |
+| test steps M/E | 57/64 · 3/512 | 57/64 · 3/512 |
+| test strikes beginners | 31/44 · 8/352 | 30/44 · 6/352 |
+| test steps beginners | 28/32 · 14/256 (5.5%) | 28/32 · 3/256 (1.2%) |
+| scenario check: truncated strikes | 2/30 accepted | 0/30 |
+| master/experienced slow notes (LOBO) | 3/102 (two ~5.5×) | 2/102 (1.61×, 1.65×) |
+
+Mutations are unchanged: reversed, frozen and 12× slow 0/54 accepted; 4× slow 50/54 accepted.
+
 ## Limitations
 
 - **Scheitelhau / Schielhau.** These are nearly identical in side-view 2D landmarks; their difference is mostly blade and edge rotation. Krumphau is also weak with single-body templates. Together they account for most leave-one-body-out misses.
@@ -110,15 +133,15 @@ The framing check (nose required) did not block any angle on these renders. Medi
   | reversed | reject | 0/54 |
   | frozen | reject | 0/54 |
   | 12× slow | reject | 0/54 |
-  | truncated half-way | reject | 21/54: footwork 19/24, strikes 2/30 (PR #16 model: 16/54, all footwork) |
+  | truncated half-way | reject | 19/54, all footwork (strikes 0/30 with the completion check; before it 2/30) |
   | 500 ms tracking gap | reject | 0/54 |
 
-  The known gaps are allowed explicitly; any further unexpected outcome fails CI. **Regression of the bodies/angles model:** Scheitelhau master (both main bodies) frozen mid-drop is accepted. In side-view 2D the drop and the finish differ little, and the lower margin (1.05) no longer rejects it. The gate allows exactly these 2 strike clips.
+  The known gaps are allowed explicitly; any further unexpected outcome fails CI.
   - Footwork stopped half-way is accepted (see "Footwork stops early").
   - A few footwork clips at 10 fps or 0.6× time are not accepted.
   - Some 10 fps attempts stay open ("Продолжай движение до конца").
-- **Footwork stops early.** Footwork may be accepted at a mid-step pause, so its tempo estimate is too low: only 3/26 slow footwork beginners get the slow note (strikes 17/18). The same pause makes beginner passing steps the main wrong-drill accepts: passing step backward → retreat and forward → advance, 14/256 (5.5%) on test, above the 5% target for that subgroup.
-- **False slow note on fast attempts.** Some master/experienced attempts get an attempt window several times longer than the movement: 3 of 102 under train LOBO, two at about 5.5× the typical duration. In the earlier fixture the case was tall_heavy_male Schielhau master at 4.7×. The fixture test allows at most 3% until the attempt segmentation is fixed.
+- **Footwork stops early.** Footwork may be accepted at a mid-step pause, so its tempo estimate is too low: only 3/26 slow footwork beginners get the slow note (strikes 17/18). Beginner passing steps paused at the crossing used to be accepted as advance/retreat. The end-stance check (below) cut that from 14/256 (5.5%) to 3/256 (1.2%) on the test clips.
+- **Slow-note threshold.** 2 of 102 master/experienced attempts get the slow note under train LOBO, at 1.61× and 1.65× (threshold 1.6×). The earlier ~5.5× false notes came from an attempt window that ran from the whole strike through the return, after an ambiguous settle; they are fixed (below).
 - **2D ceiling for look-alike strikes.** Scheitelhau ↔ Schielhau/Zornhau and Krumphau ↔ Zwerchhau differ mostly in depth and blade rotation. Scheitelhau is the weakest drill: 7/18 own on test, 6/14 under LOBO. Strike LOBO stays at about 77%, below the 90% target, and the tried variants did not move it: per-drill accept distances, fitted channel weights, k-NN, and a wrist→index hand feature.
 - **guards-basic is unchanged.**
   - The 3 female clips never finish calibration. In side view the far (left) elbow is below visibility 0.42 in 77–95 frames and elbow+wrist in 74–89 frames of 180. Framing for `upper_body` requires both elbows and both wrists, so only 10–22 frames per clip are ready, and calibration never completes.
