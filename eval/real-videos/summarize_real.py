@@ -32,6 +32,10 @@ for d, c in sorted(byd.items()):
     n = sum(c.values()); P(f"| {d} | {n} | {c['accepted']} | {c['rejected_as_other']} | {c['undecided']} | {c['never_started']} | {n - c['accepted'] - c['rejected_as_other'] - c['undecided'] - c['never_started']} |")
 P('\n### Per camera angle\n\n| angle | n | accepted |\n|---|---|---|')
 for a, c in sorted(bya.items()): P(f"| {a} | {sum(c.values())} | {c['accepted']} |")
+bys = collections.defaultdict(collections.Counter)
+for r in own: bys[key(r).split('_')[0]][cls(r)] += 1
+P('\n### Per source (channel)\n\n| source | n | accepted | outcomes |\n|---|---|---|---|')
+for a, c in sorted(bys.items()): P(f"| {a} | {sum(c.values())} | {c['accepted']} | {dict(c)} |")
 fo = collections.Counter(cls(r) for r in flipped)
 P(f"\nFacing sensitivity (same clips, opposite facing): accepted {fo['accepted']}/{len(flipped)}; outcomes {dict(fo)}\n")
 def matrix(rows, title):

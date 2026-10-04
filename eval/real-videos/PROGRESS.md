@@ -40,3 +40,4 @@ worktree /workspace/hema-real (branch eval/public-real-videos from origin/main 0
   run_replay.sh -> results/rp_own.json (manifest facing), rp_own_flipped.json, rp_cross.json, rp_cross_drillpage.json. replay_facing.mjs now adds 'diag' (best drill, own dist vs accept 2.735, pathRatio, endStance, decision).
   Finding so far: real distances 3-9 >> accept 2.735 -> 'unknown' -> UI stays 'Продолжай движение до конца'. Steps with sword arm motion look like strikes (pathRatio 4-7).
   NEXT: summarize.py -> results/summary.md; doc; PR.
+- 15:50+ (session 3) all 30 clips browser+replay done (browser vs replay 30/30 agree). diag.mjs attempts/sweep + diag_report.py -> diag/. Doc written. Committing + PR.
