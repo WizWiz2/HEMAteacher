@@ -9,7 +9,7 @@
 import {createServer} from 'vite';import {writeFileSync,readFileSync} from 'node:fs';import {gunzipSync} from 'node:zlib';
 const v=await createServer({root:'frontend',server:{middlewareMode:true},optimizeDeps:{noDiscovery:true,include:[]},logLevel:'error'});
 try {
- const {buildModel,clipFeatures,CONTINUOUS_DRILLS,isTrainClip}=await v.ssrLoadModule('/src/drill/motionTraining.ts');
+ const {buildModel,clipFeatures,CONTINUOUS_DRILLS,isTrainClip,TRAINING}=await v.ssrLoadModule('/src/drill/motionTraining.ts');
  const fixture=JSON.parse(gunzipSync(readFileSync('frontend/test-fixtures/motion-poses.json.gz')).toString());
  const train=fixture.clips.filter(isTrainClip);
  const model=buildModel(train,fixture.names);
@@ -32,9 +32,10 @@ try {
  const {BLADE}=await v.ssrLoadModule('/src/drill/motionRecognition.ts');
  const {BLADE_MIN_CONFIDENCE}=await v.ssrLoadModule('/src/live/bladeTracking.ts');
  const {withBlade}=await import('../test-fixtures/loadFixture.mjs');
- BLADE.enabled=true;
+ // Blade model: footwork templates carry no blade channels (bladeStrikesOnly; chosen on train LOBO, docs/blade-tracking.md).
+ BLADE.enabled=true; TRAINING.bladeStrikesOnly=true;
  const bladeModel=buildModel(withBlade(fixture,BLADE_MIN_CONFIDENCE).clips.filter(isTrainClip),fixture.names);
- BLADE.enabled=false;
+ BLADE.enabled=false; TRAINING.bladeStrikesOnly=false;
  const outputs=[['frontend/src/drill/motionPatterns.json',JSON.stringify(patterns,null,2)+'\n'],['frontend/src/drill/motionModel.json',JSON.stringify(model)+'\n'],
   ['frontend/src/drill/motionModelBlade.json',JSON.stringify(bladeModel)+'\n']];
  for(const [file,text] of outputs) {
