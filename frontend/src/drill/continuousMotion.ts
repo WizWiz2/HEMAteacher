@@ -22,6 +22,9 @@ export interface MotionAttempt {
   /** The last settle was not a recognisable whole movement: wait for more movement before re-checking. */
   awaitMove?: boolean;
   tempo?: number;
+  /** Settle time at which the selected drill's whole movement was already observed (ambiguous, kept open): the tempo
+   *  of a later acceptance is measured up to here, so the continuation (e.g. the return) does not count as slowness. */
+  completeAt?: number;
 }
 const patterns: Record<string, Pattern> = patternsData;
 export const motionPatternFor = (id: string) => patterns[id];
@@ -116,7 +119,7 @@ export function stepContinuous(runtime: DrillRuntime, id: string, timeMs: number
   if(settledSince!==undefined && timeMs-settledSince>=200 && timeMs-startedAt>=pattern.minMs) {
     // Time-invariant, discriminative decision over the whole attempt (all drills compete).
     const segment=samples as TimedFeatures[];
-    const decision=decide(id,segment,model);
+    const decision=decide(id,segment,model,attempt.completeAt!==undefined?segment.filter(s=>s.timeMs<=attempt.completeAt!):segment);
     if(decision.kind==='accepted') {
       const feedback=motionFeedback(id,samples,pattern);
       if(decision.slow) feedback.unshift(`Движение распознано, но выполнено слишком медленно (примерно в ${decision.tempo.toFixed(1)} раза дольше образцов). Попробуй выполнить его слитно, без пауз.`);
@@ -130,7 +133,10 @@ export function stepContinuous(runtime: DrillRuntime, id: string, timeMs: number
     }
     if(distance(vector,attempt.baseline!)<extent*.3)return fail('Движение не удалось уверенно распознать. Повтори цельную попытку');
     // Not a recognisable whole movement yet (e.g. a pause mid-movement): keep the attempt open.
-    return {...runtime,checkpointIndex:progressIndex,motion:{...attempt,samples,last:sample,settledSince:undefined,awaitMove:true,message:'Продолжай движение до конца'}};
+    const completeAt=attempt.completeAt ?? (decision.complete ? timeMs : undefined);
+    // A step that has not yet come back into stance is re-checked at the next settle without requiring a new movement
+    // burst; a strike stopped short or an ambiguous movement waits for more movement.
+    return {...runtime,checkpointIndex:progressIndex,motion:{...attempt,samples,last:sample,settledSince:undefined,awaitMove:decision.incomplete!=='stance',completeAt,message:'Продолжай движение до конца'}};
   }
   return {...runtime,checkpointIndex:progressIndex,motion:{...attempt,samples,last:sample,settledSince,awaitMove,message:awaitMove?'Продолжай движение до конца':'Двигайся без остановок'}};
 }

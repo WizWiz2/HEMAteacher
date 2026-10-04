@@ -2,7 +2,7 @@
 // and by the fixture regression test). Input: the compact pose fixture (test-fixtures/motion-poses.json.gz).
 import { LiveSampleProcessor } from "../live/sampleProcessor";
 import type { RawPose } from "../live/landmarks";
-import { CHANNELS, activeDurationMs, kNearestMean, prepareSequence, frameChannels, dtwDistance, type RecognitionModel, type TimedFeatures } from "./motionRecognition";
+import { CHANNELS, activeDurationMs, kNearestMean, prepareSequence, frameChannels, dtwDistance, sequencePath, type RecognitionModel, type TimedFeatures } from "./motionRecognition";
 
 export interface FixtureClip {
   id: string; drill: string; variant: string; body: string; level: string; width: number; height: number;
@@ -23,7 +23,7 @@ export const WEIGHTS: Record<(typeof CHANNELS)[number], number> = {
 };
 export const POINTS = 32, BAND = 6, MARGIN = 1.05;
 /** Model-building options (defaults = shipped). Exposed so design experiments can vary them on train-body LOBO only. */
-export const TRAINING = { margin: MARGIN, perDrillAccept: false, acceptFloor: 0.75, acceptFactor: 1.5, fisherWeights: false, fisherGamma: 1, k: 1 };
+export const TRAINING = { completion: 0.65, endStance: 0.5, margin: MARGIN, perDrillAccept: false, acceptFloor: 0.75, acceptFactor: 1.5, fisherWeights: false, fisherGamma: 1, k: 1 };
 
 export function rawFrames(clip: FixtureClip, names: string[]): RawPose[] {
   return clip.t.map((timestampMs, i) => {
@@ -107,6 +107,21 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
     const ms = clips.filter(c => c.drill === d).map(c => activeDurationMs(movementSamples(c, names), model.pathScales));
     if (ms.length) model.typicalMs[d] = median(ms);
   }
+  // Completion check (strikes): an attempt must cover TRAINING.completion of the drill's median template path. Chosen
+  // on training clips: whole strikes >= ~0.8 of it, strikes frozen half-way <= ~0.55. Footwork paths overlap (no check).
+  if (TRAINING.completion > 0) {
+    model.typicalPath = {}; model.minPathRatio = {};
+    for (const d of CONTINUOUS_DRILLS) {
+      const v = model.templates.filter(t => t.drill === d).map(t => sequencePath(t.seq, model.pathScales));
+      if (!v.length) continue;
+      model.typicalPath[d] = round4(median(v));
+      if (d.endsWith("hau")) model.minPathRatio[d] = TRAINING.completion;
+    }
+  }
+  // End-stance check (advance/retreat), chosen on training clips: own attempts end with >= ~0.87 of the starting foot
+  // spacing, passing steps paused at the crossing and accepted as advance/retreat with <= 0.35 (one at 0.63). 0.5 keeps
+  // headroom for fast attempts that settle before the trailing foot has fully arrived (0.75 lost 0.6x/10 fps clips).
+  if (TRAINING.endStance > 0) model.minEndStance = { advance: TRAINING.endStance, retreat: TRAINING.endStance };
   // acceptance distance: 1.5 x the largest leave-one-out same-drill distance among training templates
   if (TRAINING.k > 1) model.k = TRAINING.k;
   const loo = model.templates.map((t, i) => kNearestMean(model.templates.filter((u, k) => k !== i && u.drill === t.drill)

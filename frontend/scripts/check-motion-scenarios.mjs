@@ -19,10 +19,9 @@ try {
  // Allowed unexpected outcomes per scenario (measured with the shipped model):
  //  fast/fps10: a few footwork clips at 0.6x time or 10 fps are not accepted (onset/settle segmentation);
  //  slow4x: slow beginners at 4x exceed the 10 s attempt bound (by design);
- //  truncated: footwork can be accepted at a mid-step pause (known limitation, 19/24); strikes: 2/30 (Scheitelhau
- //  master of both bodies, frozen mid-drop: in side-view 2D the drop and the finish differ little). The PR #16 model
- //  accepted 0/30 truncated strikes; this is a known regression of the bodies/angles model and must not grow.
- const ALLOWED={fast:2,fps10:3,slow4x:4,truncated:19,truncatedStrikes:2};
+ //  truncated: footwork can be accepted at a mid-step pause (known limitation, 19/24); strikes must never be (the
+ //  completion check rejects strikes that cover less than 65% of the drill's typical path).
+ const ALLOWED={fast:2,fps10:3,slow4x:4,truncated:19,truncatedStrikes:0};
  const isStrike=x=>x.c.drill.endsWith('hau');
  const summary={};let bad=0;
  for(const [kind,accept] of Object.entries(expectAccept)){

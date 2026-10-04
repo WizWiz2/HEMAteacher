@@ -43,8 +43,9 @@ describe("motion recognition on the pose fixture", () => {
     // accepted at a mid-step pause, so its tempo is underestimated (docs/motion-recognition.md, Limitations).
     const strikeBeginners = lobo.filter(r => r.level === "beginner" && r.source.endsWith("hau"));
     expect(strikeBeginners.filter(r => r.feedback?.[0]?.includes("слишком медленно")).length).toBeGreaterThanOrEqual(strikeBeginners.length * .8);
-    // Known false slow notes on master/experienced: 3 of 102 accepted attempts (two with an attempt window ~5.5x the
-    // typical duration, one at 1.61x). Allow at most 3% until the attempt segmentation is fixed.
+    // Slow notes on master/experienced: 2 of 102 accepted attempts, both borderline (1.61x and 1.65x the typical duration,
+    // threshold 1.6x). The ~5.5x windows (whole strike + return after an ambiguous settle) are fixed by measuring the
+    // tempo up to the settle at which the whole movement was already observed. Allow at most 3%.
     const me = lobo.filter(r => r.level !== "beginner");
     expect(me.filter(r => r.feedback?.[0]?.includes("слишком медленно")).length).toBeLessThanOrEqual(Math.floor(me.length * .03));
   }, T);
