@@ -50,6 +50,7 @@ An attempt counts as accepted only if the first decided attempt completes the se
 node frontend/scripts/build-motion-patterns.mjs [--check]     # model + patterns from the fixture
 node frontend/scripts/evaluate-motion-recognition.mjs [out]   # all confusion matrices
 node frontend/scripts/check-motion-mutations.mjs              # reversed / frozen / 4x / 12x slow
+node frontend/scripts/check-motion-scenarios.mjs              # CI gate: scenarios on recorded MediaPipe poses (below)
 # fixture rebuild from raw browser dumps:
 node frontend/scripts/build-motion-fixture.mjs frontend/test-fixtures/motion-poses.json.gz <rawdir>:main:test-data/mock-videos <rawdir>:heldout:<heldout root>
 ```
@@ -60,7 +61,24 @@ node frontend/scripts/build-motion-fixture.mjs frontend/test-fixtures/motion-pos
 
 - **Scheitelhau / Schielhau.** These are nearly identical in side-view 2D landmarks; their difference is mostly blade and edge rotation. Krumphau is also weak with single-body templates. Together they account for most leave-one-body-out misses.
 - **Camera angle.** There is no camera-angle invariance: the camera at 25° behind profile is not recognised (0/4), though it is not misrecognised either.
-- **Ground-truth skeletons.** `check-continuous-motion.mjs` (ground-truth Blender skeletons) no longer matches the template domain: 15/54 "normal". The templates are MediaPipe-based, and ground-truth landmark definitions differ (nose, wrists).
+- **Ground-truth skeletons.** `check-continuous-motion.mjs` (ground-truth Blender skeletons) no longer matches the template domain: 15/54 "normal". The templates are MediaPipe-based, and ground-truth landmark definitions differ (nose, wrists). It is kept as a diagnostic only. CI runs the same scenarios on the recorded MediaPipe poses instead (`check-motion-scenarios.mjs`, main clips, shipped model):
+
+  | scenario | expected | accepted |
+  |---|---|---|
+  | normal | accept | 54/54 |
+  | fast (0.6× time) | accept | 52/54 |
+  | 10 fps | accept | 48/54 |
+  | 4× slow | accept | 50/54 (4 slow beginners exceed the 10 s bound) |
+  | reversed | reject | 0/54 |
+  | frozen | reject | 0/54 |
+  | 12× slow | reject | 0/54 |
+  | truncated half-way | reject | 16/54, all footwork |
+  | 500 ms tracking gap | reject | 0/54 |
+
+  The known gaps are allowed explicitly; any further unexpected outcome fails CI.
+  - Footwork stopped half-way is accepted (see "Footwork stops early").
+  - A few footwork clips at 10 fps or 0.6× time are not accepted.
+  - Some 10 fps attempts stay open ("Продолжай движение до конца").
 - **Footwork stops early.** Footwork may be accepted at a mid-step pause, so its tempo estimate can be too low.
 - **guards-basic is unchanged.**
   - The 3 female clips never finish calibration. In side view the far (left) elbow is below visibility 0.42 in 77–95 frames and elbow+wrist in 74–89 frames of 180. Framing for `upper_body` requires both elbows and both wrists, so only 10–22 frames per clip are ready, and calibration never completes.
