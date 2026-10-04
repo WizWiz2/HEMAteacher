@@ -3,12 +3,13 @@
 // classical blade detector (bladeDetector.ts) on a <= 640 px grey copy of the video frame, adds the detected
 // crossguard/tip as extra landmarks, and the recogniser switches to the model trained with blade channels.
 import type { RawPose } from "./landmarks";
-import { BLADE_DETECTOR_DEFAULTS, bodyPoints, detectBlade, type BladeDetection } from "./bladeDetector";
+import { BLADE_DETECTOR_DEFAULTS, BladeTrack, bodyPoints, scanBlade, shoulderCentre, type BladeDetection } from "./bladeDetector";
 import { setRecognitionModel } from "../drill/continuousMotion";
 import type { RecognitionModel } from "../drill/motionRecognition";
 
-/** Detections below this confidence are dropped (chosen on train LOBO, docs/blade-tracking.md). */
-export const BLADE_MIN_CONFIDENCE = 3;
+/** Extra confidence floor on the stored / live detections. 0: BladeTrack already decides (confident frames start the
+ *  track, weaker ones are accepted only inside its predicted window; chosen on train, docs/blade-tracking.md). */
+export const BLADE_MIN_CONFIDENCE = 0;
 const KEY = "hema.bladeTracking";
 
 export function bladeTrackingEnabled(): boolean {
@@ -31,6 +32,7 @@ export function loadBladeModel(): Promise<void> {
 export class BladeTracker {
   private canvas = document.createElement("canvas");
   private gray: Uint8Array | null = null;
+  private track = new BladeTrack();
   last: BladeDetection | null = null;
 
   /** Detects the blade on the current video frame and adds blade_guard / blade_tip landmarks to `raw` (in place). */
@@ -45,8 +47,9 @@ export class BladeTracker {
     ctx.drawImage(video, 0, 0, w, h);
     const rgba = ctx.getImageData(0, 0, w, h).data, g = this.gray;
     for (let i = 0, j = 0; i < g.length; i++, j += 4) g[i] = (rgba[j] * 77 + rgba[j + 1] * 150 + rgba[j + 2] * 29) >> 8;
-    const d = detectBlade({ data: g, width: w, height: h }, [(lw.x + rw.x) / 2, (lw.y + rw.y) / 2], torsoPxVideo * scale,
-      BLADE_DETECTOR_DEFAULTS, bodyPoints(raw.landmarks));
+    const scan = scanBlade({ data: g, width: w, height: h }, [(lw.x + rw.x) / 2, (lw.y + rw.y) / 2], torsoPxVideo * scale,
+      BLADE_DETECTOR_DEFAULTS, bodyPoints(raw.landmarks), shoulderCentre(raw.landmarks));
+    const d = this.track.update(scan, raw.timestampMs);
     if (!d || d.contrast < BLADE_MIN_CONFIDENCE) return null;
     raw.landmarks.blade_guard = { x: d.guard[0], y: d.guard[1], z: 0, visibility: 1 };
     raw.landmarks.blade_tip = { x: d.tip[0], y: d.tip[1], z: 0, visibility: 1 };
