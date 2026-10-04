@@ -32,3 +32,7 @@ worktree /workspace/hema-real (branch eval/public-real-videos from origin/main 0
   Steps sources: Ukolov xOQUcJpnRe8 60-210 (solo, ~45°, steps w/ sword), strîtschar 6xmG 39-110/180-222 (solo, side-ish, steps), HEMA TEAM hK25 48-125 steps / 156-245 guards (frontal-ish), Schildwache vqUpl.
   Ottawa T-M_ passing step frontal solo; Swordwind uy3t thrust+pass frontal; Laurel maVcL = talking head mostly (solo outdoor ~4:51-5:00, 6:57-7:10); Becker -c6R pair side 20-28; TInM frontal.
   Plan for steps: find.py on screen json (hip>0.5) then verify with strips.
+- 15:45 replay_facing.mjs (FACING=<json FILE>) reproduces browser results exactly and runs in ~3 s -> use browser only for raw frames, replay for own+cross+facing variants.
+  First result: real strikes end 'running cp=2 Продолжай движение до конца' = settled but decide() neither accepted nor 'other' (undecided). laurel_zwerch_02 accepted (slow 2.4x) with facing right.
+  Added drey_zwerch_01, drey_krump_01, bjorn_zorn_02/03. Unusable: SFGB m6hc/scSb (vertical, feet cut), Drey Wunder bWlF (pairs dark), Ukolov s8_9 frontal, Gent AK1I unlabeled 7-cut sequence, Ottawa T-M_ no sword + frontal.
+  step_find.py <id> -> step candidates from screen json.
