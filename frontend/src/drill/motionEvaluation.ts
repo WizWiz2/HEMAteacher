@@ -64,27 +64,39 @@ export const isLegacyTrainClip = (c: FixtureClip) => c.variant === "main" && (c.
  *  model on the reserved TEST clips. Every clip is tested against every continuous drill. */
 export function evaluateProtocols(fx: Fixture, drills: Drill[], protocols: EvalRow["protocol"][] = ["lobo", "before", "test"]): EvalRow[] {
   const rows: EvalRow[] = [];
+  for (const _ of evaluationSteps(fx, drills, protocols, rows)) { /* run to completion */ }
+  return rows;
+}
+
+/** Same as evaluateProtocols, but yields to the event loop after every clip (long runs inside a vitest worker must not
+ *  block its RPC channel, which times out after 60 s). */
+export async function evaluateProtocolsAsync(fx: Fixture, drills: Drill[], protocols: EvalRow["protocol"][] = ["lobo", "before", "test"]): Promise<EvalRow[]> {
+  const rows: EvalRow[] = [];
+  for (const _ of evaluationSteps(fx, drills, protocols, rows)) await new Promise(resolve => setTimeout(resolve, 0));
+  return rows;
+}
+
+function* evaluationSteps(fx: Fixture, drills: Drill[], protocols: EvalRow["protocol"][], rows: EvalRow[]): Generator<void> {
   const previous = recognitionModel();
-  const run = (protocol: EvalRow["protocol"], model: RecognitionModel, tests: FixtureClip[]) => {
+  function* run(protocol: EvalRow["protocol"], model: RecognitionModel, tests: FixtureClip[]) {
     setRecognitionModel(model);
-    for (const c of tests) for (const d of CONTINUOUS_DRILLS) {
+    for (const c of tests) { for (const d of CONTINUOUS_DRILLS) {
       const base = drills.find(x => x.id === d)!, r = streamClip(c, fx.names, base);
       const retried = d === c.drill && !r.completed ? streamClip(c, fx.names, base, true) : r;
       rows.push({ protocol, clip: c.id, source: c.drill, variant: c.variant, body: c.body, level: c.level, azimuth: azimuthOf(c),
         selected: d, completed: r.completed, completedWithRetry: retried.completed, similarity: r.similarity, tempo: r.tempo,
         message: r.message, lookedLike: r.lookedLike, feedback: r.feedback });
-    }
-  };
+    } yield; }
+  }
   try {
     const trainPool = fx.clips.filter(c => (c.variant === "main" || c.variant === "ba:train") && CONTINUOUS_DRILLS.includes(c.drill));
     const tests = fx.clips.filter(c => isTestClip(c) && CONTINUOUS_DRILLS.includes(c.drill));
     if (protocols.includes("lobo"))
       for (const body of [...new Set(trainPool.map(c => c.body))])
-        run("lobo", buildModel(fx.clips.filter(c => isTrainClip(c) && c.body !== body), fx.names), trainPool.filter(c => c.body === body));
-    if (protocols.includes("before")) run("before", buildModel(fx.clips.filter(isLegacyTrainClip), fx.names), tests);
-    if (protocols.includes("test")) run("test", buildModel(fx.clips.filter(isTrainClip), fx.names), tests);
+        yield* run("lobo", buildModel(fx.clips.filter(c => isTrainClip(c) && c.body !== body), fx.names), trainPool.filter(c => c.body === body));
+    if (protocols.includes("before")) yield* run("before", buildModel(fx.clips.filter(isLegacyTrainClip), fx.names), tests);
+    if (protocols.includes("test")) yield* run("test", buildModel(fx.clips.filter(isTrainClip), fx.names), tests);
   } finally { setRecognitionModel(previous); }
-  return rows;
 }
 
 export function confusion(rows: EvalRow[]) {
