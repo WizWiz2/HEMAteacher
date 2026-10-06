@@ -127,3 +127,8 @@ Next levers:
 - Fix the zwerchhau clearance on the other bodies and re-render (12 + 5 clips).
 - Use burst detection with a strike-specific accept on hand-trimmed windows.
 - Get real recordings of the user (the bar: own ≥ 60 %, others ≤ 5 %).
+
+## GitHub CI (PR #25)
+- backend and windows-launcher pass.
+- frontend fails at `npm test` with the same single vitest failure as locally (beginner similarity 74.76 !< 71.21).
+  The later scenario step did not run, but it fails locally.
