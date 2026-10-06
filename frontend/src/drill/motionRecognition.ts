@@ -210,7 +210,22 @@ export const COMPLETE_PATH_RATIO = 0.85;
 
 /** Decide for the drill the user selected. tempoSamples: the part of the attempt the tempo is measured on (default:
  *  all samples), e.g. up to the settle at which the whole movement was already observed. */
+/** Strike segmentation: keep the part of an attempt where the hands travel (HAND_TRIM.lo..hi of the hand path, padded),
+ *  dropping a footwork-only lead-in / lead-out (stepping into the guard, walking back) that otherwise dominates the
+ *  path-length parameterisation of real attempts. */
+export const HAND_TRIM = { on: true, lo: 0.05, hi: 0.95, padMs: 150 };
+export function handActiveWindow(samples: TimedFeatures[], pathScales: number[]): TimedFeatures[] {
+  if (samples.length < 6) return samples;
+  const { cumHand } = pathProfile(samples, pathScales), total = cumHand.at(-1)!;
+  if (!(total > 1e-6)) return samples;
+  const i0 = cumHand.findIndex(c => c >= total * HAND_TRIM.lo), i1 = cumHand.findIndex(c => c >= total * HAND_TRIM.hi);
+  const t0 = samples[Math.max(0, i0)].timeMs - HAND_TRIM.padMs, t1 = samples[i1 < 0 ? samples.length - 1 : i1].timeMs + HAND_TRIM.padMs;
+  const out = samples.filter(s => s.timeMs >= t0 && s.timeMs <= t1);
+  return out.length >= 6 ? out : samples;
+}
+
 export function decide(selected: string, samples: TimedFeatures[], m: RecognitionModel, tempoSamples = samples): Decision {
+  if (HAND_TRIM.on && selected.endsWith("hau")) { samples = handActiveWindow(samples, m.pathScales); tempoSamples = handActiveWindow(tempoSamples, m.pathScales); }
   const seq = prepareSequence(samples, m.pathScales, m.points);
   const r = seq && recognize(seq, m);
   if (!r) return { kind: "unknown" };
