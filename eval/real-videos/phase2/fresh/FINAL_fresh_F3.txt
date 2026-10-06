@@ -1,0 +1,24 @@
+== generic (F3)
+all: own 2/35 (strikes 2/25, steps 0/10) | wrong 5/280 [('jtsay_krumphau_03', 'advance'), ('forge_zornhau_01', 'retreat'), ('forge_zornhau_02', 'retreat'), ('schwaben_zornhau_02', 'retreat'), ('schilt_zwerchhau_03', 'krumphau')]
+clean: own 2/23 (strikes 2/19, steps 0/4) | wrong 4/184 [('forge_zornhau_01', 'retreat'), ('forge_zornhau_02', 'retreat'), ('schwaben_zornhau_02', 'retreat'), ('schilt_zwerchhau_03', 'krumphau')]
+== personal calibration (F3, all)
+generic            own 2/92  strikes 2/70  steps 0/22  wrong 11/736
+generic+personal   own 4/92  strikes 4/70  steps 0/22  wrong 10/736
+  sprez        generic: own 0/20 wrong 0/160 | generic+personal: own 0/20 wrong 0/160
+  jtsay        generic: own 0/6 wrong 2/48 | generic+personal: own 0/6 wrong 2/48
+  helman       generic: own 0/2 wrong 0/16 | generic+personal: own 0/2 wrong 0/16
+  mccamey      generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  forge        generic: own 2/2 wrong 2/16 | generic+personal: own 2/2 wrong 2/16
+  schwaben     generic: own 0/20 wrong 4/160 | generic+personal: own 0/20 wrong 4/160
+  cba          generic: own 0/6 wrong 0/48 | generic+personal: own 0/6 wrong 0/48
+  pblack       generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  schilt       generic: own 0/12 wrong 3/96 | generic+personal: own 2/12 wrong 2/96
+== personal calibration (F3, clean)
+generic            own 2/62  strikes 2/58  steps 0/4  wrong 9/496
+generic+personal   own 4/62  strikes 4/58  steps 0/4  wrong 8/496
+  sprez        generic: own 0/4 wrong 0/32 | generic+personal: own 0/4 wrong 0/32
+  mccamey      generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  forge        generic: own 2/2 wrong 2/16 | generic+personal: own 2/2 wrong 2/16
+  schwaben     generic: own 0/20 wrong 4/160 | generic+personal: own 0/20 wrong 4/160
+  pblack       generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  schilt       generic: own 0/12 wrong 3/96 | generic+personal: own 2/12 wrong 2/96

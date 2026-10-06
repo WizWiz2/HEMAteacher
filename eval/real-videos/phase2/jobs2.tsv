@@ -1,0 +1,54 @@
+avg_longlimb_female_master_slow	train	avg_longlimb_female	schielhau	master	-19.3	1.31	3.49	22.5	0	0.012	29	0.05	110357	240	-	{"hand_y": 0.85, "hand_x": 0.64}	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
+avg_longlimb_female_master_slow	train	avg_longlimb_female	krumphau	master	34.2	1.31	3.16	22.7	0	0.008	28	0.077	135907	240	-	{"hand_y": 0.85, "hand_x": 0.64}	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
+avg_longlimb_female_experienced_fwtag_slow	train	avg_longlimb_female	advance	experienced	43.9	1.38	3.51	20.6	480	0.019	24	0.058	743218	240	tag	-	{"tempo": 2.0, "hesitation": 0.6}
+tall_heavy_male_experienced_lowtag72	train	tall_heavy_male	zwerchhau	experienced	-9.8	1.42	3.54	22.1	480	0.03	31	0.062	517981	180	-	{"hand_y": 0.72, "hand_x": 0.62}	-
+tall_heavy_male_master_fwpflug_slow	train	tall_heavy_male	retreat	master	2.8	1.18	3.15	21.5	0	0.029	31	0.044	84258	240	pflug	-	{"tempo": 2.0, "hesitation": 0.6}
+short_slim_male_master_lowtag72	train	short_slim_male	zornhau	master	-10.6	1.46	3.62	25.6	480	0.01	27	0.067	237897	180	-	{"hand_y": 0.72, "hand_x": 0.62}	-
+tall_heavy_male_experienced_fwtag	train	tall_heavy_male	advance	experienced	-17.7	1.16	3.87	21.8	0	0.01	27	0.074	820994	180	tag	-	-
+avg_longlimb_female_master_fwpflug	train	avg_longlimb_female	passing-step-backward	master	14.2	1.14	3.45	23.1	0	0.013	32	0.034	507946	180	pflug	-	-
+short_slim_male_master_fwpflug	train	short_slim_male	passing-step-forward	master	-12.1	1.36	3.59	23.9	480	0.023	27	0.066	171437	180	pflug	-	-
+avg_longlimb_female_experienced_lowtag72	train	avg_longlimb_female	krumphau	experienced	-24.3	1.24	3.55	23.9	0	0.008	25	0.071	161631	180	-	{"hand_y": 0.72, "hand_x": 0.62}	-
+tall_heavy_male_experienced_fwtag	train	tall_heavy_male	passing-step-backward	experienced	28.9	1.17	3.16	22.9	0	0.013	28	0.08	129150	180	tag	-	-
+avg_longlimb_female_experienced_lowtag72	train	avg_longlimb_female	schielhau	experienced	8.0	1.05	3.02	21.8	0	0.018	32	0.061	639062	180	-	{"hand_y": 0.72, "hand_x": 0.62}	-
+short_slim_male_experienced_slow	train	short_slim_male	zwerchhau	experienced	23.0	1.25	3.0	21.3	0	0.023	27	0.043	553466	240	-	-	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
+short_slim_male_master_lowtag72	train	short_slim_male	krumphau	master	21.4	1.12	3.68	26.0	480	0.015	31	0.043	608188	180	-	{"hand_y": 0.72, "hand_x": 0.62}	-
+tall_heavy_male_experienced_slow	train	tall_heavy_male	schielhau	experienced	43.6	1.32	3.31	20.7	0	0.011	24	0.059	850472	240	-	-	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
+avg_longlimb_female_experienced_lowtag72	train	avg_longlimb_female	zornhau	experienced	-17.1	1.09	3.57	20.8	0	0.021	27	0.061	892685	180	-	{"hand_y": 0.72, "hand_x": 0.62}	-
+short_slim_male_experienced_fwtag	train	short_slim_male	passing-step-backward	experienced	-0.3	1.25	3.03	21.2	480	0.029	23	0.048	66046	180	tag	-	-
+avg_longlimb_female_experienced_lowtag80	train	avg_longlimb_female	scheitelhau	experienced	-1.4	1.19	3.27	20.3	0	0.012	31	0.074	711621	180	-	{"hand_y": 0.8, "hand_x": 0.62}	-
+short_slim_male_master_lowtag80	train	short_slim_male	zwerchhau	master	-3.1	1.02	3.05	23.5	0	0.018	30	0.039	486277	180	-	{"hand_y": 0.8, "hand_x": 0.62}	-
+tall_heavy_male_master_fwpflug_slow	train	tall_heavy_male	advance	master	-24.7	1.28	3.74	24.9	480	0.014	27	0.04	534589	240	pflug	-	{"tempo": 2.0, "hesitation": 0.6}
+short_slim_male_experienced_fwtag	train	short_slim_male	passing-step-forward	experienced	-24.3	1.24	3.55	23.9	0	0.008	25	0.071	140752	180	tag	-	-
+tall_heavy_male_experienced_fwtag	train	tall_heavy_male	retreat	experienced	-19.3	1.31	3.49	22.5	0	0.012	29	0.05	484113	180	tag	-	-
+avg_longlimb_female_experienced_lowtag80	train	avg_longlimb_female	zwerchhau	experienced	15.7	1.07	3.84	20.7	0	0.012	26	0.071	148056	180	-	{"hand_y": 0.8, "hand_x": 0.62}	-
+avg_longlimb_female_master_slow	train	avg_longlimb_female	zwerchhau	master	40.5	1.23	3.5	22.4	0	0.015	29	0.035	76098	240	-	-	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
+short_slim_male_master_lowtag72	train	short_slim_male	schielhau	master	2.9	1.15	3.6	21.3	0	0.022	32	0.079	784960	180	-	{"hand_y": 0.72, "hand_x": 0.62}	-
+avg_longlimb_female_master_slow	train	avg_longlimb_female	scheitelhau	master	2.8	1.18	3.15	21.5	0	0.029	31	0.044	556415	240	-	-	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
+tall_heavy_male_experienced_slow	train	tall_heavy_male	scheitelhau	experienced	43.2	1.24	3.14	23.7	0	0.021	30	0.078	747739	240	-	{"hand_y": 0.85, "hand_x": 0.64}	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
+avg_longlimb_female_experienced_fwtag_slow	train	avg_longlimb_female	passing-step-forward	experienced	-12.5	1.12	3.13	21.7	480	0.026	25	0.078	699280	240	tag	-	{"tempo": 2.0, "hesitation": 0.6}
+avg_longlimb_female_master_fwpflug	train	avg_longlimb_female	passing-step-forward	master	-15.3	1.43	3.73	24.7	0	0.024	31	0.038	62856	180	pflug	-	-
+short_slim_male_master_fwpflug	train	short_slim_male	passing-step-backward	master	-0.5	1.14	3.22	21.4	0	0.019	24	0.055	745704	180	pflug	-	-
+tall_heavy_male_experienced_fwtag	train	tall_heavy_male	passing-step-forward	experienced	-9.5	1.41	3.89	25.4	0	0.028	23	0.054	991461	180	tag	-	-
+short_slim_male_experienced_slow	train	short_slim_male	schielhau	experienced	32.8	1.4	3.13	23.0	480	0.024	28	0.055	919057	240	-	{"hand_y": 0.85, "hand_x": 0.64}	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
+tall_heavy_male_experienced_lowtag80	train	tall_heavy_male	krumphau	experienced	15.0	1.17	3.86	23.3	0	0.024	30	0.076	506140	180	-	{"hand_y": 0.8, "hand_x": 0.62}	-
+tall_heavy_male_master_fwpflug_slow	train	tall_heavy_male	passing-step-forward	master	31.8	1.01	3.12	23.1	0	0.013	28	0.035	134283	240	pflug	-	{"tempo": 2.0, "hesitation": 0.6}
+short_slim_male_experienced_slow	train	short_slim_male	scheitelhau	experienced	29.2	1.37	3.48	24.5	0	0.024	30	0.054	520213	240	-	-	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
+tall_heavy_male_master_fwpflug_slow	train	tall_heavy_male	passing-step-backward	master	14.0	1.25	3.67	21.7	480	0.027	26	0.074	998194	240	pflug	-	{"tempo": 2.0, "hesitation": 0.6}
+avg_longlimb_female_master_fwpflug	train	avg_longlimb_female	retreat	master	43.2	1.24	3.14	23.7	0	0.021	30	0.078	386462	180	pflug	-	-
+tall_heavy_male_experienced_slow	train	tall_heavy_male	zornhau	experienced	13.8	1.14	3.51	24.7	0	0.023	28	0.043	686713	240	-	-	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
+tall_heavy_male_experienced_lowtag80	train	tall_heavy_male	schielhau	experienced	2.8	1.18	3.15	21.5	0	0.029	31	0.044	488966	180	-	{"hand_y": 0.8, "hand_x": 0.62}	-
+short_slim_male_master_lowtag80	train	short_slim_male	scheitelhau	master	13.3	1.39	3.1	25.8	0	0.018	32	0.039	983493	180	-	{"hand_y": 0.8, "hand_x": 0.62}	-
+short_slim_male_experienced_fwtag	train	short_slim_male	retreat	experienced	27.8	1.28	3.5	24.4	480	0.018	25	0.071	246759	180	tag	-	-
+avg_longlimb_female_experienced_fwtag_slow	train	avg_longlimb_female	passing-step-backward	experienced	-16.9	1.49	3.07	22.3	480	0.021	27	0.046	166674	240	tag	-	{"tempo": 2.0, "hesitation": 0.6}
+short_slim_male_master_fwpflug	train	short_slim_male	retreat	master	23.0	1.25	3.0	21.3	0	0.023	27	0.043	112964	180	pflug	-	-
+avg_longlimb_female_master_slow	train	avg_longlimb_female	zornhau	master	-19.5	1.17	3.8	25.0	480	0.025	23	0.063	129093	240	-	{"hand_y": 0.85, "hand_x": 0.64}	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
+short_slim_male_master_fwpflug	train	short_slim_male	advance	master	34.6	1.01	3.75	23.8	480	0.019	23	0.08	85271	180	pflug	-	-
+short_slim_male_experienced_slow	train	short_slim_male	zornhau	experienced	21.6	1.48	3.47	20.9	0	0.016	27	0.065	534960	240	-	{"hand_y": 0.85, "hand_x": 0.64}	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
+short_slim_male_experienced_fwtag	train	short_slim_male	advance	experienced	-24.7	1.28	3.74	24.9	480	0.014	27	0.04	961720	180	tag	-	-
+avg_longlimb_female_experienced_fwtag_slow	train	avg_longlimb_female	retreat	experienced	8.0	1.05	3.02	21.8	0	0.018	32	0.061	5851	240	tag	-	{"tempo": 2.0, "hesitation": 0.6}
+tall_heavy_male_experienced_slow	train	tall_heavy_male	zwerchhau	experienced	-16.9	1.49	3.07	22.3	480	0.021	27	0.046	506728	240	-	{"hand_y": 0.85, "hand_x": 0.64}	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
+tall_heavy_male_experienced_lowtag80	train	tall_heavy_male	zornhau	experienced	34.6	1.01	3.75	23.8	480	0.019	23	0.08	44	180	-	{"hand_y": 0.8, "hand_x": 0.62}	-
+avg_longlimb_female_master_fwpflug	train	avg_longlimb_female	advance	master	4.7	1.03	3.76	20.3	0	0.016	23	0.054	548952	180	pflug	-	-
+short_slim_male_experienced_slow	train	short_slim_male	krumphau	experienced	21.6	1.48	3.47	20.9	0	0.016	27	0.065	323504	240	-	{"hand_y": 0.85, "hand_x": 0.64}	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
+tall_heavy_male_experienced_lowtag72	train	tall_heavy_male	scheitelhau	experienced	3.2	1.02	3.4	21.8	480	0.024	29	0.032	42417	180	-	{"hand_y": 0.72, "hand_x": 0.62}	-
+tall_heavy_male_experienced_slow	train	tall_heavy_male	krumphau	experienced	22.4	1.29	3.21	25.0	480	0.014	32	0.031	594717	240	-	-	{"tempo": 2.4, "hesitation": 0.6, "guard_hold": 1.6}
