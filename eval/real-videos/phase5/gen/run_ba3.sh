@@ -30,6 +30,6 @@ j["ba_degradation"] = {"downscale_width": int(scale), "noise_sigma": float(noise
 j["gen2_variant"] = {k: os.environ.get(k) for k in ("HEMA_FW_GUARD", "HEMA_GUARD_OVR", "HEMA_LEVEL_OVR", "HEMA_SHAPE")}
 json.dump(j, open(dst, "w"))
 PY
-    echo "DONE $split $drill $name $(( $(date +%s)-t0 ))s $(date +%T)" >> $BA/progress.txt
+    mkdir -p $BA/done; touch $BA/done/${drill}__${split}__$name; echo "DONE $split $drill $name $(( $(date +%s)-t0 ))s $(date +%T)" >> $BA/progress.txt
   else echo "FAIL $split $drill $name $(date +%T) (see $L)" >> $BA/progress.txt; fi
 done

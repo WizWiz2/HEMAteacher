@@ -1,0 +1,19 @@
+{
+ "_doc": "phase 5 real-shape preset v2 (pilot-1 calibrated). Use with HEMA_GUARD_OVR={\"hand_y\":0.88,\"hand_x\":0.82,\"sword_ang\":95}.",
+ "zornhau": {"kfs": {
+   "init":   {"hand_x": 0.92, "hand_y": 0.92, "hand_lat": 0.32, "sword_ang": 55.0},
+   "extend": {"hand_x": 1.10, "hand_y": 0.98, "ankle_r": 1.725, "lean": 8.0, "shoulder_fwd": 12.0},
+   "finish": {"hand_x": 1.14, "hand_y": 1.00, "ankle_r": 1.725, "ankle_l": 0.825, "lean": 9.0, "shoulder_fwd": 16.0}}},
+ "zwerchhau": {"kfs": {
+   "chamber": {"hand_x": 0.40, "hand_y": 1.62},
+   "z1":      {"hand_x": 0.60, "hand_y": 1.50},
+   "z2":      {"hand_x": 0.70, "hand_y": 1.62},
+   "cross":   {"hand_x": 0.80, "hand_y": 1.60, "elbow_flare": 0.25},
+   "finish":  {"hand_x": 0.85, "hand_y": 1.60, "elbow_flare": 0.25, "shoulder_raise": 10.0}},
+  "seq": [["z1", 0.30], ["chamber", 0.30], ["chamber", 0.25], ["z2", 0.14], ["cross", 0.16], ["finish", 0.22]]},
+ "schielhau": {"kfs": {
+   "chamber": {"hand_x": 0.62, "hand_y": 0.72, "hand_lat": 0.30, "sword_ang": 75.0, "shoulder_raise": 2.0},
+   "extend":  {"hand_x": 1.25, "hand_y": 1.05, "hand_lat": 0.0, "shoulder_fwd": 16.0, "lean": 9.0},
+   "finish":  {"hand_x": 1.32, "hand_y": 1.08, "hand_lat": -0.08, "shoulder_fwd": 20.0, "lean": 10.0}},
+  "seq": [["chamber", 0.50], ["chamber", 0.35], ["extend", 0.20], ["finish", 0.18]]}
+}
