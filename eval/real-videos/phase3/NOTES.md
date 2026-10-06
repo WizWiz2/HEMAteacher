@@ -70,7 +70,8 @@ performances and low-res video), ahead of classification.
 
 ## CI with the P3 model (thresholds NOT relaxed)
 - vitest: 61/62 pass. LOBO 82.5 % now clears the 80 % floor (F3 failed it at 78.4 %). The beginner-similarity test fails:
-  mean beginner similarity 73 is not below the experienced 70.8.
+  the mean beginner similarity (73) must be at least 10 points below the master/experienced mean (80.8), but the gap
+  is only 7.8.
 - check-motion-scenarios FAILS:
   - normal 2 (0 allowed), fast 3 (2), fps10 13 (3), slow4x 10 (4), truncated 20 (19).
   - Cause: the guard-invariant channels lower the accept distance (3.84 to 2.93), so time-distorted synthetic clips
