@@ -75,6 +75,25 @@ export function frameChannels(f: Record<string, number> = {}): number[] {
   ];
 }
 
+/** Guard-invariant arm representation: hand position, hand height over the head (unless keepAbsHoh), wrist crossing and
+ *  elbow angle become displacements from the attempt's start pose, and the forearm direction is rotated by its start
+ *  angle, so the trajectory is compared and not how high / at what angle the guard is held (real Vom Tag is held lower
+ *  than the rendered one). Positions are already normalised by torso length (body scale). */
+export const ARM_REL = { on: false, keepAbsHoh: true };
+const ARM_REL_CHANNELS = [0, 1, 2, 5, 7, 8];
+const startMedian = (rows: number[][], j: number) => {
+  const v = rows.slice(0, 5).map(r => r[j]).filter(Number.isFinite).sort((a, b) => a - b);
+  return v.length ? v[Math.floor((v.length - 1) / 2)] : rows.map(r => r[j]).find(Number.isFinite) ?? NaN;
+};
+function armRelative(rows: number[][]): number[][] {
+  const js = ARM_REL_CHANNELS.filter(j => !(j === 2 && ARM_REL.keepAbsHoh));
+  const s0 = js.map(j => startMedian(rows, j));
+  const a0 = Math.atan2(startMedian(rows, 4), startMedian(rows, 3));
+  return rows.map(r => { const c = [...r]; js.forEach((j, k) => { c[j] = c[j] - s0[k]; });
+    if (Number.isFinite(a0) && Number.isFinite(c[3]) && Number.isFinite(c[4])) { const a = Math.atan2(c[4], c[3]) - a0; c[3] = Math.cos(a); c[4] = Math.sin(a); }
+    return c; });
+}
+
 /** Smoothed channels and cumulative (scaled) path length of an attempt. */
 function pathProfile(samples: TimedFeatures[], pathScales: number[]) {
   let rows = samples.map(s => frameChannels(s.features));
@@ -83,6 +102,7 @@ function pathProfile(samples: TimedFeatures[], pathScales: number[]) {
     return v.length ? v[Math.floor((v.length - 1) / 2)] : rows.map(r => r[j]).find(Number.isFinite) ?? NaN;
   });
   rows = rows.map(r => { const c = [...r]; RELATIVE_CHANNELS.forEach((j, k) => { c[j] = c[j] - start[k]; }); return c; });
+  if (ARM_REL.on) rows = armRelative(rows);
   // centred moving average (NaN-aware) suppresses per-frame landmark jitter before measuring path length
   const smooth = rows.map((_, i) => rows[0].map((__, j) => {
     const w = rows.slice(Math.max(0, i - 2), i + 3).map(r => r[j]).filter(Number.isFinite);
