@@ -1,0 +1,13 @@
+--- render_drill.py.orig	2026-10-06 20:15:45.730897118 +0500
++++ /workspace/hema/gen2/render_drill.py	2026-10-06 20:16:34.450223275 +0500
+@@ -56,6 +56,10 @@
+ _gov = json.loads(os.environ.get("HEMA_GUARD_OVR", "{}"))   # gen2: Vom Tag height variant (guard + return)
+ if _gov:
+     for _k in ("guard", "return"): master_kfs[_k].update(_gov)
++if os.environ.get("HEMA_SHAPE"):                               # gen2 phase 5: real-shape keyframe preset
++    for _k, _ov in json.load(open(os.environ["HEMA_SHAPE"])).get(a.drill, {}).get("kfs", {}).items():
++        _ov = dict(_ov); _src = _ov.pop("_from", _k)
++        master_kfs[_k] = dict(master_kfs.get(_src, master_kfs.get(_k, {})), **_ov)
+ if a.drill == "zornhau":
+     master_kfs["recover"] = motion.make_recover(master_kfs)
+ 

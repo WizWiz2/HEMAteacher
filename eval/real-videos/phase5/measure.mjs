@@ -47,12 +47,32 @@ try {
   // REAL (seen)
   const man = Object.fromEntries(readFileSync(REAL + '/manifest.csv', 'utf8').trim().split('\n').slice(1).map(l => { const c = l.split(','); return [c[0], c]; }));
   const fmap = JSON.parse(readFileSync(REAL + '/results/facing_map.json'));
-  for (const f of readdirSync(REAL + '/rawframes').filter(f => f.endsWith('.json')).sort()) {
+  if (!process.env.RAWSYN) for (const f of readdirSync(REAL + '/rawframes').filter(f => f.endsWith('.json')).sort()) {
     const id = f.slice(0, -5).split('__')[1], drill = f.split('__')[0];
     if (!STR.includes(drill) || id.startsWith('stritschar')) continue;
     const c = JSON.parse(readFileSync(REAL + '/rawframes/' + f)), P = new LiveSampleProcessor(), S = [];
     for (const raw of c.frames) { const s = P.process(raw, fmap[f] ?? 'right', 'full_body', 'side'); if (s.motionUsable) S.push({timeMs: s.timeMs, features: s.features}); }
     for (const r of reps(S)) res.real.push({drill, clip: id, person: id.split('_')[0], ...r});
+  }
+  // PILOT mode: RAWSYN=dir[,dir] = raw MediaPipe dumps of new renders (<drill>__<split>__<name>.json); compared to TARGETS
+  if (process.env.RAWSYN) {
+    const T = JSON.parse(readFileSync(process.env.TARGETS || '/workspace/hema/real/p5/real_shape_targets.json')).drills;
+    const get = (r, k) => k.includes('.') ? r[k.split('.')[0]][k.split('.')[1] === 'forearm_deg' ? 'forearm_deg' : k.split('.')[1]] : k === 'dur_ms' ? r.dur : r[k];
+    const rows = [];
+    for (const dir of process.env.RAWSYN.split(',')) for (const f of readdirSync(dir).filter(f => f.endsWith('.json')).sort()) {
+      const drill = f.split('__')[0]; if (!T[drill]?.targets) continue;
+      const c = JSON.parse(readFileSync(dir + '/' + f)), P = new LiveSampleProcessor(), S = [];
+      for (const raw of c.frames) { const s = P.process(raw, 'right', 'full_body', 'side'); if (s.motionUsable) S.push({timeMs: s.timeMs, features: s.features}); }
+      const rs = reps(S); if (!rs.length) { console.error(f, 'NO REP'); continue; }
+      const r = rs.reduce((p, q) => (q.dx > p.dx ? q : p)); let ok = 0, n = 0; const cells = [];
+      for (const [k, t] of Object.entries(T[drill].targets)) {
+        const v = get(r, k), tol = t.tol_relative ? t.target * t.tol : t.tol, pass = fin(v) && Math.abs(v - t.target) <= tol; n++; ok += pass;
+        cells.push(`${k}=${fin(v) ? v.toFixed(2) : 'nan'}${pass ? '' : '!'}(${t.target}±${+tol.toFixed(2)}, old ${t.old_syn_median})`);
+      }
+      console.error(`${f.replace('.json', '')}  ${ok}/${n} in tolerance  [${r.t0}-${r.t1} ms]\n   ` + cells.join('\n   '));
+      rows.push({file: f, drill, ok, n, ...r});
+    }
+    console.log(JSON.stringify(rows)); process.exit(0);
   }
   // SYNTHETIC (fixture, M/E and beginner, all variants)
   const fx = JSON.parse(gunzipSync(readFileSync(FX)));

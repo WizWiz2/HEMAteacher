@@ -1,0 +1,57 @@
+--- swordcuts.py.orig	2026-10-06 20:15:45.730897118 +0500
++++ /workspace/hema/gen2/hemagen/swordcuts.py	2026-10-06 20:16:30.742271376 +0500
+@@ -155,13 +155,26 @@
+     """gen2: HEMA_GUARD_OVR={"hand_y":..,...} lowers/changes the Vom Tag (real-video guards are held lower)."""
+     g.update(json.loads(os.environ.get("HEMA_GUARD_OVR", "{}"))); return g
+ 
++def shape(drill_id):
++    """gen2 phase 5: HEMA_SHAPE=<json file> {drill: {"kfs": {name: {param: v, "_from": src?}}, "seq": [[name, dur], ...],
++    "chamber": name, "hes": name}} = real-shape keyframe preset (unset = the original keyframes)."""
++    p = os.environ.get("HEMA_SHAPE")
++    return json.load(open(p)).get(drill_id, {}) if p else {}
++
++def _seq(drill_id):
++    d = DRILLS[drill_id]; sh = shape(drill_id)
++    return [tuple(x) for x in sh["seq"]] if "seq" in sh else d["seq"]
++
+ def _return_from_g(g, last):
+     return dict(g, ankle_l=last["ankle_l"], ankle_r=last["ankle_l"] - 0.95)
+ 
+ def base_keyframes(drill_id, body=None):
+     d = DRILLS[drill_id]; kfs = {k: dict(v) for k, v in d["kfs"].items()}
+     first = next(iter(kfs)); g = vom_tag(body); kfs[first] = dict(g)
+-    last = kfs[d["seq"][-1][0]] if d["seq"] else kfs[list(d["kfs"])[-1]]   # stance at the end of the cut
++    for k, ov in shape(drill_id).get("kfs", {}).items():          # phase 5 real-shape preset
++        ov = dict(ov); src = ov.pop("_from", k)
++        kfs[k] = dict(kfs.get(src, kfs.get(k, {})), **ov)
++    last = kfs[_seq(drill_id)[-1][0]] if d["seq"] else kfs[list(d["kfs"])[-1]]   # stance at the end of the cut
+     kfs["return"] = _return_from_g(g, last) if drill_id != "guards-basic" else dict(g)
+     for k, ov in BODY_OVR.get(drill_id, {}).get(body, {}).items():
+         kfs[k] = dict(kfs[k], **ov)
+@@ -175,8 +188,8 @@
+     """After per-body fitting of the checkpoint keyframes: build the internal keys."""
+     d = DRILLS[drill_id]
+     if drill_id != "guards-basic":
+-        cps = [n for n, _ in d["seq"]]
+-        kfs["recover"] = _recover(kfs, d["chamber"], cps[-1])
++        cps = [n for n, _ in _seq(drill_id)]
++        kfs["recover"] = _recover(kfs, shape(drill_id).get("chamber", d["chamber"]), cps[-1])
+     return kfs
+ 
+ def apply_level(drill_id, kfs, lvl, rng, scale=None):
+@@ -209,11 +222,12 @@
+                 add(du * tp, w)
+         if total - t[-1] > 0.05: add(total - t[-1], names[-1])
+         return list(zip(t, names))
+-    for i, (n, du) in enumerate(d["seq"]):
++    seq = _seq(drill_id); hes = shape(drill_id).get("hes", d["hes"])
++    for i, (n, du) in enumerate(seq):
+         add(dd(du), n)
+-        if n == d["hes"] and lvl["hesitation"]:
++        if n == hes and lvl["hesitation"]:
+             add(lvl["hesitation"] * (1 + rng.uniform(-j, j)), n)
+-    cps_last = d["seq"][-1][0]
++    cps_last = seq[-1][0]
+     add(lvl["finish_hold"] * (1 + rng.uniform(-j, j)), cps_last)
+     add(dd(0.4), "recover"); add(dd(0.55), "return")
+     if t[-1] > total - 0.35:
