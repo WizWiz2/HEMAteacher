@@ -19,11 +19,11 @@ export const CONTINUOUS_DRILLS = ["zornhau", "scheitelhau", "krumphau", "zwerchh
 export const WEIGHTS: Record<(typeof CHANNELS)[number], number> = {
   hand_x: 1, hand_y: 1, hand_over_head: .7, forearm_cos: .7, forearm_sin: .7, elbow_angle: .5, shoulder_offset: .5,
   wrist_cross_x: .4, wrist_cross_y: .4, left_ankle_x: 1, right_ankle_x: 1, left_ankle_y: .5, right_ankle_y: .5,
-  root_dx: 1, torso_angle: .5, hand_dir_x: 1.5, hand_dir_y: 1.5,
+  root_dx: 1, torso_angle: .5, hand_dir_x: 1.5, hand_dir_y: 1.5, hand_share: 1,
 };
 export const POINTS = 32, BAND = 6, MARGIN = 1.05;
 /** Model-building options (defaults = shipped). Exposed so design experiments can vary them on train-body LOBO only. */
-export const TRAINING = { completion: 0.65, endStance: 0.5, margin: MARGIN, perDrillAccept: false, acceptFloor: 0.75, acceptFactor: 1.5, fisherWeights: false, fisherGamma: 1, k: 1, styleGroups: true };
+export const TRAINING = { completion: 0.65, endStance: 0.5, margin: MARGIN, perDrillAccept: false, acceptFloor: 0.75, acceptFactor: 1.5, fisherWeights: false, fisherGamma: 1, k: 1, styleGroups: true, acceptFromBase: false };
 
 export function rawFrames(clip: FixtureClip, names: string[]): RawPose[] {
   return clip.t.map((timestampMs, i) => {
@@ -91,7 +91,7 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
         for (const x of v) { s += (x - mean) ** 2; n++; }
       }
     }
-    return n ? round4(Math.max(j >= 15 ? .25 : .03, Math.sqrt(s / n))) : round4(scales[j]);
+    return n ? round4(Math.max(j === 15 || j === 16 ? .25 : .03, Math.sqrt(s / n))) : round4(scales[j]);
   });
   if (TRAINING.fisherWeights) {
     // Discriminative channel weights fitted on the training templates only: how far apart the drills' mean
@@ -133,7 +133,11 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
   if (TRAINING.k > 1) model.k = TRAINING.k;
   const loo = model.templates.map((t, i) => kNearestMean(model.templates.filter((u, k) => k !== i && u.drill === t.drill)
     .map(u => dtwDistance(t.seq, u.seq, model)), TRAINING.k));
-  model.acceptDistance = round4(TRAINING.acceptFactor * Math.max(...loo.filter(Number.isFinite)));
+  // acceptFromBase: the threshold stays calibrated on the original ("base") renders - the gen2 style variants
+  // (footwork carrying the sword, low Vom Tag) only add templates. Their between-body spread is larger and would
+  // otherwise inflate this max-statistic and loosen acceptance for every drill.
+  const calib = loo.filter((x, i) => Number.isFinite(x) && (!TRAINING.acceptFromBase || groups[i].endsWith(":base") || !TRAINING.styleGroups));
+  model.acceptDistance = round4(TRAINING.acceptFactor * Math.max(...calib));
   model.margin = TRAINING.margin;
   if (TRAINING.perDrillAccept) {
     // per-drill acceptance: the drill's own leave-one-out spread, floored so drills with few templates stay usable

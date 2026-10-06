@@ -8,13 +8,16 @@
 export const CHANNELS = [
   "hand_x", "hand_y", "hand_over_head", "forearm_cos", "forearm_sin", "elbow_angle", "shoulder_offset",
   "wrist_cross_x", "wrist_cross_y", "left_ankle_x", "right_ankle_x", "left_ankle_y", "right_ankle_y",
-  "root_dx", "torso_angle", "hand_dir_x", "hand_dir_y",
+  "root_dx", "torso_angle", "hand_dir_x", "hand_dir_y", "hand_share",
 ] as const;
 // Channels expressed as displacement from the attempt start: stance width, foot height and torso posture differ
 // between bodies far more than between drills, so only their change during the movement is compared.
 const RELATIVE_CHANNELS = [6, 9, 10, 11, 12, 13, 14];
 // Channels that define path length (and therefore the time-invariant parameterisation).
 const PATH_CHANNELS = [0, 1, 9, 10, 13];
+// hand_share (channel 17): share of the hand path in hand + feet path travelled so far. Strikes are mostly hand path,
+// footwork mostly feet path whether the sword is carried or not - a body-size and guard-height independent cue.
+const HAND_PATH = [0, 1], FEET_PATH = [9, 10, 13], HAND_SHARE = 17;
 
 export interface RecognitionTemplate { drill: string; body: string; level: string; durationMs: number; seq: (number | null)[][] }
 export interface RecognitionModel {
@@ -68,7 +71,7 @@ export function frameChannels(f: Record<string, number> = {}): number[] {
     finite(f.left_wrist_x) && finite(f.right_wrist_x) ? f.left_wrist_x - f.right_wrist_x : NaN,
     finite(f.left_wrist_y) && finite(f.right_wrist_y) ? f.left_wrist_y - f.right_wrist_y : NaN,
     v(f.left_ankle_x), v(f.right_ankle_x), v(f.left_ankle_y), v(f.right_ankle_y),
-    v(f.root_x), finite(f.torso_angle) ? f.torso_angle / 45 : NaN, NaN, NaN,
+    v(f.root_x), finite(f.torso_angle) ? f.torso_angle / 45 : NaN, NaN, NaN, NaN,
   ];
 }
 
@@ -85,13 +88,15 @@ function pathProfile(samples: TimedFeatures[], pathScales: number[]) {
     const w = rows.slice(Math.max(0, i - 2), i + 3).map(r => r[j]).filter(Number.isFinite);
     return w.length ? w.reduce((a, b) => a + b, 0) / w.length : NaN;
   }));
-  const cum = [0];
+  const cum = [0], cumHand = [0], cumFeet = [0];
+  const part = (i: number, js: number[]) => { let s = 0, n = 0;
+    for (const j of js) { const d = (smooth[i][j] - smooth[i - 1][j]) / pathScales[j]; if (Number.isFinite(d)) { s += d * d; n++; } }
+    return n ? Math.sqrt(s / n) : 0; };
   for (let i = 1; i < smooth.length; i++) {
-    let s = 0, n = 0;
-    for (const j of PATH_CHANNELS) { const d = (smooth[i][j] - smooth[i - 1][j]) / pathScales[j]; if (Number.isFinite(d)) { s += d * d; n++; } }
-    cum.push(cum[i - 1] + (n ? Math.sqrt(s / n) : 0));
+    cum.push(cum[i - 1] + part(i, PATH_CHANNELS));
+    cumHand.push(cumHand[i - 1] + part(i, HAND_PATH)); cumFeet.push(cumFeet[i - 1] + part(i, FEET_PATH));
   }
-  return { smooth, cum };
+  return { smooth, cum, cumHand, cumFeet };
 }
 
 /** Path length of a re-sampled sequence over the path channels (same metric as the path-length parameterisation). */
@@ -120,7 +125,7 @@ export function activeDurationMs(samples: TimedFeatures[], pathScales: number[])
 /** Attempt samples -> path-length re-sampled sequence of `points` x CHANNELS (null for unobserved). */
 export function prepareSequence(samples: TimedFeatures[], pathScales: number[], points: number): number[][] | null {
   if (samples.length < 3) return null;
-  const { smooth, cum } = pathProfile(samples, pathScales);
+  const { smooth, cum, cumHand, cumFeet } = pathProfile(samples, pathScales);
   const total = cum.at(-1)!;
   if (!(total > 1e-6)) return null;
   const out: number[][] = [];
@@ -130,6 +135,8 @@ export function prepareSequence(samples: TimedFeatures[], pathScales: number[], 
     while (k < cum.length - 2 && cum[k + 1] < target) k++;
     const span = cum[k + 1] - cum[k], r = span > 0 ? (target - cum[k]) / span : 0;
     out.push(smooth[k].map((a, j) => { const b = smooth[k + 1][j]; return Number.isFinite(a) && Number.isFinite(b) ? a + (b - a) * r : Number.isFinite(a) ? a : b; }));
+    const h = cumHand[k] + (cumHand[k + 1] - cumHand[k]) * r, f = cumFeet[k] + (cumFeet[k + 1] - cumFeet[k]) * r;
+    out[p][HAND_SHARE] = h + f > 1e-6 ? h / (h + f) : NaN;
   }
   // hand path direction along the re-sampled path (vertical vs horizontal vs diagonal strokes)
   for (let p = 0; p < points; p++) {
