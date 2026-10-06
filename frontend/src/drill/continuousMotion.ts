@@ -76,7 +76,7 @@ export function trajectoryError(samples: MotionSample[], reference: number[][]):
  *  moving frames, minMs) is dropped without failing; an attempt judged incomplete waits up to mergeWaitMs for the next
  *  burst and is re-judged; any other undecided attempt is dropped and detection re-arms. */
 export const DETECT = { mode: 'settle' as 'settle' | 'burst', onHand: .35, onFeet: .25, offHand: .15, offFeet: .1, offRel: .3,
-  holdMs: 100, maxBurstMs: 3000, speedWindowMs: 100, armMs: 200, mergeWaitMs: 1000, keepMs: 600, otherFails: true };
+  holdMs: 100, maxBurstMs: 3000, speedWindowMs: 100, armMs: 200, mergeWaitMs: 1000, keepMs: 600, mergeUnknown: false, mergeMaxMs: 4000, otherFails: true };
 const finiteN = (x: number | undefined): x is number => typeof x === 'number' && Number.isFinite(x);
 const activityOf = (id: string, f?: Record<string, number>) =>
   id.endsWith('hau') ? [f?.action_hand_x, f?.action_hand_y] : [f?.left_ankle_x, f?.right_ankle_x, f?.root_x];
@@ -146,7 +146,7 @@ function stepBurst(runtime: DrillRuntime, attempt: MotionAttempt, id: string, pa
     return {...runtime, state: 'failed', finishedAt: timeMs, match: null, validSince: null,
       motion: {...attempt, phase: 'failed', samples, last: sample, lookedLike: decision.drill, outcome: 'other_drill',
         message: `Похоже на ${DRILL_NAMES[decision.drill] ?? decision.drill}, а не ${DRILL_NAMES[id] ?? id}. Повтори выбранное движение`}};
-  if (decision.incomplete || (decision.kind === 'unknown' && decision.complete))
+  if (decision.incomplete || (decision.kind === 'unknown' && decision.complete) || (DETECT.mergeUnknown && !decision.ignored && timeMs - startedAt < DETECT.mergeMaxMs))
     return {...runtime, checkpointIndex: progressIndex, motion: {...attempt, samples, last: sample, peak, quietSince: timeMs, awaitMove: true, message: 'Продолжай движение до конца'}};
   return rearm(runtime, sample, samples);
 }
