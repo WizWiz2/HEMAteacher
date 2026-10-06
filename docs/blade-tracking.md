@@ -3,11 +3,13 @@
 Branch `feat/blade-tracking-prototype`. Goal: separate look-alike strikes (Scheitelhau vs Schielhau/Zornhau,
 Krumphau vs Zwerchhau). 2D body landmarks cannot tell these apart well (reserved test M/E strikes 65/84, Scheitelhau 7/18).
 
-**Result in short:**
+**Result in short (Session 5, current code):**
 - A perfect blade detector would remove most of the confusion: test strikes M/E go from 65/84 to 82/84, and wrong-drill accepts from 11 to 1 of 672.
-- The practical in-browser detector built here locates the blade well when it reports it (median angle error 1.4°).
-- On the reserved test, though, it does **not** improve recognition: 62/84 own, 9/672 wrong, and footwork wrong-drill accepts rise from 3 to 4.
-- The flag therefore stays **off** and this is not merged.
+- The current detector is a **hybrid**: a classical ray search with temporal tracking, and a tiny learned net (plain JS, ~1.9 MMAC) that fills the frames the tracker misses. On the synthetic reserved test it reports a blade on 100% of the frames and is within 15° on 88% (single-frame v1: 51% coverage).
+- On the **synthetic** reserved test this gives **77/84 · 4/672** for strikes M/E (body only 65/84 · 11/672), with no rise in footwork wrong-drill accepts.
+- The **scenario check is worse** (normal 52/54 vs 54, fast 50 vs 52, fps10 50 vs 51, slow4x 47 vs 50).
+- On **30 real YouTube clips** the learned net does not transfer: 0 of 10 sampled net detections were right. The classical tracker was right on about 7 of 10. About half of the real frames depend on the net.
+- The flag therefore stays **off** and the PR stays a draft. See "Step 3" and "Real-video check" below.
 
 ## How to try it
 - Open the app with `?blade=1` to turn it on; the setting is remembered in `localStorage["hema.bladeTracking"]`. `?blade=0` turns it off.
@@ -53,7 +55,7 @@ Krumphau vs Zwerchhau). 2D body landmarks cannot tell these apart well (reserved
 
 So the angle carries the information and noise is tolerated. **Coverage** (the share of frames with a blade) is what matters.
 
-## Step 2: practical detector (`src/live/bladeDetector.ts`)
+## Step 2 (Session 4, v1): single-frame classical detector (`src/live/bladeDetector.ts`)
 The detector is classical: CPU only, no model download, about 2.7 ms per frame at 640 px in Node, alongside MediaPipe Lite.
 
 **How it works:**
@@ -102,8 +104,80 @@ Krumphau clips are taken for Zwerchhau.
 - Zwerchhau collapses (14 → 9/16), the own rate drops by 3, and one more footwork wrong-drill accept appears.
 - That is not a clear improvement, so the flag stays off and the PR is not merged.
 
+## Step 3 (Session 5): tracking + tiny learned net (current code)
+**Classical tracking** (`BladeTrack` in `bladeDetector.ts`, causal):
+- The scan returns a score for every direction (`scanBlade`).
+- A frame is accepted at confidence ≥ 3 (`high`). After that, the tracker accepts confidence ≥ 1.1 (`low`) within a window around the predicted angle: 12° + 120°/s × dt, predicted from the last two accepted angles. Gaps of up to 400 ms are allowed, and the angular rate is clamped to 1500°/s.
+- **Backward cone:** when the hands are at least 0.5 torso from the shoulders, directions within ±80° of the line back towards the shoulders are suppressed. This took horizontal-forward blades from 38% to 70% correct.
+- The parameters were tuned offline on the train split only (`tune_track.py`). Variants checked on LOBO: low 1.5 gave 55/66 · 4; high 2.5 with low 1.3 gave 55/66 · 6; the defaults were best.
+
+**Tiny learned net** (`bladeNet.ts`, weights `bladeNetWeights.json`, 0.37 MB, loaded lazily with the blade chunk):
+- **Input:** a 96×96 grey crop centred on the hands, 2.8 torso wide (2×2 supersampled bilinear, identical to the training crop).
+- **Architecture:** 4 stride-2 3×3 convolutions (8-16-32-32, BatchNorm folded), then fc64, then [cos, sin, presence].
+- **Training:** train-body renders only (main + ba:train, 11 262 crops). Augmentation: redrawn blade material, background fields, clutter lines, motion and Gaussian blur, gain and noise, JPEG, flips.
+- **Parity:** a unit test checks it against the torch outputs.
+- **Held-out-body validation:** median error 3.4–8°, and 59–93% of frames within 15°, depending on the body.
+
+**Hybrid** (`hybridDetect` in `bladeTracking.ts`): use the tracker's detection if there is one; otherwise use the net's direction if presence ≥ 0.5.
+
+**Training option:** `TRAINING.bladeStrikesOnly`. The footwork templates carry no blade channels, because the footwork renders have no sword. It was chosen on LOBO, and `build-motion-patterns.mjs` uses it for the blade model.
+
+**Detection against GT** (strike clips, all frames with a pose; "correct" = within 15° among all frames):
+
+| detector | train coverage @ precision | test coverage @ precision |
+|---|---|---|
+| v1 single frame, conf ≥ 3 | 59% @ 99.7% | 51% @ 97.5% |
+| classical track + cone | 83% @ 97.3% | 81% @ 90.9% |
+| net only (LOBO nets) | 98% @ 80.8% | — |
+| **hybrid** (train: LOBO nets; test: final net) | 98.7% @ 93.8% | **100% @ 88.1%** |
+
+**Train LOBO** (bladeStrikesOnly; own · wrong):
+
+| detector | strikes M/E | strikes B | steps M/E wrong | steps B wrong |
+|---|---|---|---|---|
+| body only | 51/66 · 10 | 18/33 · 5 | 3 | 3 |
+| classical track | 57/66 · 4 | 22/33 · 2 | 3 | 3 |
+| net only | 56/66 · 7 | 20/33 · 2 | 3 | 3 |
+| **hybrid (chosen)** | **58/66 · 3** | 22/33 · 2 | 3 | 3 |
+| GT angle, detected length (diagnostic) | 62/66 · 1 | | | |
+
+**Reserved synthetic test, run once** (final fixture and model; own · wrong):
+
+| | body only | hybrid blade |
+|---|---|---|
+| **strikes M/E** | **65/84 · 11/672** | **77/84 · 4/672** |
+| per strike M/E (Krumphau / Scheitelhau / Schielhau / Zornhau / Zwerchhau) | 13 / 7 / 14 / 17 / 14 | 14 / 15 / 15 / 18 / 15 |
+| strikes beginners | 30/44 · 6/352 | 35/44 · 2/352 |
+| steps M/E | 57/64 · 3/512 | 57/64 · 3/512 |
+| steps beginners | 28/32 · 3/256 | 28/32 · 3/256 |
+
+**Scenario check** (`check-motion-scenarios.mjs --blade`, main clips):
+
+| scenario | flag off | v1 --blade | hybrid --blade |
+|---|---|---|---|
+| normal | 54/54 | – | **52/54** (two beginner Krumphau rejected) |
+| fast | 52/54 | 51/54 | 50/54 |
+| fps10 | 51/54 | 49/54 | 50/54 |
+| slow4x | 50/54 | 47/54 | 47/54 |
+| truncated strikes | 0/30 | 0/30 | 0/30 (truncated footwork 19/24 as with the flag off) |
+| other negatives | 0 | 0 | 0 |
+
+**Cost per frame:**
+- Measured in headless Chrome 154 on the box at low load, on 179 real 640×360 frames.
+- Scan + track: 2.15 ms. The net: 5.9 ms per call. Grabbing the frame (drawImage + getImageData + grey at 640 px): 1.9 ms.
+- A hybrid frame costs 2.2 ms when the tracker holds the blade, and about 8 ms (plus the grab) when it falls back to the net.
+- Synthetic fixture build: 4.9 ms per frame in Node, under load.
+- On real clips the net runs on about half the frames.
+
+## Real-video check (30 public YouTube HEMA clips, real swords)
+- **Coverage:** the hybrid reports a blade on 97.6% of the 5 181 frames that have a pose: tracker 50.5%, net 47.1%.
+- **Accuracy**, judged by eye on a contact sheet of 20 random frames (10 tracker, 10 net) with the detected line drawn in. There are no labels.
+  - **Tracker:** about 7 of 10 right. One was wrong (a blade foreshortened towards the camera), one was borderline (~15°), one was unclear.
+  - **Net:** 0 of 10 right. Its errors include blades read upside down, a horizontal blade read as vertical, a line drawn with no sword visible, and an axe.
+- **Conclusion:** the learned net does not transfer from the renders to real footage. With half of the frames coming from it, the blade channels would feed wrong angles into the recogniser. The real-vs-synthetic gap of the body-only recogniser (3/30 real clips accepted) is the bigger problem in any case.
+
 ## Why the real detector falls short of the upper bound
-- **Coverage, not accuracy.** On the frames where it fires it is almost always right. But it fires on only ~51% of the test frames, and the masked-GT simulation shows that this coverage alone caps the gain at about LOBO 56/66.
+- (v1) **Coverage, not accuracy.** On the frames where it fires it is almost always right. But it fires on only ~51% of the test frames, and the masked-GT simulation shows that this coverage alone caps the gain at about LOBO 56/66.
 - **Hard cases** are the frames it misses:
   - a forward-horizontal blade (Zwerchhau finish), a thin bright blade on a bright wall;
   - a blade pointing towards or away from the camera (azimuth ±20–40°, short in 2D);
@@ -116,19 +190,20 @@ Krumphau clips are taken for Zwerchhau.
 - **Motion blur.** Webcams at 30 fps with auto exposure blur the blade for most of the swing, even more than in the renders. The design depends on gap bridging from the slow phases.
 - **Hands.** Both wrists must be tracked. MediaPipe loses the far wrist at some angles, and the hands' detection jitters.
 - **Thin and low-resolution.** At 640 px a blade is 1–3 px wide. Lower webcam resolution or heavy compression (video calls, phones) erodes the ridge.
-- **CPU.** About 3 ms per frame at 640 px plus `getImageData` (measured in Node, not yet on a phone). Mobile throttling is unmeasured.
-- **Not validated on real video yet:** no real recordings with ground truth exist.
+- **CPU.** In desktop Chrome: 2.2 ms per frame for the tracker, 5.9 ms for a net call, and 1.9 ms for the frame grab. Phones are unmeasured.
+- **Real video:** checked only by eye on 20 frames (see above). The net fails on real footage, and no real recordings with ground truth exist.
 
 ## Next steps (if pursued)
-1. **Raise coverage:**
-   - temporal tracking (search near the last angle at a lower confidence);
-   - colour or temporal-difference cues for the blur streak;
-   - a tiny learned keypoint model (guard and tip heatmaps on a hand-centred crop, trained on the renders with background, blur and blade-material augmentation, run with WASM/WebGL).
-2. **Render footwork with a sword** so that the footwork templates carry realistic blade channels.
-3. **Collect a few real recordings** with hand-labelled blade lines before any decision to enable the flag.
+1. First, close the real-vs-synthetic gap of the body-only recogniser (separate work).
+2. **Real data for the blade:**
+   - hand-label the blade line on a few hundred real frames;
+   - measure the classical tracker alone on them;
+   - retrain or fine-tune the net with real crops (or drop it and use the tracker only).
+3. **Render footwork with a sword,** so that the footwork templates carry realistic blade channels.
+4. Re-check the scenario regressions (beginner Krumphau → Scheitelhau/Zwerchhau, slow4x).
 
 ## Reproduce
-- Ground-truth experiments use the generator sidecars; the scripts are listed in PROGRESS (Session 4).
+- Ground-truth experiments use the generator sidecars; the scripts are listed in PROGRESS (Sessions 4–5). The net is trained outside the repo (PyTorch, `/workspace/hema/kp`: `extract.py`, `train.py`, `export.py`).
 - `node frontend/scripts/build-blade-fixture.mjs <baClipsRoot> <heldoutRoot>` rebuilds `test-fixtures/motion-blade.json.gz`. It needs the videos.
 - `node frontend/scripts/build-motion-patterns.mjs` rebuilds both models; `--check` verifies them in CI.
 - `node frontend/scripts/check-motion-scenarios.mjs --blade` runs the scenario check on the blade path.
