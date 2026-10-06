@@ -74,8 +74,9 @@ export function trajectoryError(samples: MotionSample[], reference: number[][]):
  *  feet/root for steps; torso lengths per second, i.e. body-scale normalised) exceeds onHand/onFeet, and ends when it
  *  stays below max(off*, offRel x the burst's peak) for holdMs, or after maxBurstMs. Too small a burst (excursion,
  *  moving frames, minMs) is dropped without failing; an attempt judged incomplete waits up to mergeWaitMs for the next
- *  burst and is re-judged; any other undecided attempt is dropped and detection re-arms. */
-export const DETECT = { mode: 'burst' as 'settle' | 'burst', onHand: .35, onFeet: .25, offHand: .15, offFeet: .1, offRel: .15,
+ *  burst and is re-judged; any other undecided attempt is dropped and detection re-arms.
+ *  Phase 5 default: settle (with the real-shape strike templates it beats burst on synthetic and seen real clips). */
+export const DETECT = { mode: 'settle' as 'settle' | 'burst', onHand: .35, onFeet: .25, offHand: .15, offFeet: .1, offRel: .15,
   holdMs: 200, maxBurstMs: 3000, speedWindowMs: 100, armMs: 200, mergeWaitMs: 1000, keepMs: 600, mergeUnknown: false, mergeMaxMs: 4000, otherFails: true };
 const finiteN = (x: number | undefined): x is number => typeof x === 'number' && Number.isFinite(x);
 const activityOf = (id: string, f?: Record<string, number>) =>
