@@ -23,7 +23,7 @@ export const WEIGHTS: Record<(typeof CHANNELS)[number], number> = {
 };
 export const POINTS = 32, BAND = 6, MARGIN = 1.05;
 /** Model-building options (defaults = shipped). Exposed so design experiments can vary them on train-body LOBO only. */
-export const TRAINING = { completion: 0.65, endStance: 0.5, margin: MARGIN, perDrillAccept: false, acceptFloor: 0.75, acceptFactor: 1.5, fisherWeights: false, fisherGamma: 1, k: 1 };
+export const TRAINING = { completion: 0.65, endStance: 0.5, margin: MARGIN, perDrillAccept: false, acceptFloor: 0.75, acceptFactor: 1.5, fisherWeights: false, fisherGamma: 1, k: 1, styleGroups: true };
 
 export function rawFrames(clip: FixtureClip, names: string[]): RawPose[] {
   return clip.t.map((timestampMs, i) => {
@@ -47,6 +47,8 @@ export function movementSamples(clip: FixtureClip, names: string[]): TimedFeatur
   return clipFeatures(clip, names).filter(s => s.timeMs >= a - 100 && s.timeMs <= b + 250);
 }
 
+/** Render style of a training clip from its id suffix (gen2 variants); "base" for the original renders. */
+export const renderStyle = (id: string) => /_fwpflug/.test(id) ? "fwpflug" : /_fwtag/.test(id) ? "fwtag" : /_lowtag/.test(id) ? "lowtag" : "base";
 const round4 = (x: number) => Math.round(x * 1e4) / 1e4;
 const median = (v: number[]) => { const s = [...v].sort((x, y) => x - y); return s[Math.floor((s.length - 1) / 2)]; };
 
@@ -65,17 +67,22 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
   scales[15] = scales[16] = .5; // unit direction components
   const model: RecognitionModel = { version: 2, channels: CHANNELS, weights: CHANNELS.map(c => WEIGHTS[c]), scales: [...scales],
     pathScales: scales.map(round4), points: POINTS, band: BAND, acceptDistance: Infinity, margin: MARGIN, typicalMs: {}, templates: [] };
+  const groups: string[] = [];
   for (const c of clips) {
     const seq = prepareSequence(movementSamples(c, names), scales, POINTS);
+    if (seq) groups.push(c.drill + (TRAINING.styleGroups ? ":" + renderStyle(c.id) : ""));
     if (seq) model.templates.push({ drill: c.drill, body: c.body, level: c.level, durationMs: c.move![1] - c.move![0],
       seq: seq.map(r => r.map(v => (Number.isFinite(v) ? Math.round(v * 1e3) / 1e3 : null))) });
   }
   // Matching scales: within-drill spread of the training templates (performer/body variation the matcher must
   // tolerate), so channels that differ between bodies but not between drills weigh less. Floor = landmark noise.
+  // styleGroups: the spread is taken within each render style of a drill (footwork with hanging arms / sword in Pflug /
+  // sword in Vom Tag, strikes from the default / low Vom Tag): recognition uses the nearest template, so the matcher only
+  // has to tolerate the variation inside a style, not the gap between styles (which would wash out the hand channels).
   model.scales = CHANNELS.map((_, j) => {
     let s = 0, n = 0;
-    for (const d of CONTINUOUS_DRILLS) {
-      const ts = model.templates.filter(t => t.drill === d);
+    for (const d of [...new Set(groups)]) {
+      const ts = model.templates.filter((_, i) => groups[i] === d);
       if (ts.length < 2) continue;
       for (let p = 0; p < POINTS; p++) {
         const v = ts.map(t => t.seq[p][j]).filter((x): x is number => x !== null);
