@@ -48,7 +48,7 @@ export function movementSamples(clip: FixtureClip, names: string[]): TimedFeatur
 }
 
 /** Render style of a training clip from its id suffix (gen2 variants); "base" for the original renders. */
-export const renderStyle = (id: string) => /_fwpflug/.test(id) ? "fwpflug" : /_fwtag/.test(id) ? "fwtag" : /_lowtag/.test(id) ? "lowtag" : "base";
+export const renderStyle = (id: string) => /_rs(_|$)/.test(id) ? "realshape" : /_fwpflug/.test(id) ? "fwpflug" : /_fwtag/.test(id) ? "fwtag" : /_lowtag/.test(id) ? "lowtag" : "base";
 const round4 = (x: number) => Math.round(x * 1e4) / 1e4;
 const median = (v: number[]) => { const s = [...v].sort((x, y) => x - y); return s[Math.floor((s.length - 1) / 2)]; };
 
