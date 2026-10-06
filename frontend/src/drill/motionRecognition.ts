@@ -217,7 +217,7 @@ export const HAND_TRIM = { on: true, lo: 0.05, hi: 0.95, padMs: 150 };
 /** Strike scoring: when a strike is selected, the feet channels (ankles, root) weigh `feet` x their model weight for
  *  every drill's templates, so a hand-dominant attempt is judged on the hands (real strikes carry a different amount of
  *  footwork than the renders). 1 = off. */
-export const STRIKE_SCORING = { feet: 1 };
+export const STRIKE_SCORING = { feet: 0 };
 const FEET_CHANNELS = [9, 10, 11, 12, 13];
 const strikeModel = (m: RecognitionModel): RecognitionModel => STRIKE_SCORING.feet === 1 ? m
   : { ...m, weights: m.weights.map((w, j) => FEET_CHANNELS.includes(j) ? w * STRIKE_SCORING.feet : w) };
