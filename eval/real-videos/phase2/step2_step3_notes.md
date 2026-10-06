@@ -19,3 +19,29 @@
 | segS1: also try windows starting at earlier undecided settles | 102/122, 13/976 | 122/148, 15/1184 | 3/30, 5/240 | 1/17, 3/136 |
 Neither adopted: real own distance / accept stays ~1.4x (relA1 1.41 vs 1.40), so normalisation/segmentation alone
 cannot bridge the gap; the templates themselves must move (step 2).
+
+## Full gen2 (54 jobs) + recognizer changes (fixture 462 clips / 171 train templates)
+Additions: `hand_share` channel (hand path / (hand + feet path), weight 1), `styleGroups` (matching scales per drill x
+render style base/fwpflug/fwtag/lowtag), `HAND_TRIM` (strike attempts trimmed to the 5-95 % hand-path span +-150 ms),
+`STRIKE_SCORING.feet` (feet-channel weight when a strike is selected).
+| variant | LOBO M/E | test M/E own, wrong | test beginner own, wrong | seen all own, wrong | seen clean own, wrong |
+|---|---|---|---|---|---|
+| baseline (main) | 102/122, 13/976 | 122/148, 14/1184 | 58/76, 9/608 | 3/30, 3/240 | 1/17, 2/136 |
+| shipped fixture + hand_share | - | 124/148, 11 | 60/76, 6 | 3/30, 2/240 | - |
+| F0 gen2, shipped code | - | 111/148, 21 | 48/76, 11 | - | - |
+| F1 gen2 + sg + hs | 133/171, 22 | 121/148, 15 | 56/76, 5 | 10/30, 8/240 (strikes 1/16) | 7/17, 5/136 |
+| F2 F1 + HAND_TRIM | 137/171, 21 | 120/148, 13 | 55/76, 5 | 10/30, 8/240 | 7/17, 5/136 |
+| F3a F2 + feet 0.3 | 136/171, 20 | 120/148, 13 | 57/76, 5 | 10/30, 8/240 | 7/17, 5/136 |
+| **F3 F2 + feet 0 (chosen)** | 134/171, 22 | **123/148, 13** | 57/76, 6 | 10/30, 9/240 (strikes 1/16, steps 9/14) | 7/17, 5/136 |
+Strike segmentation/scoring did not move seen strikes (1/16): after trimming, real strikes are hand-dominant
+(hand_share .6-.8) but still lose to step templates on the arm/guard channels (hand_y, forearm_cos, hand_over_head).
+
+## FINAL fresh evaluation (locked set, run once with F3; baseline main run afterwards for comparison only)
+| | generic all | generic clean | personal all | personal clean |
+|---|---|---|---|---|
+| main | own 0/35, wrong 0/280 | own 0/23, wrong 0/184 | own 1/92, wrong 0/736 | own 1/62, wrong 0/496 |
+| F3 | own 2/35 (strikes 2/25, steps 0/10), wrong 5/280 (1.8 %) | own 2/23, wrong 4/184 (2.2 %) | own 4/92, wrong 10/736 (1.4 %) | own 4/62, wrong 8/496 (1.6 %) |
+(personal = per-attempt, leave-one-out personal templates; generic rows there count attempts, not clips.)
+Bar (fresh clean own >= 60 %, wrong <= 5 %): NOT met (clean own 9 % generic, 6 % personal).
+Local CI with the gen2 model: vitest LOBO 78.4 % < 80 % and beginner-similarity test fail; check-motion-scenarios fails
+(fast 4/2, fps10 6/3, reversed 1/0). F2/no-trim also fail the scenarios, so the gen2 templates themselves cost robustness.
