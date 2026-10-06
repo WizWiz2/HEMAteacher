@@ -1,0 +1,105 @@
+== vitest
+ ✓ src/drill/cameraView.test.ts (2 tests) 4ms
+ ✓ src/live/targetGhost.test.ts (3 tests) 3ms
+ ✓ src/live/weaponMarkers.test.ts (2 tests) 4ms
+ ✓ src/drill/motionCompletion.test.ts (2 tests) 3ms
+ ✓ src/drill/weaponMatch.test.ts (2 tests) 4ms
+ ✓ src/drill/continuousMotion.test.ts (9 tests) 980ms
+   ✓ continuous attempts > recognizes a recorded strike and names the drill it resembles instead  747ms
+stdout | src/drill/motionRecognition.fixture.test.ts > motion recognition on the pose fixture > leave-one-body-out over the train bodies, master/experienced
+lobo M/E: own 169/204, wrong-drill 19/1632
+source\selected       zornha scheit krumph zwerch schiel advanc retrea passin passin
+zornhau                29/34   1/34   0/34   0/34   1/34   0/34   0/34   2/34   0/34
+scheitelhau             3/20  11/20   0/20   0/20   1/20   0/20   1/20   0/20   0/20
+krumphau                0/20   0/20  16/20   1/20   0/20   0/20   0/20   0/20   0/20
+zwerchhau               0/22   0/22   0/22  18/22   0/22   0/22   1/22   0/22   0/22
+schielhau               0/28   3/28   0/28   0/28  22/28   1/28   0/28   0/28   0/28
+advance                 0/20   0/20   0/20   0/20   0/20  20/20   0/20   0/20   0/20
+retreat                 0/20   0/20   0/20   0/20   0/20   2/20  17/20   0/20   0/20
+passing-step-forward    0/20   0/20   0/20   0/20   0/20   0/20   0/20  17/20   0/20
+passing-step-backward   0/20   0/20   0/20   0/20   0/20   0/20   2/20   0/20  19/20
+
+stdout | src/drill/motionRecognition.fixture.test.ts > motion recognition on the pose fixture > reserved test clips with the shipped model: few wrong-drill accepts
+test: own 207/255, wrong-drill 26/2040
+source\selected       zornha scheit krumph zwerch schiel advanc retrea passin passin
+zornhau                36/40   1/40   1/40   0/40   1/40   0/40   0/40   0/40   0/40
+scheitelhau             0/28  15/28   0/28   1/28  11/28   0/28   0/28   0/28   0/28
+krumphau                0/24   0/24  14/24   0/24   0/24   0/24   0/24   0/24   0/24
+zwerchhau               0/31   0/31   1/31  27/31   0/31   0/31   0/31   0/31   0/31
+schielhau               2/36   0/36   2/36   0/36  28/36   1/36   0/36   0/36   0/36
+advance                 0/24   0/24   0/24   0/24   0/24  20/24   0/24   0/24   0/24
+retreat                 0/24   0/24   0/24   0/24   0/24   0/24  23/24   0/24   0/24
+passing-step-forward    0/24   0/24   0/24   0/24   0/24   1/24   0/24  23/24   1/24
+passing-step-backward   0/24   0/24   0/24   0/24   0/24   0/24   3/24   0/24  21/24
+
+ ❯ src/drill/motionRecognition.fixture.test.ts (4 tests | 1 failed) 182847ms
+   ✓ motion recognition on the pose fixture > the shipped model is reproducible from the fixture training split  6950ms
+   ✓ motion recognition on the pose fixture > leave-one-body-out over the train bodies, master/experienced  175884ms
+   ✓ motion recognition on the pose fixture > reserved test clips with the shipped model: few wrong-drill accepts 6ms
+   × motion recognition on the pose fixture > slow beginners are recognised with lower similarity and a slow note 6ms
+     → expected 74.76363636363637 to be less than 71.20710059171597
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/drill/motionRecognition.fixture.test.ts > motion recognition on the pose fixture > slow beginners are recognised with lower similarity and a slow note
+AssertionError: expected 74.76363636363637 to be less than 71.20710059171597
+ ❯ src/drill/motionRecognition.fixture.test.ts:41:41
+     39|     const lobo = (await all()).filter(r => r.protocol === "lobo" && r.…
+     40|     const mean = (lv: (l: string) => boolean) => { const v = lobo.filt…
+     41|     expect(mean(l => l === "beginner")).toBeLessThan(mean(l => l !== "…
+       |                                         ^
+     42|     // Strike beginners get the slow note (measured 17/18). Footwork b…
+     43|     // accepted at a mid-step pause, so its tempo is underestimated (d…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 17 passed (18)
+      Tests  1 failed | 61 passed (62)
+   Start at  03:28:58
+   Duration  183.58s (transform 961ms, setup 0ms, collect 2.35s, tests 184.24s, environment 4ms, prepare 1.50s)
+
+vitest exit 1
+== check-vom-tag-clips
+┌─────────┬──────────────────────────────────┬────────┬──────────────┬────────┐
+│ (index) │ clip                             │ guards │ latestPassMs │ failed │
+├─────────┼──────────────────────────────────┼────────┼──────────────┼────────┤
+│ 0       │ 'short_broad_female_beginner'    │ '6/6'  │ 367          │ ''     │
+│ 1       │ 'short_broad_female_experienced' │ '6/6'  │ 367          │ ''     │
+│ 2       │ 'short_broad_female_master'      │ '6/6'  │ 367          │ ''     │
+│ 3       │ 'tall_slim_male_beginner'        │ '6/6'  │ 367          │ ''     │
+│ 4       │ 'tall_slim_male_experienced'     │ '6/6'  │ 367          │ ''     │
+│ 5       │ 'tall_slim_male_master'          │ '6/6'  │ 367          │ ''     │
+└─────────┴──────────────────────────────────┴────────┴──────────────┴────────┘
+vom exit 0
+== build-motion-patterns --check
+model: 204 templates from 204 training clips, acceptDistance 2.8645
+patterns exit 0
+== check-motion-scenarios
+FAIL fps10: 12 unexpected (allowed 3)
+   UNEXPECTED main/passing-step-forward/tall_slim_male_experienced -> not accepted Похоже на проходной шаг назад, а не проходной шаг вперёд. Повтори выбранное движение 
+FAIL slow4x: 10 unexpected (allowed 4)
+FAIL truncated: 20 unexpected (allowed 19)
+   UNEXPECTED main/passing-step-backward/short_broad_female_beginner -> accepted Движение распознано 80
+   UNEXPECTED main/passing-step-backward/short_broad_female_experienced -> accepted Движение распознано 92
+   UNEXPECTED main/passing-step-backward/short_broad_female_master -> accepted Движение распознано 94
+   UNEXPECTED main/passing-step-backward/tall_slim_male_beginner -> accepted Движение распознано 80
+   UNEXPECTED main/passing-step-backward/tall_slim_male_experienced -> accepted Движение распознано 90
+   UNEXPECTED main/passing-step-backward/tall_slim_male_master -> accepted Движение распознано 95
+   UNEXPECTED main/passing-step-forward/short_broad_female_beginner -> accepted Движение распознано 80
+   UNEXPECTED main/passing-step-forward/short_broad_female_experienced -> accepted Движение распознано 88
+   UNEXPECTED main/passing-step-forward/short_broad_female_master -> accepted Движение распознано 94
+   UNEXPECTED main/passing-step-forward/tall_slim_male_beginner -> accepted Движение распознано 81
+{"normal":{"expected":"accept","accepted":52,"total":54},"fast":{"expected":"accept","accepted":50,"total":54},"fps10":{"expected":"accept","accepted":42,"total":54},"slow4x":{"expected":"accept","accepted":44,"total":54},"reversed":{"expected":"reject","accepted":0,"total":54},"frozen":{"expected":"reject","accepted":0,"total":54},"slow12x":{"expected":"reject","accepted":0,"total":54},"truncated":{"expected":"reject","accepted":20,"total":54},"gap":{"expected":"reject","accepted":0,"total":54}}
+scen exit 1
+== static build
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.51s
+Engraving textures: CRCs, dimensions and complete pixel streams verified.
+Static build contains content, local MediaPipe assets, and the analysis worker; no /api/v1/ calls.
+static exit 0
+CI_DONE
