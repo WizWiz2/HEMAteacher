@@ -140,8 +140,8 @@ for the 30 real clips and the 148 reserved synthetic test clips). Values are med
 | path ratio (attempt path / typical) | 1.44 | 1.00 | **2.66** | 0.99 |
 | hand vertical range (torso) | 0.27 | 0.45 | 0.27 | **0.07** |
 | hand path length during the attempt (torso) | 1.84 | 1.56 | **2.11** | **0.46** |
-| hand height at start (torso vs nose, − = above) | −0.59 | −0.19 | −0.99 | −1.33 |
-| lowest hand position | −0.14 | +0.06 | −0.87 | −1.28 |
+| hand height at start (torso vs nose, y-up: − = below nose) | −0.59 | −0.19 | −0.99 | −1.33 |
+| highest hand position in the attempt (vs nose) | −0.14 | +0.06 | −0.87 | −1.28 |
 | landmark jitter, hand / ankle (torso/frame) | 0.006 / 0.002 | 0.011 / 0.002 | 0.006 / 0.003 | 0.005 / 0.008 |
 | torso length / frame height | 0.23 | 0.19 | 0.21 | 0.18 |
 
@@ -160,9 +160,11 @@ Interpretation, from most to least important:
 
 1. **The movement shape differs, not the noise or scale.** Real attempts are about 4× farther from *every* template (nearest of all
    drills is 3.4 vs 0.7). The model's channel scales are narrow because the training spread is narrow: `hand_y` scale is 0.068 torso
-   and `hand_over_head` is 0.073. A 0.27-torso difference in hand height is therefore already about 4 units. Real instructors start vom
-   Tag with the hands higher above the head (−0.59 vs −0.19 torso). They also finish higher (lowest hand −0.14 vs +0.06): the
-   strikes end at shoulder or chest height in Langort instead of dropping low. Their vertical hand excursion is about 40% smaller
+   and `hand_over_head` is 0.073. A 0.27-torso difference in hand height is therefore already about 4 units.
+   *Correction: the normalised pose is y-up, so a negative value means the hand is BELOW the nose. An earlier version of this
+   section had the sign reversed.* Real instructors start vom Tag with the hands about 0.4 torso **lower** than the synthetic
+   performer: −0.59 vs −0.19 below the nose, i.e. vom Tag at the shoulder rather than at head height. During the strike the real
+   hands never rise above the nose (highest −0.14 vs synthetic +0.06). Their vertical hand excursion is about 40% smaller
    (0.27 vs 0.45 torso).
 2. **The sword arm moves during steps.** Synthetic step clips keep the hands frozen (hand path 0.46 torso, vertical range 0.07,
    forearm_sin |z| 0.1). Real fencers carry the sword through the step, or cut while stepping: the hand path is 4.6× longer and

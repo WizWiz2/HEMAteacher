@@ -12,7 +12,7 @@ P('| metric | real strikes | synth strikes | real steps | synth steps |\n|---|--
 M = [('own-drill distance', 'own'), ('best-of-all distance', 'bestDist'), ('own distance, best prefix of attempt', 'bestPrefixOwn'), ('tempo (active duration / typical)', 'tempo'),
      ('attempt duration ms', 'attemptMs'), ('path ratio (attempt path / typical)', 'pathRatio'), ('hand x range (torso)', 'handRangeX'), ('hand y range (torso)', 'handRangeY'),
      ('hand path length (torso)', 'handPath'), ('root x range (torso)', 'rootRange'), ('ankle x range (torso)', 'ankleRange'),
-     ('hand over head at attempt start (torso, - = above nose)', 'startHOH'), ('highest hand over head in attempt', 'minHOH'), ('lowest hand in attempt', 'maxHOH'), ('hand x at attempt start (torso)', 'startHandX'),
+     ('hand height vs nose at attempt start (torso, y-up: - = below nose)', 'startHOH'), ('lowest hand in attempt (vs nose)', 'minHOH'), ('highest hand in attempt (vs nose)', 'maxHOH'), ('hand x at attempt start (torso)', 'startHandX'),
      ('hand jitter (torso/frame)', 'jitHand'), ('ankle jitter (torso/frame)', 'jitAnkle'), ('torso length / frame height', 'torsoFrac'), ('min limb visibility', 'minLimbVis'), ('fps', 'fps')]
 for name, k in M:
     P(f"| {name} | " + ' | '.join(qs([r[k] for r in grp(s, kind) if isinstance(r.get(k), (int, float))]) for kind in ('strikes', 'steps') for s in ('real', 'synthetic')) + ' |')
