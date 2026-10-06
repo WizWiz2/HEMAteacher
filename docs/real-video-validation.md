@@ -7,6 +7,28 @@ from your own downloads.
 Main at `06a0070`, VideoRegressionPage pipeline (browser MediaPipe pose *lite* in headless Chrome, blade flag OFF), shipped
 recognition model (`acceptDistance` 2.735, margin 1.05).
 
+## Data-quality correction (added after review)
+
+A re-check of every clip for weapon and framing found 13 of the 30 clips do not show a solo, full-body fencer with a two-handed longsword:
+
+- **One-handed sword and buckler (4).** All `stritschar_*` clips. Their distances of 7–9 are explained by this alone.
+- **No weapon (3).** All `vcu_pass*` clips.
+- **Legs not fully in frame (2).** `laurel_schielhau_01` and `_02`.
+- **Second person inside the crop (2).** `drey_zwerchhau_01` and `becker_zornhau_01`.
+- **Edited footage (2).** `bjorn_zornhau_03` has a text card; `laurel_zwerchhau_04` has a crossfade.
+
+The manifest now carries `weapon`, `solo_full_body`, `clean` and `exclusion_reason` columns.
+
+| | all 30 clips | clean 17 (two-handed longsword, solo, full body, unedited) |
+|---|---|---|
+| own drill accepted | 3/30 (strikes 1/16, steps 2/14) | **1/17** (strikes 1/10, steps 0/7) |
+| wrong drill accepted (incl. guards) | 4/270 (1.5%) | 3/153 (2.0%) |
+| median own distance, strikes / steps | 3.83 / 4.46 | 3.83 / 3.56 |
+
+Two of the three accepted clips were the no-weapon VCU steps. On clean longsword clips, the verdict is therefore *worse*, not better.
+The diagnosis (hand height, sword arm during steps, extra motion per attempt) still holds on the clean subset:
+tempo 4.9× and path ratio 1.9 for strikes, and 3.8× and 2.7 for steps. Clean-subset tables: `eval/real-videos/results/summary_clean.md`.
+
 ## Data
 
 30 clips (4–8 s, one repetition each, starting from a guard), cut from 13 public videos by 9 channels. All performers are

@@ -13,10 +13,12 @@ def cls(r):
 def load(p):
     try: return json.load(open(p))
     except FileNotFoundError: return []
-own, flipped, cross, crossdp = (load(f'/workspace/hema/real/results/{n}.json') for n in ('rp_own', 'rp_own_flipped', 'rp_cross', 'rp_cross_drillpage'))
+import os
+CLEAN = bool(os.environ.get('CLEAN'))
+own, flipped, cross, crossdp = ([r for r in load(f'/workspace/hema/real/results/{n}.json') if not CLEAN or man[key(r)].get('clean') == 'yes'] for n in ('rp_own', 'rp_own_flipped', 'rp_cross', 'rp_cross_drillpage'))
 L = []; P = L.append
 clips = sorted({key(r) for r in own})
-P(f'# Real public-video validation: results\n\nClips evaluated: {len(clips)} (browser MediaPipe lite, raw frames replayed through main @ app checkout, blade flag OFF).\n')
+P(('# CLEAN SUBSET (two-handed longsword, solo, full body, unedited)\n\n' if CLEAN else '') + f'# Real public-video validation: results\n\nClips evaluated: {len(clips)} (browser MediaPipe lite, raw frames replayed through main @ app checkout, blade flag OFF).\n')
 cnt = collections.Counter(man[c]['drill'] for c in clips)
 P('## Clips by drill\n\n| drill | clips |\n|---|---|\n' + '\n'.join(f'| {d} | {n} |' for d, n in sorted(cnt.items())) + '\n')
 P('## Own drill selected (VideoRegressionPage semantics: one attempt per clip)\n')
@@ -59,6 +61,6 @@ def matrix(rows, title):
     P(f"\nOwn drill accepted {s['own_accept']} (strikes {s['strikes']}, steps {s['steps']}); accepted as the WRONG drill {s['wrong_accept']} ({s['wrong_rate']}%).\n"); return s
 s1 = matrix(cross, 'Cross evaluation: every clip x every drill (regression page, one attempt)')
 s2 = matrix(crossdp, 'Cross evaluation, DrillPage mode (retries after a failed attempt, like a user repeating)')
-open('/workspace/hema/real/results/summary.md', 'w').write('\n'.join(L) + '\n')
-json.dump(dict(own=dict(oc), by_drill={k: dict(v) for k, v in byd.items()}, cross=s1, cross_drillpage=s2), open('/workspace/hema/real/results/summary.json', 'w'), indent=1)
+open('/workspace/hema/real/results/summary' + ('_clean' if CLEAN else '') + '.md', 'w').write('\n'.join(L) + '\n')
+json.dump(dict(own=dict(oc), by_drill={k: dict(v) for k, v in byd.items()}, cross=s1, cross_drillpage=s2), open('/workspace/hema/real/results/summary' + ('_clean' if CLEAN else '') + '.json', 'w'), indent=1)
 print('\n'.join(L[-12:]))

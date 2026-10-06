@@ -41,3 +41,11 @@ worktree /workspace/hema-real (branch eval/public-real-videos from origin/main 0
   Finding so far: real distances 3-9 >> accept 2.735 -> 'unknown' -> UI stays 'Продолжай движение до конца'. Steps with sword arm motion look like strikes (pathRatio 4-7).
   NEXT: summarize.py -> results/summary.md; doc; PR.
 - 15:50+ (session 3) all 30 clips browser+replay done (browser vs replay 30/30 agree). diag.mjs attempts/sweep + diag_report.py -> diag/. Doc written. Committing + PR.
+
+## Phase 2: close the real-vs-synthetic gap (started 2026-10-06 09:36)
+- PR #21 opened (eval/public-real-videos, do not merge): https://github.com/WizWiz2/HEMAteacher/pull/21
+- NOTE: the app's "personalised recognition" (5da33f5) = personalizeDrill retargets checkpoint POSES to the body profile; there are NO personal motion templates. Step 1 simulated in personal.mjs (personal template = prepareSequence of the calibration rep's attempt appended to generic templates; per person, 1 calib rep per drill, rotating folds).
+- Step 1 result (seen clips): generic own 4/36 (str 3/24, steps 1/12), wrong 5/288 -> generic+personal own 6/36 (str 3/24, steps 3/12), wrong 12/288. DOES NOT WORK as is.
+  Why: same person + same drill reps are themselves 2-7 apart (laurel zwerch 2.6-7.3, bahff schiel 3.7, stritschar adv 2.0-3.7), while different drills of one person can be closer (ukolov adv-retreat 2.3, drey zorn-zwerch 2.45). Attempt windows are inconsistent (path length of laurel zwerch reps 4.1..12.6) -> segmentation is the first lever.
+- window_oracle.mjs (best sub-window 0.4-3 s per drill): own<=accept 16/30 (vs 4/27), but own nearest only 5/30 (sub-windows of other drills, esp. steps 'retreat/advance', match even better). Segmentation helps distance but discrimination needs better templates too.
+- Fresh held-out search running: /workspace/hema/fresh (search.sh -> search.txt). Fresh clips must exclude all video ids in /workspace/hema/real/dl_list*.txt.

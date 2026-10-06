@@ -1,0 +1,51 @@
+{
+ "own": {
+  "undecided": 13,
+  "rejected_as_other": 1,
+  "never_started": 2,
+  "accepted": 1
+ },
+ "by_drill": {
+  "advance": {
+   "undecided": 2
+  },
+  "krumphau": {
+   "undecided": 2
+  },
+  "passing-step-backward": {
+   "undecided": 1
+  },
+  "passing-step-forward": {
+   "undecided": 2
+  },
+  "retreat": {
+   "undecided": 2
+  },
+  "schielhau": {
+   "rejected_as_other": 1,
+   "undecided": 1
+  },
+  "zornhau": {
+   "never_started": 2,
+   "undecided": 1
+  },
+  "zwerchhau": {
+   "undecided": 2,
+   "accepted": 1
+  }
+ },
+ "cross": {
+  "own_accept": "1/17",
+  "strikes": "1/10",
+  "steps": "0/7",
+  "wrong_accept": "3/153",
+  "wrong_rate": 2.0
+ },
+ "cross_drillpage": {
+  "own_accept": "1/17",
+  "strikes": "1/10",
+  "steps": "0/7",
+  "wrong_accept": "3/153",
+  "wrong_rate": 2.0
+ }
+}
