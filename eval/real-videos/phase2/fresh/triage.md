@@ -21,3 +21,10 @@ pairs/groups: 0oOd 96IM UFRO aqM- g8g7 gOyZ hOFX hVEi p0eN rZqs raWr ln94 FtS6 C
   Rejected: bulX dtFR XRkO oxSH sCuM MOnd pkiS Y3Dh ExnO (pairs/groups); e8cq Harmon (same zoom style as QjW2, check later).
 - Labelled so far (manifest.csv): forge_zornhau_01/02, pblack_zwerchhau_01/02, schwaben_zornhau_01..05 = 9 clips, 3 persons, 0 steps. Not cut, not evaluated.
 - round 3 search (queries3: solo forms, Fechtbuch, Ochs/Pflug footwork, DE/PL/RU/ES/IT) -> dl_list3.txt 32 ids (dl3.sh after dl2)
+## 11:12 LOCKED (35 clips, 23 clean). See LOCK.md (sha256 of manifest + clips).
+- Added: schilt_zwerchhau x4, pblack_zwerchhau_03/04, jtsay_krumphau x3 (frontal, clean=no), cba_zwerchhau x3 (frontal, clean=no),
+  sprez (Sprezzatura): advance_03/04 + passfwd_01/02 WITH a two-handed trainer on the shoulder (4SK7gByKrhM, clean), advance_01/02 + retreat_01/02 without weapon (DhsGnksu0Ag, clean=no),
+  helman_passback_01/02 without weapon (KEIl_pMlAms, clean=no), mccamey_schielhau x4 (EhRZWrk4_Gc real-time part, clean).
+- NOTE 4SK7: MediaPipe 'face' sign said R for leftward runs too; the sheet shows she turns around -> leftward segments are forward moves (not retreats). Only rightward segments used.
+- Round-3/4 step search: KEIl (Helman) armed passes 546/557 = guard change high->low during the pass (reads like a cut) -> not labelled; CESA Uwzy, paESs, 1ZkWY, 8Zr6J, gKoIN, 3QFED = frontal and/or no sword; DjtC/8Rl9 frontal combos; meLj one-handed; 9wMu sword+buckler; rFL2y picture-in-picture; 4Q8h/H336/RlOg/4iWM/7a7u pairs.
+- Gaps (honest): no clean scheitelhau, no clean krumphau, no clean retreat / passing-step-backward with a longsword in the fresh set.
