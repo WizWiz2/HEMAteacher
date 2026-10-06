@@ -1,0 +1,24 @@
+== generic (P4)
+all: own 3/35 (strikes 0/25, steps 3/10) | wrong 1/280 [('sprez_passfwd_01', 'advance')]
+clean: own 1/23 (strikes 0/19, steps 1/4) | wrong 1/184 [('sprez_passfwd_01', 'advance')]
+== personal calibration (P4, all)
+generic            own 7/92  strikes 0/70  steps 7/22  wrong 2/736
+generic+personal   own 8/92  strikes 0/70  steps 8/22  wrong 0/736
+  sprez        generic: own 6/20 wrong 2/160 | generic+personal: own 7/20 wrong 0/160
+  jtsay        generic: own 0/6 wrong 0/48 | generic+personal: own 0/6 wrong 0/48
+  helman       generic: own 1/2 wrong 0/16 | generic+personal: own 1/2 wrong 0/16
+  mccamey      generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  forge        generic: own 0/2 wrong 0/16 | generic+personal: own 0/2 wrong 0/16
+  schwaben     generic: own 0/20 wrong 0/160 | generic+personal: own 0/20 wrong 0/160
+  cba          generic: own 0/6 wrong 0/48 | generic+personal: own 0/6 wrong 0/48
+  pblack       generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  schilt       generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+== personal calibration (P4, clean)
+generic            own 1/62  strikes 0/58  steps 1/4  wrong 1/496
+generic+personal   own 1/62  strikes 0/58  steps 1/4  wrong 0/496
+  sprez        generic: own 1/4 wrong 1/32 | generic+personal: own 1/4 wrong 0/32
+  mccamey      generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  forge        generic: own 0/2 wrong 0/16 | generic+personal: own 0/2 wrong 0/16
+  schwaben     generic: own 0/20 wrong 0/160 | generic+personal: own 0/20 wrong 0/160
+  pblack       generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  schilt       generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
