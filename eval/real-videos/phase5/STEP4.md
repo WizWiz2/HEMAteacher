@@ -126,4 +126,4 @@ But the gap is still not closed. In order of size:
 Next levers:
 - Fix the zwerchhau clearance on the other bodies and re-render (12 + 5 clips).
 - Use burst detection with a strike-specific accept on hand-trimmed windows.
-- Get real recordings of the user (the stated planka: own ≥ 60 %, others ≤ 5 %).
+- Get real recordings of the user (the bar: own ≥ 60 %, others ≤ 5 %).
