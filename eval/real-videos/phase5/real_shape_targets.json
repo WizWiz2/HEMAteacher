@@ -1,0 +1,462 @@
+{
+ "_doc": "Phase 5 real strike-shape targets, MediaPipe feature space (hip-relative torso units, x forward, y up). Medians of the SEEN real reps (stritschar excluded, fresh never used); rep = hand-speed burst with net forward hand displacement > .15 (measure.mjs). 'old_syn' = median of the old synthetic base M/E reps. tol = pilot acceptance band around the real median. 'target' = robust consensus target set from the per-rep table (medians are unstable at n=3-4: bjorn zornhau and laurel_zwerchhau_04 have suspect facing/tracking); tol = acceptance band for the pilot renders (dur tol is relative).",
+ "guard_note": "Real Vom Tag is held at chest/shoulder height: strike start hand_y .62-1.05 (over_shoulder -.31..+.06) vs old synthetic 1.11-1.17 (+.10..+.16).",
+ "tempo_note": "Real strike bursts last 333-2100 ms (median ~0.9-1.1 s zornhau/zwerchhau, ~0.42 s schielhau) vs old synthetic 0.43-0.67 s: ~1.5-2x slower, not 4x, for the burst itself; the 4x figure includes the pauses between reps.",
+ "drills": {
+  "zornhau": {
+   "n_real": 3,
+   "people": [
+    "becker",
+    "bjorn"
+   ],
+   "targets": {
+    "start.hand_y": {
+     "target": 0.95,
+     "tol": 0.15,
+     "tol_relative": false,
+     "real_median": 0.961,
+     "old_syn_median": 1.107
+    },
+    "start.over_shoulder": {
+     "target": 0.0,
+     "tol": 0.15,
+     "tol_relative": false,
+     "real_median": 0.055,
+     "old_syn_median": 0.103
+    },
+    "end.hand_x": {
+     "target": 0.95,
+     "tol": 0.15,
+     "tol_relative": false,
+     "real_median": 0.946,
+     "old_syn_median": 0.788
+    },
+    "end.hand_y": {
+     "target": 0.9,
+     "tol": 0.2,
+     "tol_relative": false,
+     "real_median": 0.841,
+     "old_syn_median": 0.823
+    },
+    "dx": {
+     "target": 0.8,
+     "tol": 0.3,
+     "tol_relative": false,
+     "real_median": 1.022,
+     "old_syn_median": 0.414
+    },
+    "dy": {
+     "target": -0.05,
+     "tol": 0.2,
+     "tol_relative": false,
+     "real_median": -0.004,
+     "old_syn_median": -0.3
+    },
+    "dir_deg": {
+     "target": -4,
+     "tol": 20,
+     "tol_relative": false,
+     "real_median": -0.392,
+     "old_syn_median": -34.421
+    },
+    "dur_ms": {
+     "target": 900,
+     "tol": 0.4,
+     "tol_relative": true,
+     "real_median": 933,
+     "old_syn_median": 434
+    }
+   },
+   "per_rep": [
+    {
+     "clip": "becker_zornhau_01",
+     "t0": 4367,
+     "t1": 4967,
+     "start": {
+      "hand_x": 0.42467351678482407,
+      "hand_y": 0.8444521418921773,
+      "over_head": -0.41780478486391215,
+      "over_shoulder": -0.15143118251217524,
+      "forearm_deg": 69.80235489056241
+     },
+     "end": {
+      "hand_x": 0.9457906485890029,
+      "hand_y": 0.8408868263489133,
+      "over_head": -0.4078015387727496,
+      "over_shoulder": -0.1852097907287109,
+      "forearm_deg": -5.08316223774185
+     },
+     "dx": 0.5211171318041787,
+     "dy": -0.0035653155432640027,
+     "dur": 600,
+     "stepped": false
+    },
+    {
+     "clip": "bjorn_zornhau_01",
+     "t0": 667,
+     "t1": 1600,
+     "start": {
+      "hand_x": -0.5855902170882411,
+      "hand_y": 0.9611771894576221,
+      "over_head": -0.1608310712743798,
+      "over_shoulder": 0.05520777193067883,
+      "forearm_deg": 154.75559604415787
+     },
+     "end": {
+      "hand_x": 0.4360663223895781,
+      "hand_y": -0.005165232323999488,
+      "over_head": -1.1403757339499903,
+      "over_shoulder": -0.8592468810094491,
+      "forearm_deg": -98.69647254010795
+     },
+     "dx": 1.0216565394778192,
+     "dy": -0.9663424217816216,
+     "dur": 933,
+     "stepped": true
+    },
+    {
+     "clip": "bjorn_zornhau_02",
+     "t0": 333,
+     "t1": 1633,
+     "start": {
+      "hand_x": -0.6840297962652587,
+      "hand_y": 1.0505132482991926,
+      "over_head": -0.2348903145132497,
+      "over_shoulder": 0.07605938933542356,
+      "forearm_deg": null
+     },
+     "end": {
+      "hand_x": 0.9636328915432647,
+      "hand_y": 1.099946192457519,
+      "over_head": -0.25200140316540853,
+      "over_shoulder": 0.08833006881796779,
+      "forearm_deg": null
+     },
+     "dx": 1.6476626878085234,
+     "dy": 0.04943294415832633,
+     "dur": 1300,
+     "stepped": true
+    }
+   ]
+  },
+  "zwerchhau": {
+   "n_real": 4,
+   "people": [
+    "drey",
+    "laurel"
+   ],
+   "targets": {
+    "end.hand_x": {
+     "target": 0.65,
+     "tol": 0.2,
+     "tol_relative": false,
+     "real_median": 0.647,
+     "old_syn_median": 0.678
+    },
+    "end.hand_y": {
+     "target": 1.41,
+     "tol": 0.15,
+     "tol_relative": false,
+     "real_median": 1.41,
+     "old_syn_median": 1.115
+    },
+    "end.over_head": {
+     "target": 0.1,
+     "tol": 0.15,
+     "tol_relative": false,
+     "real_median": 0.099,
+     "old_syn_median": -0.208
+    },
+    "end.forearm_deg": {
+     "target": 80,
+     "tol": 30,
+     "tol_relative": false,
+     "real_median": 88.269,
+     "old_syn_median": 36.615
+    },
+    "dx": {
+     "target": 0.6,
+     "tol": 0.25,
+     "tol_relative": false,
+     "real_median": 0.699,
+     "old_syn_median": 0.473
+    },
+    "dy": {
+     "target": 0.0,
+     "tol": 0.2,
+     "tol_relative": false,
+     "real_median": -0.022,
+     "old_syn_median": -0.033
+    },
+    "dur_ms": {
+     "target": 1100,
+     "tol": 0.4,
+     "tol_relative": true,
+     "real_median": 1133,
+     "old_syn_median": 667
+    }
+   },
+   "per_rep": [
+    {
+     "clip": "drey_zwerchhau_01",
+     "t0": 5067,
+     "t1": 6200,
+     "start": {
+      "hand_x": 0.11477338758865806,
+      "hand_y": 0.6874432404380165,
+      "over_head": -0.6964168029378176,
+      "over_shoulder": -0.307324801384233,
+      "forearm_deg": 19.713413409668643
+     },
+     "end": {
+      "hand_x": 0.813819320664286,
+      "hand_y": 0.6425278792578399,
+      "over_head": -0.7156609821396749,
+      "over_shoulder": -0.3730414977512233,
+      "forearm_deg": 8.647469729925284
+     },
+     "dx": 0.6990459330756279,
+     "dy": -0.04491536118017658,
+     "dur": 1133,
+     "stepped": false
+    },
+    {
+     "clip": "laurel_zwerchhau_01",
+     "t0": 3567,
+     "t1": 5667,
+     "start": {
+      "hand_x": -0.18909821431800622,
+      "hand_y": 0.5894759729857998,
+      "over_head": -0.674819258215103,
+      "over_shoulder": -0.3986734986377364,
+      "forearm_deg": 2.1563832922490844
+     },
+     "end": {
+      "hand_x": 0.6471720908297008,
+      "hand_y": 1.4794678465084632,
+      "over_head": 0.16932171290184517,
+      "over_shoulder": 0.3945740450360391,
+      "forearm_deg": 66.73721654836814
+     },
+     "dx": 0.8362703051477071,
+     "dy": 0.8899918735226634,
+     "dur": 2100,
+     "stepped": true
+    },
+    {
+     "clip": "laurel_zwerchhau_02",
+     "t0": 1933,
+     "t1": 3033,
+     "start": {
+      "hand_x": 0.14850319207837429,
+      "hand_y": 1.4586902687016812,
+      "over_head": 0.2350440318472844,
+      "over_shoulder": 0.45067853039324257,
+      "forearm_deg": 12.270733447209473
+     },
+     "end": {
+      "hand_x": 0.48471992073913756,
+      "hand_y": 1.4096682503362608,
+      "over_head": 0.09022545103442181,
+      "over_shoulder": 0.32638282238739613,
+      "forearm_deg": 88.26851823623396
+     },
+     "dx": 0.33621672866076324,
+     "dy": -0.04902201836542042,
+     "dur": 1100,
+     "stepped": true
+    },
+    {
+     "clip": "laurel_zwerchhau_04",
+     "t0": 4867,
+     "t1": 5200,
+     "start": {
+      "hand_x": -0.6245281103782515,
+      "hand_y": 1.3801286485638316,
+      "over_head": 0.19722472109900546,
+      "over_shoulder": 0.39541531903988003,
+      "forearm_deg": 101.27143508903062
+     },
+     "end": {
+      "hand_x": -0.027052784180676984,
+      "hand_y": 1.3582335734403146,
+      "over_head": 0.09924191159610363,
+      "over_shoulder": 0.38967025075948936,
+      "forearm_deg": 155.84449883932916
+     },
+     "dx": 0.5974753261975745,
+     "dy": -0.02189507512351696,
+     "dur": 333,
+     "stepped": true
+    }
+   ]
+  },
+  "schielhau": {
+   "n_real": 4,
+   "people": [
+    "bahff",
+    "laurel"
+   ],
+   "targets": {
+    "start.hand_y": {
+     "target": 0.69,
+     "tol": 0.15,
+     "tol_relative": false,
+     "real_median": 0.692,
+     "old_syn_median": 1.165
+    },
+    "start.over_shoulder": {
+     "target": -0.31,
+     "tol": 0.15,
+     "tol_relative": false,
+     "real_median": -0.31,
+     "old_syn_median": 0.163
+    },
+    "end.hand_x": {
+     "target": 1.18,
+     "tol": 0.15,
+     "tol_relative": false,
+     "real_median": 1.187,
+     "old_syn_median": 0.748
+    },
+    "end.hand_y": {
+     "target": 1.0,
+     "tol": 0.2,
+     "tol_relative": false,
+     "real_median": 1.053,
+     "old_syn_median": 0.942
+    },
+    "dx": {
+     "target": 0.8,
+     "tol": 0.3,
+     "tol_relative": false,
+     "real_median": 1.085,
+     "old_syn_median": 0.429
+    },
+    "dy": {
+     "target": 0.3,
+     "tol": 0.25,
+     "tol_relative": false,
+     "real_median": 0.348,
+     "old_syn_median": -0.218
+    },
+    "dir_deg": {
+     "target": 25,
+     "tol": 20,
+     "tol_relative": false,
+     "real_median": 43.476,
+     "old_syn_median": -33.358
+    },
+    "dur_ms": {
+     "target": 420,
+     "tol": 0.4,
+     "tol_relative": true,
+     "real_median": 467,
+     "old_syn_median": 500
+    }
+   },
+   "per_rep": [
+    {
+     "clip": "bahff_schielhau_01",
+     "t0": 3933,
+     "t1": 4300,
+     "start": {
+      "hand_x": 0.8110301612919103,
+      "hand_y": 0.7043822835284629,
+      "over_head": -0.6297930795140302,
+      "over_shoulder": -0.2913079366121927,
+      "forearm_deg": null
+     },
+     "end": {
+      "hand_x": 1.1783293069321095,
+      "hand_y": 1.0526440472570555,
+      "over_head": -0.3239931286155249,
+      "over_shoulder": 0.030753818175347947,
+      "forearm_deg": 18.976460109919987
+     },
+     "dx": 0.36729914564019917,
+     "dy": 0.34826176372859263,
+     "dur": 367,
+     "stepped": true
+    },
+    {
+     "clip": "bahff_schielhau_02",
+     "t0": 3300,
+     "t1": 3633,
+     "start": {
+      "hand_x": 0.7430998774095093,
+      "hand_y": 0.6181707144151292,
+      "over_head": -0.7390602210247075,
+      "over_shoulder": -0.3705214113910804,
+      "forearm_deg": 45.10317192766708
+     },
+     "end": {
+      "hand_x": 1.2276747653610462,
+      "hand_y": 1.3936321018614535,
+      "over_head": 0.12998550223778582,
+      "over_shoulder": 0.2945971230631903,
+      "forearm_deg": 34.49619584385034
+     },
+     "dx": 0.4845748879515369,
+     "dy": 0.7754613874463243,
+     "dur": 333,
+     "stepped": true
+    },
+    {
+     "clip": "laurel_schielhau_02",
+     "t0": 1600,
+     "t1": 2067,
+     "start": {
+      "hand_x": 0.06419235365575993,
+      "hand_y": 0.6769273986697875,
+      "over_head": -0.5962033073976465,
+      "over_shoulder": -0.3105476340514288,
+      "forearm_deg": 26.60868709781406
+     },
+     "end": {
+      "hand_x": 1.186666886070342,
+      "hand_y": 0.7696159603105943,
+      "over_head": -0.7198042704312986,
+      "over_shoulder": -0.3696106212747041,
+      "forearm_deg": 0.478353990428663
+     },
+     "dx": 1.1224745324145822,
+     "dy": 0.09268856164080685,
+     "dur": 467,
+     "stepped": true
+    },
+    {
+     "clip": "laurel_schielhau_02",
+     "t0": 4233,
+     "t1": 4700,
+     "start": {
+      "hand_x": 0.08344234781768207,
+      "hand_y": 0.6919310807836244,
+      "over_head": -0.6239008844264368,
+      "over_shoulder": -0.3103161283120882,
+      "forearm_deg": 26.29675520640479
+     },
+     "end": {
+      "hand_x": 1.1681484030535136,
+      "hand_y": 0.893132617124308,
+      "over_head": -0.6583136149021377,
+      "over_shoulder": -0.2699395805243293,
+      "forearm_deg": 5.387663181906429
+     },
+     "dx": 1.0847060552358316,
+     "dy": 0.2012015363406836,
+     "dur": 467,
+     "stepped": true
+    }
+   ]
+  },
+  "krumphau": {
+   "usable": false,
+   "why": "seen krumphau = drey only; the detected bursts are sword-upright fidgets (contact sheet), no step"
+  },
+  "scheitelhau": {
+   "usable": false,
+   "why": "no usable seen non-stritschar scheitelhau reps"
+  }
+ }
+}
