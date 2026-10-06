@@ -214,6 +214,13 @@ export const COMPLETE_PATH_RATIO = 0.85;
  *  dropping a footwork-only lead-in / lead-out (stepping into the guard, walking back) that otherwise dominates the
  *  path-length parameterisation of real attempts. */
 export const HAND_TRIM = { on: true, lo: 0.05, hi: 0.95, padMs: 150 };
+/** Strike scoring: when a strike is selected, the feet channels (ankles, root) weigh `feet` x their model weight for
+ *  every drill's templates, so a hand-dominant attempt is judged on the hands (real strikes carry a different amount of
+ *  footwork than the renders). 1 = off. */
+export const STRIKE_SCORING = { feet: 1 };
+const FEET_CHANNELS = [9, 10, 11, 12, 13];
+const strikeModel = (m: RecognitionModel): RecognitionModel => STRIKE_SCORING.feet === 1 ? m
+  : { ...m, weights: m.weights.map((w, j) => FEET_CHANNELS.includes(j) ? w * STRIKE_SCORING.feet : w) };
 export function handActiveWindow(samples: TimedFeatures[], pathScales: number[]): TimedFeatures[] {
   if (samples.length < 6) return samples;
   const { cumHand } = pathProfile(samples, pathScales), total = cumHand.at(-1)!;
@@ -226,6 +233,7 @@ export function handActiveWindow(samples: TimedFeatures[], pathScales: number[])
 
 export function decide(selected: string, samples: TimedFeatures[], m: RecognitionModel, tempoSamples = samples): Decision {
   if (HAND_TRIM.on && selected.endsWith("hau")) { samples = handActiveWindow(samples, m.pathScales); tempoSamples = handActiveWindow(tempoSamples, m.pathScales); }
+  if (selected.endsWith("hau")) m = strikeModel(m);
   const seq = prepareSequence(samples, m.pathScales, m.points);
   const r = seq && recognize(seq, m);
   if (!r) return { kind: "unknown" };
