@@ -131,6 +131,9 @@ export function stepContinuous(runtime: DrillRuntime, id: string, timeMs: number
         motion:{...attempt,phase:'failed',samples,last:sample,lookedLike:decision.drill,outcome:'other_drill',
           message:`Похоже на ${DRILL_NAMES[decision.drill] ?? decision.drill}, а не ${DRILL_NAMES[id] ?? id}. Повтори выбранное движение`}};
     }
+    // Not an attempt at the selected strike (footwork only): start over from the current pose instead of failing.
+    if(decision.kind==='unknown' && decision.ignored)return {...runtime,state:'ready',checkpointIndex:0,startedAt:undefined,validSince:null,match:null,
+      motion:{phase:'position',message:'Прими исходную позицию',baseline:vector,last:sample,samples:[]}};
     if(distance(vector,attempt.baseline!)<extent*.3)return fail('Движение не удалось уверенно распознать. Повтори цельную попытку');
     // Not a recognisable whole movement yet (e.g. a pause mid-movement): keep the attempt open.
     const completeAt=attempt.completeAt ?? (decision.complete ? timeMs : undefined);
