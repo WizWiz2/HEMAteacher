@@ -287,7 +287,7 @@ export const strikeWindow = (samples: TimedFeatures[], pathScales: number[]) =>
 /** Activity gates (before acceptance): a step attempt whose hand share exceeds stepMax (the hands did most of the
  *  moving: a strike or a weapon adjustment) or a strike attempt (hand-trimmed) below strikeMin (footwork only) is not an
  *  attempt at the selected drill and is ignored. 1 / 0 = off. */
-export const ACTIVITY_GATE = { stepMax: 1, strikeMin: 0 };
+export const ACTIVITY_GATE = { stepMax: .5, strikeMin: .3 };
 
 export function decide(selected: string, samples: TimedFeatures[], m: RecognitionModel, tempoSamples = samples): Decision {
   const strike = selected.endsWith("hau");
