@@ -2,7 +2,7 @@
 // and by the fixture regression test). Input: the compact pose fixture (test-fixtures/motion-poses.json.gz).
 import { LiveSampleProcessor } from "../live/sampleProcessor";
 import type { RawPose } from "../live/landmarks";
-import { CHANNELS, activeDurationMs, kNearestMean, prepareSequence, frameChannels, dtwDistance, sequencePath, type RecognitionModel, type TimedFeatures } from "./motionRecognition";
+import { CHANNELS, HAND_TRIM, strikeWindow, activeDurationMs, kNearestMean, prepareSequence, frameChannels, dtwDistance, sequencePath, type RecognitionModel, type TimedFeatures } from "./motionRecognition";
 
 export interface FixtureClip {
   id: string; drill: string; variant: string; body: string; level: string; width: number; height: number;
@@ -23,7 +23,7 @@ export const WEIGHTS: Record<(typeof CHANNELS)[number], number> = {
 };
 export const POINTS = 32, BAND = 6, MARGIN = 1.05;
 /** Model-building options (defaults = shipped). Exposed so design experiments can vary them on train-body LOBO only. */
-export const TRAINING = { completion: 0.65, endStance: 0.5, margin: MARGIN, perDrillAccept: false, acceptFloor: 0.75, acceptFactor: 1.5, fisherWeights: false, fisherGamma: 1, k: 1, styleGroups: true, acceptFromBase: false };
+export const TRAINING = { completion: 0.65, endStance: 0.5, margin: MARGIN, perDrillAccept: false, acceptFloor: 0.75, acceptFactor: 1.5, fisherWeights: false, fisherGamma: 1, k: 1, styleGroups: true, acceptFromBase: false, strikeWindowTemplates: false };
 
 export function rawFrames(clip: FixtureClip, names: string[]): RawPose[] {
   return clip.t.map((timestampMs, i) => {
@@ -69,7 +69,8 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
     pathScales: scales.map(round4), points: POINTS, band: BAND, acceptDistance: Infinity, margin: MARGIN, typicalMs: {}, templates: [] };
   const groups: string[] = [];
   for (const c of clips) {
-    const seq = prepareSequence(movementSamples(c, names), scales, POINTS);
+    const ms = movementSamples(c, names);
+    const seq = prepareSequence(TRAINING.strikeWindowTemplates && HAND_TRIM.on && c.drill.endsWith("hau") ? strikeWindow(ms, scales) : ms, scales, POINTS);
     if (seq) groups.push(c.drill + (TRAINING.styleGroups ? ":" + renderStyle(c.id) : ""));
     if (seq) model.templates.push({ drill: c.drill, body: c.body, level: c.level, durationMs: c.move![1] - c.move![0],
       seq: seq.map(r => r.map(v => (Number.isFinite(v) ? Math.round(v * 1e3) / 1e3 : null))) });
