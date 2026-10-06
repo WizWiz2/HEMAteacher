@@ -76,7 +76,7 @@ export function trajectoryError(samples: MotionSample[], reference: number[][]):
  *  moving frames, minMs) is dropped without failing; an attempt judged incomplete waits up to mergeWaitMs for the next
  *  burst and is re-judged; any other undecided attempt is dropped and detection re-arms. */
 export const DETECT = { mode: 'settle' as 'settle' | 'burst', onHand: .35, onFeet: .25, offHand: .15, offFeet: .1, offRel: .3,
-  holdMs: 100, maxBurstMs: 3000, speedWindowMs: 100, armMs: 200, mergeWaitMs: 1000, keepMs: 600 };
+  holdMs: 100, maxBurstMs: 3000, speedWindowMs: 100, armMs: 200, mergeWaitMs: 1000, keepMs: 600, otherFails: true };
 const finiteN = (x: number | undefined): x is number => typeof x === 'number' && Number.isFinite(x);
 const activityOf = (id: string, f?: Record<string, number>) =>
   id.endsWith('hau') ? [f?.action_hand_x, f?.action_hand_y] : [f?.left_ankle_x, f?.right_ankle_x, f?.root_x];
@@ -141,6 +141,7 @@ function stepBurst(runtime: DrillRuntime, attempt: MotionAttempt, id: string, pa
     return {...runtime, state: 'completed', checkpointIndex: count - 1, finishedAt: timeMs, validSince: null, match: null,
       motion: {...attempt, phase: 'passed', samples, last: sample, similarity: decision.similarity, tempo: decision.tempo, message: 'Движение распознано', outcome: 'recognized', feedback: feedback.slice(0, 2)}};
   }
+  if (decision.kind === 'other' && !DETECT.otherFails) return rearm(runtime, sample, samples);
   if (decision.kind === 'other')
     return {...runtime, state: 'failed', finishedAt: timeMs, match: null, validSince: null,
       motion: {...attempt, phase: 'failed', samples, last: sample, lookedLike: decision.drill, outcome: 'other_drill',
