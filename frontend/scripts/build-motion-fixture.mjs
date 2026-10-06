@@ -5,11 +5,15 @@
 // labelRoot holds the generator sidecars (<drill>/<body>_<level>.json, or <variant>/<drill>/... for held-out);
 // only the labelled movement interval is taken from them (initial hold end -> drill end phase).
 // Dump file names: <drill>__[<variant>_]<body>_<level>.json. z is dropped (side view never uses depth).
+// --base <gz>: start from an existing fixture and append the given dump dirs (ids must be new), e.g. the gen2
+// real-world-gap train clips: --base frontend/test-fixtures/motion-poses.json.gz <ba2 raw>:ba:<ba2 clips>.
 import {readFileSync, readdirSync, writeFileSync, existsSync} from 'node:fs';
-import {gzipSync} from 'node:zlib';
-const [out, ...dirs] = process.argv.slice(2);
+import {gzipSync, gunzipSync} from 'node:zlib';
+const args = process.argv.slice(2), bi = args.indexOf('--base');
+const base = bi >= 0 ? JSON.parse(gunzipSync(readFileSync(args.splice(bi, 2)[1]))) : null;
+const [out, ...dirs] = args;
 const NAMES = ['nose','left_eye_inner','left_eye','left_eye_outer','right_eye_inner','right_eye','right_eye_outer','left_ear','right_ear','mouth_left','mouth_right','left_shoulder','right_shoulder','left_elbow','right_elbow','left_wrist','right_wrist','left_pinky','right_pinky','left_index','right_index','left_thumb','right_thumb','left_hip','right_hip','left_knee','right_knee','left_ankle','right_ankle','left_heel','right_heel','left_foot_index','right_foot_index'];
-const clips = [];
+const clips = base ? base.clips : [];
 // per frame: 33 x [x*1e4, y*1e4, visibility*100] (missing pose -> empty array)
 const packFrames = frames => frames.map(fr => Object.keys(fr.landmarks).length ? NAMES.flatMap(n => { const l = fr.landmarks[n]; return [Math.round(l.x * 1e4), Math.round(l.y * 1e4), Math.round(l.visibility * 100)]; }) : []);
 const endLabelOf = drill => drill.endsWith('hau') ? 'finish' : drill.startsWith('passing') ? 'settle' : ['advance', 'retreat'].includes(drill) ? 'recover' : null;
@@ -45,5 +49,6 @@ for (const spec of dirs) {
       p: packFrames(d.frames)});
   }
 }
+const ids = new Set(clips.map(c => c.id)); if (ids.size !== clips.length) throw new Error('duplicate clip ids');
 writeFileSync(out, gzipSync(JSON.stringify({version: 1, names: NAMES, clips}), {level: 9}));
 console.log(`${clips.length} clips -> ${out}`);
