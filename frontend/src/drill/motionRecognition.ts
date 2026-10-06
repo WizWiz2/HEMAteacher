@@ -79,7 +79,7 @@ export function frameChannels(f: Record<string, number> = {}): number[] {
  *  elbow angle become displacements from the attempt's start pose, and the forearm direction is rotated by its start
  *  angle, so the trajectory is compared and not how high / at what angle the guard is held (real Vom Tag is held lower
  *  than the rendered one). Positions are already normalised by torso length (body scale). */
-export const ARM_REL = { on: false, keepAbsHoh: true };
+export const ARM_REL = { on: true, keepAbsHoh: true };
 const ARM_REL_CHANNELS = [0, 1, 2, 5, 7, 8];
 const startMedian = (rows: number[][], j: number) => {
   const v = rows.slice(0, 5).map(r => r[j]).filter(Number.isFinite).sort((a, b) => a - b);
