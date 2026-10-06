@@ -1,0 +1,2132 @@
+[
+ {
+  "drillId": "advance",
+  "file": "/workspace/hema/real/rawframes/advance__stritschar_advance_01.json",
+  "facing": "right",
+  "sourceDrill": "advance",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 3,
+  "startedAt": 867,
+  "calibratedAtFrame": 20,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 20,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 26,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 34,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 35,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "scheitelhau",
+   "own": 9.037,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "scheitelhau",
+     4.135,
+     2.7351
+    ],
+    [
+     "zwerchhau",
+     4.208,
+     2.7351
+    ],
+    [
+     "krumphau",
+     4.283,
+     2.7351
+    ]
+   ],
+   "pathRatio": 6.84,
+   "endStance": 0.63,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "advance",
+  "file": "/workspace/hema/real/rawframes/advance__stritschar_advance_02.json",
+  "facing": "right",
+  "sourceDrill": "advance",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 3,
+  "startedAt": 833,
+  "calibratedAtFrame": 19,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 19,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 25,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 32,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 34,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "zwerchhau",
+   "own": 7.643,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "zwerchhau",
+     3.219,
+     2.7351
+    ],
+    [
+     "scheitelhau",
+     3.291,
+     2.7351
+    ],
+    [
+     "krumphau",
+     3.407,
+     2.7351
+    ]
+   ],
+   "pathRatio": 4.7,
+   "endStance": 0.84,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "advance",
+  "file": "/workspace/hema/real/rawframes/advance__stritschar_advance_03.json",
+  "facing": "right",
+  "sourceDrill": "advance",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 3,
+  "startedAt": 867,
+  "calibratedAtFrame": 20,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 20,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 26,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 33,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 35,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "zwerchhau",
+   "own": 8.815,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "zwerchhau",
+     3.219,
+     2.7351
+    ],
+    [
+     "scheitelhau",
+     3.329,
+     2.7351
+    ],
+    [
+     "krumphau",
+     3.503,
+     2.7351
+    ]
+   ],
+   "pathRatio": 3.98,
+   "endStance": 0.74,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "advance",
+  "file": "/workspace/hema/real/rawframes/advance__ukolov_advance_01.json",
+  "facing": "right",
+  "sourceDrill": "advance",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 3,
+  "startedAt": 3267,
+  "calibratedAtFrame": 19,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 19,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 25,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 107,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 108,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "advance",
+   "own": 3.562,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "advance",
+     3.562,
+     2.7351
+    ],
+    [
+     "retreat",
+     3.675,
+     2.7351
+    ],
+    [
+     "passing-step-forward",
+     3.784,
+     2.7351
+    ]
+   ],
+   "pathRatio": 1.42,
+   "endStance": 1.61,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "advance",
+  "file": "/workspace/hema/real/rawframes/advance__ukolov_advance_02.json",
+  "facing": "right",
+  "sourceDrill": "advance",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 3,
+  "startedAt": 1333,
+  "calibratedAtFrame": 19,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 19,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 25,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 49,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 53,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "advance",
+   "own": 3.315,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "advance",
+     3.315,
+     2.7351
+    ],
+    [
+     "retreat",
+     3.462,
+     2.7351
+    ],
+    [
+     "passing-step-forward",
+     3.694,
+     2.7351
+    ]
+   ],
+   "pathRatio": 3.14,
+   "endStance": 1.04,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "krumphau",
+  "file": "/workspace/hema/real/rawframes/krumphau__drey_krumphau_01.json",
+  "facing": "right",
+  "sourceDrill": "krumphau",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 4,
+  "startedAt": 3200,
+  "calibratedAtFrame": 19,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 19,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 96,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 102,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 124,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "krumphau",
+   "own": 3.825,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "krumphau",
+     3.825,
+     2.7351
+    ],
+    [
+     "zornhau",
+     3.884,
+     2.7351
+    ],
+    [
+     "scheitelhau",
+     4.021,
+     2.7351
+    ]
+   ],
+   "pathRatio": 1.94,
+   "endStance": 1.46,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "krumphau",
+  "file": "/workspace/hema/real/rawframes/krumphau__vcu_krumphau_01.json",
+  "facing": "left",
+  "sourceDrill": "krumphau",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 4,
+  "startedAt": 833,
+  "calibratedAtFrame": 19,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 19,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 25,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 31,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 108,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "scheitelhau",
+   "own": 4.658,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "scheitelhau",
+     4.51,
+     2.7351
+    ],
+    [
+     "zwerchhau",
+     4.627,
+     2.7351
+    ],
+    [
+     "krumphau",
+     4.658,
+     2.7351
+    ]
+   ],
+   "pathRatio": 1.36,
+   "endStance": 1.51,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "passing-step-backward",
+  "file": "/workspace/hema/real/rawframes/passing-step-backward__swc_passback_01.json",
+  "facing": "right",
+  "sourceDrill": "passing-step-backward",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 4,
+  "startedAt": 1400,
+  "calibratedAtFrame": 19,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 19,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 25,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 51,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 82,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "passing-step-backward",
+   "own": 4.464,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "passing-step-backward",
+     4.464,
+     2.7351
+    ],
+    [
+     "retreat",
+     5.78,
+     2.7351
+    ],
+    [
+     "advance",
+     6.356,
+     2.7351
+    ]
+   ],
+   "pathRatio": 4.12,
+   "endStance": 1.09,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "passing-step-backward",
+  "file": "/workspace/hema/real/rawframes/passing-step-backward__vcu_passback_01.json",
+  "facing": "right",
+  "sourceDrill": "passing-step-backward",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 4,
+  "startedAt": 1567,
+  "calibratedAtFrame": 20,
+  "calibrated": true,
+  "message": "Двигайся без остановок",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 20,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 26,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 56,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 65,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "passing-step-forward",
+   "own": 5.857,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "passing-step-forward",
+     3.274,
+     2.7351
+    ],
+    [
+     "advance",
+     4.174,
+     2.7351
+    ],
+    [
+     "retreat",
+     4.461,
+     2.7351
+    ]
+   ],
+   "pathRatio": 2.56,
+   "endStance": 0.74,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "passing-step-backward",
+  "file": "/workspace/hema/real/rawframes/passing-step-backward__vcu_passback_02.json",
+  "facing": "right",
+  "sourceDrill": "passing-step-backward",
+  "state": "completed",
+  "checkpointIndex": 3,
+  "nCheckpoints": 4,
+  "startedAt": 1100,
+  "finishedAt": 2633,
+  "calibratedAtFrame": 26,
+  "calibrated": true,
+  "similarity": 62,
+  "outcome": "recognized",
+  "message": "Движение распознано",
+  "feedback": [
+   "В проверяемых параметрах заметного отклонения не найдено. Остальные детали техники по этому результату не оценены."
+  ],
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 26,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 32,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 42,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 52,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 79,
+    "state": "completed",
+    "cp": 3,
+    "phase": "passed",
+    "msg": "Движение распознано"
+   }
+  ],
+  "diag": {
+   "best": "passing-step-backward",
+   "own": 2.086,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "passing-step-backward",
+     2.086,
+     2.7351
+    ],
+    [
+     "retreat",
+     3.477,
+     2.7351
+    ],
+    [
+     "advance",
+     4.101,
+     2.7351
+    ]
+   ],
+   "pathRatio": 1.81,
+   "endStance": 1.05,
+   "decision": "accepted"
+  }
+ },
+ {
+  "drillId": "passing-step-forward",
+  "file": "/workspace/hema/real/rawframes/passing-step-forward__swc_passfwd_01.json",
+  "facing": "right",
+  "sourceDrill": "passing-step-forward",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 5,
+  "startedAt": 1300,
+  "calibratedAtFrame": 19,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 19,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 25,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 48,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 97,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "zornhau",
+   "own": 4.773,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "zornhau",
+     3.289,
+     2.7351
+    ],
+    [
+     "scheitelhau",
+     3.557,
+     2.7351
+    ],
+    [
+     "schielhau",
+     3.898,
+     2.7351
+    ]
+   ],
+   "pathRatio": 2.66,
+   "endStance": 1.28,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "passing-step-forward",
+  "file": "/workspace/hema/real/rawframes/passing-step-forward__ukolov_passfwd_01.json",
+  "facing": "right",
+  "sourceDrill": "passing-step-forward",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 5,
+  "startedAt": 1500,
+  "calibratedAtFrame": 20,
+  "calibrated": true,
+  "message": "Двигайся без остановок",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 20,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 26,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 54,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 102,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "passing-step-forward",
+   "own": 3.306,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "passing-step-forward",
+     3.306,
+     2.7351
+    ],
+    [
+     "advance",
+     4.76,
+     2.7351
+    ],
+    [
+     "zornhau",
+     4.875,
+     2.7351
+    ]
+   ],
+   "pathRatio": 2.18,
+   "endStance": 0.26,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "passing-step-forward",
+  "file": "/workspace/hema/real/rawframes/passing-step-forward__vcu_passfwd_01.json",
+  "facing": "right",
+  "sourceDrill": "passing-step-forward",
+  "state": "completed",
+  "checkpointIndex": 4,
+  "nCheckpoints": 5,
+  "startedAt": 867,
+  "finishedAt": 3433,
+  "calibratedAtFrame": 20,
+  "calibrated": true,
+  "similarity": 35,
+  "outcome": "recognized",
+  "message": "Движение распознано",
+  "feedback": [
+   "Движение распознано, но выполнено слишком медленно (примерно в 2.4 раза дольше образцов). Попробуй выполнить его слитно, без пауз.",
+   "В проверяемых параметрах заметного отклонения не найдено. Остальные детали техники по этому результату не оценены."
+  ],
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 20,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 26,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 35,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 80,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 103,
+    "state": "completed",
+    "cp": 4,
+    "phase": "passed",
+    "msg": "Движение распознано"
+   }
+  ],
+  "diag": {
+   "best": "passing-step-forward",
+   "own": 2.405,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "passing-step-forward",
+     2.405,
+     2.7351
+    ],
+    [
+     "advance",
+     3.376,
+     2.7351
+    ],
+    [
+     "retreat",
+     4.063,
+     2.7351
+    ]
+   ],
+   "pathRatio": 1.65,
+   "endStance": 0.83,
+   "decision": "accepted"
+  }
+ },
+ {
+  "drillId": "retreat",
+  "file": "/workspace/hema/real/rawframes/retreat__stritschar_retreat_01.json",
+  "facing": "right",
+  "sourceDrill": "retreat",
+  "state": "failed",
+  "checkpointIndex": 2,
+  "nCheckpoints": 3,
+  "startedAt": 1000,
+  "finishedAt": 1700,
+  "calibratedAtFrame": 19,
+  "calibrated": true,
+  "outcome": "other_drill",
+  "message": "Похоже на Zwerchhau, а не шаг назад. Повтори выбранное движение",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 19,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 25,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 39,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 42,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 51,
+    "state": "failed",
+    "cp": 2,
+    "phase": "failed",
+    "msg": "Похоже на Zwerchhau, а не шаг назад. Повтори выбранное движение"
+   }
+  ],
+  "diag": {
+   "best": "zwerchhau",
+   "own": 8.08,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "zwerchhau",
+     2.564,
+     2.7351
+    ],
+    [
+     "scheitelhau",
+     2.861,
+     2.7351
+    ],
+    [
+     "krumphau",
+     2.923,
+     2.7351
+    ]
+   ],
+   "pathRatio": 0.48,
+   "endStance": 1,
+   "decision": "other"
+  }
+ },
+ {
+  "drillId": "retreat",
+  "file": "/workspace/hema/real/rawframes/retreat__ukolov_retreat_01.json",
+  "facing": "right",
+  "sourceDrill": "retreat",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 3,
+  "startedAt": 2133,
+  "calibratedAtFrame": 20,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 20,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 26,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 73,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 75,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "retreat",
+   "own": 3.563,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "retreat",
+     3.563,
+     2.7351
+    ],
+    [
+     "advance",
+     4.048,
+     2.7351
+    ],
+    [
+     "passing-step-backward",
+     4.715,
+     2.7351
+    ]
+   ],
+   "pathRatio": 2.3,
+   "endStance": 1.04,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "retreat",
+  "file": "/workspace/hema/real/rawframes/retreat__ukolov_retreat_02.json",
+  "facing": "right",
+  "sourceDrill": "retreat",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 3,
+  "startedAt": 867,
+  "calibratedAtFrame": 20,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 20,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 26,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 30,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 31,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "retreat",
+   "own": 3.191,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "retreat",
+     3.191,
+     2.7351
+    ],
+    [
+     "advance",
+     3.85,
+     2.7351
+    ],
+    [
+     "passing-step-backward",
+     4.044,
+     2.7351
+    ]
+   ],
+   "pathRatio": 3.4,
+   "endStance": 0.91,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "schielhau",
+  "file": "/workspace/hema/real/rawframes/schielhau__bahff_schielhau_01.json",
+  "facing": "left",
+  "sourceDrill": "schielhau",
+  "state": "failed",
+  "checkpointIndex": 2,
+  "nCheckpoints": 4,
+  "startedAt": 1467,
+  "finishedAt": 4600,
+  "calibratedAtFrame": 20,
+  "calibrated": true,
+  "outcome": "other_drill",
+  "message": "Похоже на Zornhau, а не Schielhau. Повтори выбранное движение",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 20,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 44,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 47,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 118,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 138,
+    "state": "failed",
+    "cp": 2,
+    "phase": "failed",
+    "msg": "Похоже на Zornhau, а не Schielhau. Повтори выбранное движение"
+   }
+  ],
+  "diag": {
+   "best": "zornhau",
+   "own": 2.789,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "zornhau",
+     2.358,
+     2.7351
+    ],
+    [
+     "scheitelhau",
+     2.611,
+     2.7351
+    ],
+    [
+     "schielhau",
+     2.789,
+     2.7351
+    ]
+   ],
+   "pathRatio": 1.44,
+   "endStance": 1.06,
+   "decision": "other"
+  }
+ },
+ {
+  "drillId": "schielhau",
+  "file": "/workspace/hema/real/rawframes/schielhau__bahff_schielhau_02.json",
+  "facing": "left",
+  "sourceDrill": "schielhau",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 4,
+  "startedAt": 2900,
+  "calibratedAtFrame": 20,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 20,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 85,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 96,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 102,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "zornhau",
+   "own": 3.844,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "zornhau",
+     3.705,
+     2.7351
+    ],
+    [
+     "scheitelhau",
+     3.81,
+     2.7351
+    ],
+    [
+     "schielhau",
+     3.844,
+     2.7351
+    ]
+   ],
+   "pathRatio": 2.59,
+   "endStance": 1.81,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "schielhau",
+  "file": "/workspace/hema/real/rawframes/schielhau__laurel_schielhau_01.json",
+  "facing": "right",
+  "sourceDrill": "schielhau",
+  "state": "calibrating",
+  "checkpointIndex": 0,
+  "nCheckpoints": 4,
+  "calibratedAtFrame": null,
+  "calibrated": false,
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   }
+  ],
+  "diag": null
+ },
+ {
+  "drillId": "schielhau",
+  "file": "/workspace/hema/real/rawframes/schielhau__laurel_schielhau_02.json",
+  "facing": "right",
+  "sourceDrill": "schielhau",
+  "state": "failed",
+  "checkpointIndex": 2,
+  "nCheckpoints": 4,
+  "startedAt": 1200,
+  "finishedAt": 2400,
+  "calibratedAtFrame": 28,
+  "calibrated": true,
+  "outcome": "other_drill",
+  "message": "Похоже на Zornhau, а не Schielhau. Повтори выбранное движение",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 28,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 34,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 45,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 55,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 72,
+    "state": "failed",
+    "cp": 2,
+    "phase": "failed",
+    "msg": "Похоже на Zornhau, а не Schielhau. Повтори выбранное движение"
+   }
+  ],
+  "diag": {
+   "best": "zornhau",
+   "own": 2.704,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "zornhau",
+     1.884,
+     2.7351
+    ],
+    [
+     "scheitelhau",
+     2.351,
+     2.7351
+    ],
+    [
+     "krumphau",
+     2.638,
+     2.7351
+    ]
+   ],
+   "pathRatio": 1.33,
+   "endStance": 0.28,
+   "decision": "other"
+  }
+ },
+ {
+  "drillId": "zornhau",
+  "file": "/workspace/hema/real/rawframes/zornhau__becker_zornhau_01.json",
+  "facing": "right",
+  "sourceDrill": "zornhau",
+  "state": "failed",
+  "checkpointIndex": 1,
+  "nCheckpoints": 4,
+  "startedAt": 3167,
+  "finishedAt": 5500,
+  "calibratedAtFrame": 31,
+  "calibrated": true,
+  "outcome": "tracking_lost",
+  "message": "Камера потеряла движение. Повтори попытку",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 31,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 95,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 102,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 165,
+    "state": "failed",
+    "cp": 1,
+    "phase": "failed",
+    "msg": "Камера потеряла движение. Повтори попытку"
+   }
+  ],
+  "diag": {
+   "best": "scheitelhau",
+   "own": 3.015,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "scheitelhau",
+     2.863,
+     2.7351
+    ],
+    [
+     "zwerchhau",
+     2.97,
+     2.7351
+    ],
+    [
+     "krumphau",
+     2.986,
+     2.7351
+    ]
+   ],
+   "pathRatio": 0.51,
+   "endStance": 0.88,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "zornhau",
+  "file": "/workspace/hema/real/rawframes/zornhau__bjorn_zornhau_01.json",
+  "facing": "left",
+  "sourceDrill": "zornhau",
+  "state": "ready",
+  "checkpointIndex": 0,
+  "nCheckpoints": 4,
+  "calibratedAtFrame": 20,
+  "calibrated": true,
+  "message": "Прими исходную позицию",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 20,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   }
+  ],
+  "diag": null
+ },
+ {
+  "drillId": "zornhau",
+  "file": "/workspace/hema/real/rawframes/zornhau__bjorn_zornhau_02.json",
+  "facing": "left",
+  "sourceDrill": "zornhau",
+  "state": "ready",
+  "checkpointIndex": 0,
+  "nCheckpoints": 4,
+  "calibratedAtFrame": 20,
+  "calibrated": true,
+  "message": "Прими исходную позицию",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 20,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   }
+  ],
+  "diag": null
+ },
+ {
+  "drillId": "zornhau",
+  "file": "/workspace/hema/real/rawframes/zornhau__bjorn_zornhau_03.json",
+  "facing": "left",
+  "sourceDrill": "zornhau",
+  "state": "running",
+  "checkpointIndex": 1,
+  "nCheckpoints": 4,
+  "startedAt": 4033,
+  "calibratedAtFrame": 64,
+  "calibrated": true,
+  "message": "Двигайся без остановок",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 64,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 121,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 124,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "zornhau",
+   "own": 2.763,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "zornhau",
+     2.763,
+     2.7351
+    ],
+    [
+     "scheitelhau",
+     2.807,
+     2.7351
+    ],
+    [
+     "krumphau",
+     2.89,
+     2.7351
+    ]
+   ],
+   "pathRatio": 0.16,
+   "endStance": 1,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "zornhau",
+  "file": "/workspace/hema/real/rawframes/zornhau__drey_zornhau_01.json",
+  "facing": "right",
+  "sourceDrill": "zornhau",
+  "state": "running",
+  "checkpointIndex": 1,
+  "nCheckpoints": 4,
+  "startedAt": 1167,
+  "calibratedAtFrame": 20,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 20,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 26,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 44,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "krumphau",
+   "own": 4.375,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "krumphau",
+     3.928,
+     2.7351
+    ],
+    [
+     "zornhau",
+     4.375,
+     2.7351
+    ],
+    [
+     "scheitelhau",
+     4.449,
+     2.7351
+    ]
+   ],
+   "pathRatio": 1.34,
+   "endStance": 1.08,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "zwerchhau",
+  "file": "/workspace/hema/real/rawframes/zwerchhau__drey_zwerchhau_01.json",
+  "facing": "right",
+  "sourceDrill": "zwerchhau",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 4,
+  "startedAt": 4900,
+  "calibratedAtFrame": 42,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 42,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 48,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 156,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 184,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Продолжай движение до конца"
+   }
+  ],
+  "diag": {
+   "best": "zornhau",
+   "own": 4.252,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "zornhau",
+     3.386,
+     2.7351
+    ],
+    [
+     "krumphau",
+     3.49,
+     2.7351
+    ],
+    [
+     "scheitelhau",
+     3.654,
+     2.7351
+    ]
+   ],
+   "pathRatio": 0.65,
+   "endStance": 1.11,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "zwerchhau",
+  "file": "/workspace/hema/real/rawframes/zwerchhau__laurel_zwerchhau_01.json",
+  "facing": "right",
+  "sourceDrill": "zwerchhau",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 4,
+  "startedAt": 3200,
+  "calibratedAtFrame": 19,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 19,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 25,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 105,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 131,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "scheitelhau",
+   "own": 3.401,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "scheitelhau",
+     3.171,
+     2.7351
+    ],
+    [
+     "schielhau",
+     3.323,
+     2.7351
+    ],
+    [
+     "zwerchhau",
+     3.401,
+     2.7351
+    ]
+   ],
+   "pathRatio": 2.36,
+   "endStance": 0.65,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "zwerchhau",
+  "file": "/workspace/hema/real/rawframes/zwerchhau__laurel_zwerchhau_02.json",
+  "facing": "right",
+  "sourceDrill": "zwerchhau",
+  "state": "completed",
+  "checkpointIndex": 3,
+  "nCheckpoints": 4,
+  "startedAt": 867,
+  "finishedAt": 3533,
+  "calibratedAtFrame": 20,
+  "calibrated": true,
+  "similarity": 31,
+  "outcome": "recognized",
+  "message": "Движение распознано",
+  "feedback": [
+   "Движение распознано, но выполнено слишком медленно (примерно в 2.4 раза дольше образцов). Попробуй выполнить его слитно, без пауз.",
+   "В проверяемых параметрах заметного отклонения не найдено. Остальные детали техники по этому результату не оценены."
+  ],
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 20,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 26,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 34,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 67,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 106,
+    "state": "completed",
+    "cp": 3,
+    "phase": "passed",
+    "msg": "Движение распознано"
+   }
+  ],
+  "diag": {
+   "best": "zwerchhau",
+   "own": 2.667,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "zwerchhau",
+     2.667,
+     2.7351
+    ],
+    [
+     "scheitelhau",
+     2.843,
+     2.7351
+    ],
+    [
+     "schielhau",
+     3.049,
+     2.7351
+    ]
+   ],
+   "pathRatio": 1.87,
+   "endStance": 0.93,
+   "decision": "accepted"
+  }
+ },
+ {
+  "drillId": "zwerchhau",
+  "file": "/workspace/hema/real/rawframes/zwerchhau__laurel_zwerchhau_03.json",
+  "facing": "left",
+  "sourceDrill": "zwerchhau",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 4,
+  "startedAt": 867,
+  "calibratedAtFrame": 20,
+  "calibrated": true,
+  "message": "Двигайся без остановок",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 20,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 26,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 29,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 82,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "scheitelhau",
+   "own": 5.489,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "scheitelhau",
+     5.146,
+     2.7351
+    ],
+    [
+     "zwerchhau",
+     5.489,
+     2.7351
+    ],
+    [
+     "schielhau",
+     5.569,
+     2.7351
+    ]
+   ],
+   "pathRatio": 3.02,
+   "endStance": 0.83,
+   "decision": "unknown"
+  }
+ },
+ {
+  "drillId": "zwerchhau",
+  "file": "/workspace/hema/real/rawframes/zwerchhau__laurel_zwerchhau_04.json",
+  "facing": "left",
+  "sourceDrill": "zwerchhau",
+  "state": "running",
+  "checkpointIndex": 2,
+  "nCheckpoints": 4,
+  "startedAt": 833,
+  "calibratedAtFrame": 19,
+  "calibrated": true,
+  "message": "Продолжай движение до конца",
+  "failures": [],
+  "events": [
+   {
+    "frame": 0,
+    "state": "calibrating",
+    "cp": 0
+   },
+   {
+    "frame": 19,
+    "state": "ready",
+    "cp": 0,
+    "phase": "position",
+    "msg": "Прими исходную позицию"
+   },
+   {
+    "frame": 25,
+    "state": "ready",
+    "cp": 0,
+    "phase": "armed",
+    "msg": "Готов. Выполни движение целиком"
+   },
+   {
+    "frame": 30,
+    "state": "running",
+    "cp": 1,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   },
+   {
+    "frame": 51,
+    "state": "running",
+    "cp": 2,
+    "phase": "moving",
+    "msg": "Двигайся без остановок"
+   }
+  ],
+  "diag": {
+   "best": "scheitelhau",
+   "own": 5.969,
+   "accept": 2.7351,
+   "top3": [
+    [
+     "scheitelhau",
+     5.916,
+     2.7351
+    ],
+    [
+     "zwerchhau",
+     5.969,
+     2.7351
+    ],
+    [
+     "krumphau",
+     6.154,
+     2.7351
+    ]
+   ],
+   "pathRatio": 5.73,
+   "endStance": 1,
+   "decision": "unknown"
+  }
+ }
+]
