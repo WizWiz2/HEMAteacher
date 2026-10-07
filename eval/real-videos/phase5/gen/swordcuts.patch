@@ -1,6 +1,6 @@
 --- swordcuts.py.orig	2026-10-06 20:15:45.730897118 +0500
-+++ /workspace/hema/gen2/hemagen/swordcuts.py	2026-10-06 20:16:30.742271376 +0500
-@@ -155,13 +155,26 @@
++++ /workspace/hema/gen2/hemagen/swordcuts.py	2026-10-07 08:18:11.478824669 +0500
+@@ -155,28 +155,46 @@
      """gen2: HEMA_GUARD_OVR={"hand_y":..,...} lowers/changes the Vom Tag (real-video guards are held lower)."""
      g.update(json.loads(os.environ.get("HEMA_GUARD_OVR", "{}"))); return g
  
@@ -28,7 +28,16 @@
      kfs["return"] = _return_from_g(g, last) if drill_id != "guards-basic" else dict(g)
      for k, ov in BODY_OVR.get(drill_id, {}).get(body, {}).items():
          kfs[k] = dict(kfs[k], **ov)
-@@ -175,8 +188,8 @@
++    for k, ov in shape(drill_id).get("body", {}).get(body, {}).get("kfs", {}).items():   # phase 5 per-body clearance fixes (after BODY_OVR)
++        kfs[k] = dict(kfs[k], **ov)
+     if drill_id == "guards-basic":
+         for k, ov in _gb_body(body).get("kfs", {}).items():
+             src = ov.pop("_from", k) if "_from" in ov else k
+             kfs[k] = dict(kfs.get(src, kfs.get(k, {})), **ov)
+     return kfs
+ 
+-def finalize(drill_id, kfs):
++def finalize(drill_id, kfs, body=None):
      """After per-body fitting of the checkpoint keyframes: build the internal keys."""
      d = DRILLS[drill_id]
      if drill_id != "guards-basic":
@@ -36,10 +45,13 @@
 -        kfs["recover"] = _recover(kfs, d["chamber"], cps[-1])
 +        cps = [n for n, _ in _seq(drill_id)]
 +        kfs["recover"] = _recover(kfs, shape(drill_id).get("chamber", d["chamber"]), cps[-1])
++        sh = shape(drill_id)                        # phase 5: overrides of the derived keys (recover), global + per body
++        for src in (sh.get("post_kfs", {}), sh.get("body", {}).get(body, {}).get("post_kfs", {})):
++            for k, ov in src.items(): kfs[k] = dict(kfs[k], **ov)
      return kfs
  
  def apply_level(drill_id, kfs, lvl, rng, scale=None):
-@@ -209,11 +222,12 @@
+@@ -209,11 +227,12 @@
                  add(du * tp, w)
          if total - t[-1] > 0.05: add(total - t[-1], names[-1])
          return list(zip(t, names))
