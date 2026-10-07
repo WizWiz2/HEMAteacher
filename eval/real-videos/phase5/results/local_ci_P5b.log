@@ -1,0 +1,60 @@
+== vitest
+stdout | src/drill/motionRecognition.fixture.test.ts > motion recognition on the pose fixture > reserved test clips with the shipped model: few wrong-drill accepts
+test: own 209/260, wrong-drill 25/2080
+source\selected       zornha scheit krumph zwerch schiel advanc retrea passin passin
+zornhau                35/40   1/40   1/40   0/40   1/40   0/40   0/40   0/40   0/40
+scheitelhau             0/28  15/28   0/28   0/28  11/28   0/28   0/28   0/28   0/28
+krumphau                0/24   0/24  13/24   0/24   0/24   0/24   0/24   0/24   0/24
+zwerchhau               0/36   0/36   1/36  32/36   0/36   0/36   0/36   0/36   0/36
+schielhau               2/36   0/36   2/36   0/36  27/36   1/36   0/36   0/36   0/36
+advance                 0/24   0/24   0/24   0/24   0/24  20/24   0/24   0/24   0/24
+retreat                 0/24   0/24   0/24   0/24   0/24   0/24  23/24   0/24   0/24
+passing-step-forward    0/24   0/24   0/24   0/24   0/24   1/24   0/24  23/24   1/24
+passing-step-backward   0/24   0/24   0/24   0/24   0/24   0/24   3/24   0/24  21/24
+
+ ❯ src/drill/motionRecognition.fixture.test.ts (4 tests | 1 failed) 191292ms
+   ✓ motion recognition on the pose fixture > the shipped model is reproducible from the fixture training split  7006ms
+   ✓ motion recognition on the pose fixture > leave-one-body-out over the train bodies, master/experienced  184271ms
+   ✓ motion recognition on the pose fixture > reserved test clips with the shipped model: few wrong-drill accepts 6ms
+   × motion recognition on the pose fixture > slow beginners are recognised with lower similarity and a slow note 6ms
+     → expected 75.27586206896552 to be less than 71.24444444444444
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/drill/motionRecognition.fixture.test.ts > motion recognition on the pose fixture > slow beginners are recognised with lower similarity and a slow note
+AssertionError: expected 75.27586206896552 to be less than 71.24444444444444
+ ❯ src/drill/motionRecognition.fixture.test.ts:41:41
+     39|     const lobo = (await all()).filter(r => r.protocol === "lobo" && r.…
+     40|     const mean = (lv: (l: string) => boolean) => { const v = lobo.filt…
+     41|     expect(mean(l => l === "beginner")).toBeLessThan(mean(l => l !== "…
+       |                                         ^
+     42|     // Strike beginners get the slow note (measured 17/18). Footwork b…
+     43|     // accepted at a mid-step pause, so its tempo is underestimated (d…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 17 passed (18)
+      Tests  1 failed | 61 passed (62)
+   Start at  10:36:55
+   Duration  192.04s (transform 969ms, setup 0ms, collect 2.36s, tests 192.60s, environment 3ms, prepare 1.45s)
+
+== check-motion-scenarios
+exit 0
+== build-motion-patterns --check
+}
+
+Node.js v20.19.2
+exit 1
+== check-vom-tag-clips
+│ 4       │ 'tall_slim_male_experienced'     │ '6/6'  │ 367          │ ''     │
+│ 5       │ 'tall_slim_male_master'          │ '6/6'  │ 367          │ ''     │
+└─────────┴──────────────────────────────────┴────────┴──────────────┴────────┘
+exit 0
+== build
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.08s
+exit 0
+== rerun from repo root (the run above was from frontend/ by mistake): build-motion-patterns --check exit 0; check-motion-scenarios exit 1: normal 2 (0), fast 5 (2), fps10 15 (3), slow4x 14 (4), truncated 20 (19)

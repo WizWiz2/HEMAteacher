@@ -1,0 +1,25 @@
+== mixP4b
+ test old                          M/E  own 126/148 85%  wrong 21/1184 1.8%
+ test old                          beg  own 47/76 62%  wrong 19/608 3.1%
+ test old core                     M/E  own 40/50 80%  wrong 8/400 2.0%
+ test old core                     beg  own 14/26 54%  wrong 9/208 4.3%
+ test rs                           M/E  own 23/24 96%  wrong 1/192 0.5%
+ test rs                           beg  own 9/12 75%  wrong 0/96 0.0%
+ test rs core                      M/E  own 23/24 96%  wrong 1/192 0.5%
+ test rs core                      beg  own 9/12 75%  wrong 0/96 0.0%
+ test wrong-into-core-strike old   M/E  own 0/0  wrong 10/394 2.5%
+ test wrong-into-core-strike old   beg  own 0/0  wrong 12/202 5.9%
+ test wrong-into-core-strike rs    M/E  own 0/0  wrong 0/48 0.0%
+ test wrong-into-core-strike rs    beg  own 0/0  wrong 0/24 0.0%
+ lobo old                          M/E  own 136/171 80%  wrong 20/1368 1.5%
+ lobo old                          beg  own 42/61 69%  wrong 8/488 1.6%
+ lobo old core                     M/E  own 39/51 76%  wrong 5/408 1.2%
+ lobo old core                     beg  own 9/19 47%  wrong 4/152 2.6%
+ lobo rs                           M/E  own 34/45 76%  wrong 7/360 1.9%
+ lobo rs                           beg  own 12/15 80%  wrong 2/120 1.7%
+ lobo rs core                      M/E  own 34/45 76%  wrong 7/360 1.9%
+ lobo rs core                      beg  own 12/15 80%  wrong 2/120 1.7%
+ lobo wrong-into-core-strike old   M/E  own 0/0  wrong 11/462 2.4%
+ lobo wrong-into-core-strike old   beg  own 0/0  wrong 4/164 2.4%
+ lobo wrong-into-core-strike rs    M/E  own 0/0  wrong 0/90 0.0%
+ lobo wrong-into-core-strike rs    beg  own 0/0  wrong 0/30 0.0%

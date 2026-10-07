@@ -1,0 +1,37 @@
+tag=mixP3b fixture=/tmp/fx_p5bmix.json.gz spec='|stepMax: 9, strikeMin: 0|settle' 10:16:56
+79:export const DETECT = { mode: 'settle' as 'settle' | 'burst', onHand: .35, onFeet: .25, offHand: .15, offFeet: .1, offRel: .15,
+291:export const ACTIVITY_GATE = { stepMax: 9, strikeMin: 0 };
+model: 216 templates from 216 training clips, acceptDistance 2.806
+== synthetic (streaming)
+== lobo
+all master/experienced                         own  180/216  83%   wrong-drill   20/1728   1.2%
+all beginner                                   own    58/76  76%   wrong-drill    13/608   2.1%
+== test
+all master/experienced                         own  150/172  87%   wrong-drill   15/1376   1.1%
+all beginner                                   own    59/88  67%   wrong-drill    10/704   1.4%
+== scenarios
+FAIL normal: 2 unexpected (allowed 0)
+FAIL fast: 5 unexpected (allowed 2)
+FAIL fps10: 15 unexpected (allowed 3)
+FAIL slow4x: 14 unexpected (allowed 4)
+FAIL truncated: 20 unexpected (allowed 19)
+{"normal":{"expected":"accept","accepted":52,"total":54},"fast":{"expected":"accept","accepted":49,"total":54},"fps10":{"expected":"accept","accepted":39,"total":54},"slow4x":{"expected":"accept","accepted":40,"total":54},"reversed":{"expected":"reject","accepted":0,"total":54},"frozen":{"expected":"reject","accepted":0,"total":54},"slow12x":{"expected":"reject","accepted":0,"total":54},"truncated":{"expected":"reject","accepted":20,"total":54},"gap":{"expected":"reject","accepted":0,"total":54}}
+== seen generic (MODE=none)
+all: own 12/30 (strikes 3/16, steps 9/14) | wrong 8/240 | CORE own 9/22 wrong-into-core 6/128 core-clip-wrong 5/176
+clean: own 7/17 (strikes 2/10, steps 5/7) | wrong 6/136 | CORE own 5/12 wrong-into-core 5/73 core-clip-wrong 4/96
+funnel all (30): no_start 3 | no_decision 2 | short 3 | tracking 1 | other 9 | accepted 12
+funnel clean (17): no_start 2 | no_decision 1 | short 1 | tracking 0 | other 6 | accepted 7
+funnel core-clean (12): no_start 2 | no_decision 1 | short 0 | tracking 0 | other 4 | accepted 5
+accepted own: stritschar_advance_01 stritschar_advance_02 ukolov_advance_01 ukolov_advance_02 ukolov_passfwd_01 ukolov_retreat_01 ukolov_retreat_02 vcu_passback_02 vcu_passfwd_01 bahff_schielhau_02 laurel_schielhau_02 laurel_zwerchhau_02
+wrong: drey_krumphau_01->advance drey_zornhau_01->retreat drey_zwerchhau_01->retreat vcu_krumphau_01->advance vcu_passback_01->passing-step-forward bahff_schielhau_01->zornhau laurel_zwerchhau_01->schielhau laurel_zwerchhau_01->advance
+== seen + real templates leave-one-person-out (MODE=lopo)
+all: own 11/30 (strikes 3/16, steps 8/14) | wrong 8/240 | CORE own 8/22 wrong-into-core 6/128 core-clip-wrong 5/176
+clean: own 6/17 (strikes 2/10, steps 4/7) | wrong 6/136 | CORE own 4/12 wrong-into-core 5/73 core-clip-wrong 4/96
+funnel all (30): no_start 3 | no_decision 2 | short 4 | tracking 1 | other 9 | accepted 11
+funnel clean (17): no_start 2 | no_decision 1 | short 2 | tracking 0 | other 6 | accepted 6
+funnel core-clean (12): no_start 2 | no_decision 1 | short 1 | tracking 0 | other 4 | accepted 4
+accepted own: stritschar_advance_01 stritschar_advance_02 ukolov_advance_02 ukolov_passfwd_01 ukolov_retreat_01 ukolov_retreat_02 vcu_passback_02 vcu_passfwd_01 bahff_schielhau_02 laurel_schielhau_02 laurel_zwerchhau_02
+wrong: drey_krumphau_01->advance drey_zornhau_01->retreat drey_zwerchhau_01->retreat vcu_krumphau_01->advance vcu_passback_01->passing-step-forward bahff_schielhau_01->zornhau laurel_zwerchhau_01->schielhau laurel_zwerchhau_01->advance
+== idle (12 x 6 s, all drills selected; any accept = false accept)
+all: own 0/0 (strikes 0/0, steps 0/0) | wrong 3/108 | CORE own 0/0 wrong-into-core 1/60 core-clip-wrong 0/0
+wrong: idle_swc_49->retreat idle_ukolov_255->zwerchhau idle_ukolov_263->retreat
