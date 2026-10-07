@@ -1,0 +1,11 @@
+--- render_sword.py.orig	2026-10-07 08:10:07.219321415 +0500
++++ /workspace/hema/gen2/render_sword.py	2026-10-07 08:10:07.227321464 +0500
+@@ -46,7 +46,7 @@
+ # ---- 1. reference (master) keyframes: hand-designed per drill (swordcuts.py), Vom Tag = Zornhau v4 guard ----
+ meshes = [o for o in bpy.data.objects if o.type == 'MESH']
+ for o in meshes: o.hide_viewport = True
+-master_kfs = swordcuts.finalize(a.drill, swordcuts.base_keyframes(a.drill, a.body))
++master_kfs = swordcuts.finalize(a.drill, swordcuts.base_keyframes(a.drill, a.body), a.body)
+ timeline_fn = lambda lvl, rng, total=6.0: swordcuts.timeline(a.drill, lvl, rng, total, body=a.body)
+ 
+ # ---- 2. skill-level deviations (seeded), shrunk until every checkpoint still passes on GT ----

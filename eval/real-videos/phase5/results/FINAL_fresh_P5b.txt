@@ -1,0 +1,25 @@
+== generic (P5b)
+all: own 1/35 (strikes 1/25, steps 0/10) | wrong 4/280 [('jtsay_krumphau_03', 'advance'), ('forge_zornhau_01', 'retreat'), ('forge_zornhau_01', 'schielhau'), ('schwaben_zornhau_02', 'advance')]
+clean: own 1/23 (strikes 1/19, steps 0/4) | wrong 3/184 [('forge_zornhau_01', 'retreat'), ('forge_zornhau_01', 'schielhau'), ('schwaben_zornhau_02', 'advance')]
+== personal calibration (P5b, all)
+generic            own 1/92  strikes 1/70  steps 0/22  wrong 8/736
+generic+personal   own 2/92  strikes 2/70  steps 0/22  wrong 8/736
+  sprez        generic: own 0/20 wrong 0/160 | generic+personal: own 0/20 wrong 0/160
+  jtsay        generic: own 0/6 wrong 2/48 | generic+personal: own 0/6 wrong 2/48
+  helman       generic: own 0/2 wrong 0/16 | generic+personal: own 0/2 wrong 0/16
+  mccamey      generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  forge        generic: own 1/2 wrong 2/16 | generic+personal: own 1/2 wrong 2/16
+  schwaben     generic: own 0/20 wrong 4/160 | generic+personal: own 0/20 wrong 4/160
+  cba          generic: own 0/6 wrong 0/48 | generic+personal: own 0/6 wrong 0/48
+  pblack       generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  schilt       generic: own 0/12 wrong 0/96 | generic+personal: own 1/12 wrong 0/96
+== personal calibration (P5b, clean)
+generic            own 1/62  strikes 1/58  steps 0/4  wrong 6/496
+generic+personal   own 2/62  strikes 2/58  steps 0/4  wrong 6/496
+  sprez        generic: own 0/4 wrong 0/32 | generic+personal: own 0/4 wrong 0/32
+  mccamey      generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  forge        generic: own 1/2 wrong 2/16 | generic+personal: own 1/2 wrong 2/16
+  schwaben     generic: own 0/20 wrong 4/160 | generic+personal: own 0/20 wrong 4/160
+  pblack       generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  schilt       generic: own 0/12 wrong 0/96 | generic+personal: own 1/12 wrong 0/96
+FRESHDONE

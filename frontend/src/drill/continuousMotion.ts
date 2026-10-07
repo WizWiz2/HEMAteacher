@@ -25,6 +25,11 @@ export interface MotionAttempt {
   /** Settle time at which the selected drill's whole movement was already observed (ambiguous, kept open): the tempo
    *  of a later acceptance is measured up to here, so the continuation (e.g. the return) does not count as slowness. */
   completeAt?: number;
+  /** Burst detection: peak activity speed of the current burst, start of the current low-activity stretch, start of
+   *  the current burst. */
+  peak?: number;
+  quietSince?: number;
+  burstAt?: number;
 }
 const patterns: Record<string, Pattern> = patternsData;
 export const motionPatternFor = (id: string) => patterns[id];
@@ -64,6 +69,89 @@ export function trajectoryError(samples: MotionSample[], reference: number[][]):
   return costs[n][n]/n;
 }
 
+/** Attempt detection. "settle" (original): arm on a stable start pose (strikes: hands above .55 torso), decide after a
+ *  200 ms pause. "burst": arm on any tracked pose; an attempt starts when the drill's activity speed (hands for strikes,
+ *  feet/root for steps; torso lengths per second, i.e. body-scale normalised) exceeds onHand/onFeet, and ends when it
+ *  stays below max(off*, offRel x the burst's peak) for holdMs, or after maxBurstMs. Too small a burst (excursion,
+ *  moving frames, minMs) is dropped without failing; an attempt judged incomplete waits up to mergeWaitMs for the next
+ *  burst and is re-judged; any other undecided attempt is dropped and detection re-arms.
+ *  Phase 5 default: settle (with the real-shape strike templates it beats burst on synthetic and seen real clips). */
+export const DETECT = { mode: 'settle' as 'settle' | 'burst', onHand: .35, onFeet: .25, offHand: .15, offFeet: .1, offRel: .15,
+  holdMs: 200, maxBurstMs: 3000, speedWindowMs: 100, armMs: 200, mergeWaitMs: 1000, keepMs: 600, mergeUnknown: false, mergeMaxMs: 4000, otherFails: true };
+const finiteN = (x: number | undefined): x is number => typeof x === 'number' && Number.isFinite(x);
+const activityOf = (id: string, f?: Record<string, number>) =>
+  id.endsWith('hau') ? [f?.action_hand_x, f?.action_hand_y] : [f?.left_ankle_x, f?.right_ankle_x, f?.root_x];
+function activitySpeed(id: string, history: MotionSample[], now: MotionSample): number {
+  let ref: MotionSample | undefined;
+  for (let i = history.length - 1; i >= 0; i--) if (now.timeMs - history[i].timeMs >= DETECT.speedWindowMs) { ref = history[i]; break; }
+  if (!ref) return 0;
+  const a = activityOf(id, now.features), b = activityOf(id, ref.features);
+  if (!a.every(finiteN) || !b.every(finiteN)) return 0;
+  const d = id.endsWith('hau') ? Math.hypot(a[0]! - b[0]!, a[1]! - b[1]!) : Math.max(...a.map((x, i) => Math.abs(x! - b[i]!)));
+  return d / ((now.timeMs - ref.timeMs) / 1000);
+}
+function rearm(runtime: DrillRuntime, sample: MotionSample, history: MotionSample[]): DrillRuntime {
+  return {...runtime, state: 'ready', checkpointIndex: 0, startedAt: undefined, validSince: null, match: null,
+    motion: {phase: 'armed', message: 'Готов. Выполни движение целиком', baseline: sample.vector, last: sample,
+      samples: history.filter(s => s.timeMs >= sample.timeMs - DETECT.keepMs)}};
+}
+function stepBurst(runtime: DrillRuntime, attempt: MotionAttempt, id: string, pattern: Pattern, sample: MotionSample, count: number): DrillRuntime {
+  const timeMs = sample.timeMs, strike = id.endsWith('hau');
+  if (attempt.phase === 'position') {
+    const since = runtime.validSince ?? timeMs, history = [...attempt.samples, sample].filter(s => s.timeMs >= timeMs - DETECT.keepMs);
+    if (timeMs - since < DETECT.armMs) return {...runtime, validSince: since, match: null, motion: {phase: 'position', message: 'Прими исходную позицию', baseline: sample.vector, last: sample, samples: history}};
+    return rearm({...runtime, validSince: since}, sample, history);
+  }
+  if (attempt.phase === 'armed') {
+    const history = [...attempt.samples, sample].filter(s => s.timeMs >= timeMs - DETECT.keepMs);
+    const speed = activitySpeed(id, attempt.samples, sample);
+    if (speed < (strike ? DETECT.onHand : DETECT.onFeet))
+      return {...runtime, motion: {...attempt, baseline: speed < .5 * (strike ? DETECT.onHand : DETECT.onFeet) ? sample.vector : attempt.baseline, last: sample, samples: history}};
+    if (distance(sample.vector, attempt.last!.vector) > (strike ? JUMP_HAND : JUMP_FEET) && timeMs - attempt.last!.timeMs < 180) return rearm(runtime, sample, [sample]);
+    const preRoll = history.filter(s => s.timeMs >= timeMs - PRE_ROLL_MS);
+    return {...runtime, state: 'running', startedAt: preRoll[0].timeMs, validSince: null, checkpointIndex: 1,
+      motion: {...attempt, phase: 'moving', message: 'Двигайся без остановок', samples: preRoll, last: sample, peak: speed, quietSince: undefined, burstAt: timeMs, awaitMove: false}};
+  }
+  const startedAt = runtime.startedAt!;
+  const samples = [...attempt.samples, sample].slice(-600);
+  const speed = activitySpeed(id, attempt.samples, sample);
+  const on = strike ? DETECT.onHand : DETECT.onFeet, off = strike ? DETECT.offHand : DETECT.offFeet;
+  if (attempt.awaitMove) {
+    // judged incomplete: wait for the next burst (same attempt), else drop it and re-arm
+    if (speed >= on) return {...runtime, motion: {...attempt, samples, last: sample, awaitMove: false, peak: speed, quietSince: undefined, burstAt: timeMs, message: 'Двигайся без остановок'}};
+    if (timeMs - (attempt.quietSince ?? timeMs) > DETECT.mergeWaitMs) return rearm(runtime, sample, samples);
+    return {...runtime, motion: {...attempt, samples, last: sample}};
+  }
+  if (timeMs - startedAt > MAX_ATTEMPT_MS) return rearm(runtime, sample, samples);
+  const peak = Math.max(attempt.peak ?? 0, speed);
+  const quiet = speed < Math.max(off, DETECT.offRel * peak);
+  const quietSince = quiet ? (attempt.quietSince ?? timeMs) : undefined;
+  const ended = (quietSince !== undefined && timeMs - quietSince >= DETECT.holdMs) || timeMs - (attempt.burstAt ?? startedAt) >= DETECT.maxBurstMs;
+  const extent = extentOf(pattern);
+  const excursion = Math.max(...samples.map(s => distance(s.vector, attempt.baseline!)));
+  const progressIndex = Math.max(runtime.checkpointIndex, excursion > extent * .6 ? Math.min(2, count - 1) : 1);
+  if (!ended) return {...runtime, checkpointIndex: progressIndex, motion: {...attempt, samples, last: sample, peak, quietSince, message: 'Двигайся без остановок'}};
+  const movingFrames = samples.filter((s, i) => i > 0 && distance(s.vector, samples[i - 1].vector) > .015).length;
+  const crossed = !id.startsWith('passing') || (attempt.baseline![0] - attempt.baseline![1]) * (sample.vector[0] - sample.vector[1]) < 0 && Math.abs(sample.vector[0] - sample.vector[1]) > .2;
+  const big = movingFrames >= 4 && excursion > Math.max(.08, extent * .45) && timeMs - startedAt >= pattern.minMs;
+  if (!big) return rearm(runtime, sample, samples);
+  const decision = crossed ? decide(id, samples as TimedFeatures[], model) : {kind: 'unknown' as const, incomplete: 'stance' as const};
+  if (decision.kind === 'accepted') {
+    const feedback = motionFeedback(id, samples, pattern);
+    if (decision.slow) feedback.unshift(`Движение распознано, но выполнено слишком медленно (примерно в ${decision.tempo.toFixed(1)} раза дольше образцов). Попробуй выполнить его слитно, без пауз.`);
+    return {...runtime, state: 'completed', checkpointIndex: count - 1, finishedAt: timeMs, validSince: null, match: null,
+      motion: {...attempt, phase: 'passed', samples, last: sample, similarity: decision.similarity, tempo: decision.tempo, message: 'Движение распознано', outcome: 'recognized', feedback: feedback.slice(0, 2)}};
+  }
+  if (decision.kind === 'other' && !DETECT.otherFails) return rearm(runtime, sample, samples);
+  if (decision.kind === 'other')
+    return {...runtime, state: 'failed', finishedAt: timeMs, match: null, validSince: null,
+      motion: {...attempt, phase: 'failed', samples, last: sample, lookedLike: decision.drill, outcome: 'other_drill',
+        message: `Похоже на ${DRILL_NAMES[decision.drill] ?? decision.drill}, а не ${DRILL_NAMES[id] ?? id}. Повтори выбранное движение`}};
+  if (decision.incomplete || (decision.kind === 'unknown' && decision.complete) || (DETECT.mergeUnknown && !decision.ignored && timeMs - startedAt < DETECT.mergeMaxMs))
+    return {...runtime, checkpointIndex: progressIndex, motion: {...attempt, samples, last: sample, peak, quietSince: timeMs, awaitMove: true, message: 'Продолжай движение до конца'}};
+  return rearm(runtime, sample, samples);
+}
+
 export function stepContinuous(runtime: DrillRuntime, id: string, timeMs: number,
   features: Record<string,number> | null, enough: boolean, count: number): DrillRuntime {
   const pattern=patterns[id];
@@ -82,6 +170,7 @@ export function stepContinuous(runtime: DrillRuntime, id: string, timeMs: number
     attempt={phase:'position',message:'Прими исходную позицию',samples:[]};
   }
   const sample={timeMs,vector,features:features ?? undefined};
+  if(DETECT.mode==='burst')return stepBurst(runtime,attempt,id,pattern,sample,count);
   if(attempt.phase==='position') {
     const nearStart=!id.endsWith('hau') || vector[1] > .55;
     const stable=!attempt.last || distance(vector,attempt.last.vector)<.035;
@@ -131,6 +220,9 @@ export function stepContinuous(runtime: DrillRuntime, id: string, timeMs: number
         motion:{...attempt,phase:'failed',samples,last:sample,lookedLike:decision.drill,outcome:'other_drill',
           message:`Похоже на ${DRILL_NAMES[decision.drill] ?? decision.drill}, а не ${DRILL_NAMES[id] ?? id}. Повтори выбранное движение`}};
     }
+    // Not an attempt at the selected strike (footwork only): start over from the current pose instead of failing.
+    if(decision.kind==='unknown' && decision.ignored)return {...runtime,state:'ready',checkpointIndex:0,startedAt:undefined,validSince:null,match:null,
+      motion:{phase:'position',message:'Прими исходную позицию',baseline:vector,last:sample,samples:[]}};
     if(distance(vector,attempt.baseline!)<extent*.3)return fail('Движение не удалось уверенно распознать. Повтори цельную попытку');
     // Not a recognisable whole movement yet (e.g. a pause mid-movement): keep the attempt open.
     const completeAt=attempt.completeAt ?? (decision.complete ? timeMs : undefined);

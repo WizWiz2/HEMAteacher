@@ -1,0 +1,101 @@
+Only in gen2: blend
+diff -ru -x __pycache__ -x cache gen/hemagen/footwork.py gen2/hemagen/footwork.py
+--- gen/hemagen/footwork.py	2026-10-02 19:48:33.143367161 +0500
++++ gen2/hemagen/footwork.py	2026-10-06 09:49:08.385508409 +0500
+@@ -102,6 +102,8 @@
+ 
+     def stance_state(self, lead, front_x, rear_x, hip_x=None):
+         L = self.lvl; st = dict(UPPER)
++        for k in UPPER:   # gen2: a level may override the upper-body guard (footwork WITH the sword held in a guard)
++            if k in L: st[k] = L[k]
+         yl, yr = (L["front_yaw"], -L["rear_yaw"]) if lead == "l" else (L["rear_yaw"], -L["front_yaw"])
+         axl, axr = (front_x, rear_x) if lead == "l" else (rear_x, front_x)
+         st["foot_yaw_l"], st["foot_yaw_r"] = yl, yr
+diff -ru -x __pycache__ -x cache gen/hemagen/swordcuts.py gen2/hemagen/swordcuts.py
+--- gen/hemagen/swordcuts.py	2026-10-02 19:48:36.047389968 +0500
++++ gen2/hemagen/swordcuts.py	2026-10-06 09:49:44.584856926 +0500
+@@ -148,8 +148,12 @@
+     clearance-clean in the Zornhau set, and inside the 484fefd vom-tag preset tolerances)."""
+     p = os.path.join(_CACHE, f"zornhau_{body}_fit.json")
+     if body and os.path.exists(p):
+-        return dict(json.load(open(p))["guard"])
+-    return dict(G)
++        return _gov(dict(json.load(open(p))["guard"]))
++    return _gov(dict(G))
++
++def _gov(g):
++    """gen2: HEMA_GUARD_OVR={"hand_y":..,...} lowers/changes the Vom Tag (real-video guards are held lower)."""
++    g.update(json.loads(os.environ.get("HEMA_GUARD_OVR", "{}"))); return g
+ 
+ def _return_from_g(g, last):
+     return dict(g, ankle_l=last["ankle_l"], ankle_r=last["ankle_l"] - 0.95)
+diff -ru -x __pycache__ -x cache gen/render_drill.py gen2/render_drill.py
+--- gen/render_drill.py	2026-10-02 19:48:31.275350572 +0500
++++ gen2/render_drill.py	2026-10-06 09:49:44.584856926 +0500
+@@ -53,11 +53,15 @@
+         master_kfs["return"][p] = master_kfs[drill["checkpoints"][0]["id"]][p]
+     json.dump(master_kfs, open(cache, "w"), indent=1)
+ 
++_gov = json.loads(os.environ.get("HEMA_GUARD_OVR", "{}"))   # gen2: Vom Tag height variant (guard + return)
++if _gov:
++    for _k in ("guard", "return"): master_kfs[_k].update(_gov)
+ if a.drill == "zornhau":
+     master_kfs["recover"] = motion.make_recover(master_kfs)
+ 
+ # ---- 2. skill-level deviations (seeded), shrunk until every checkpoint still passes on GT ----
+ lvl = motion.LEVELS[a.level]
++lvl = dict(lvl, **json.loads(os.environ.get("HEMA_LEVEL_OVR", "{}")))   # gen2: tempo/pause variants
+ seed = a.seed + zlib.crc32(f"{a.drill}|{a.body}|{a.level}".encode()) % 100000
+ from hemagen.clearance import Clearance
+ hair = next((o for o in assets if o.type == 'MESH' and "hair" in o.name.lower()), None)
+diff -ru -x __pycache__ -x cache gen/render_footwork.py gen2/render_footwork.py
+--- gen/render_footwork.py	2026-10-02 19:48:32.955365581 +0500
++++ gen2/render_footwork.py	2026-10-06 09:54:21.045266730 +0500
+@@ -34,8 +34,12 @@
+ eyes = next((o for o in assets if "high-poly" in o.name), None)
+ scene.build_room(config.ROOM); cam = scene.build_camera(config.CAMERA); scene.build_lights(config.LIGHTS)
+ sword = scene.build_sword(config.SWORD)
+-for ch in sword.children:           # no weapon in the footwork clips
+-    ch.hide_render = True; ch.hide_viewport = True
++# gen2: HEMA_FW_GUARD=pflug|tag renders the footwork WITH the longsword held in that guard (default: no weapon, arms hang)
++FW_GUARD = os.environ.get("HEMA_FW_GUARD", "")
++GUARDS = {"pflug": dict(hand_x=0.70, hand_y=0.60, sword_ang=35.0), "tag": dict(hand_x=0.66, hand_y=0.85, hand_lat=0.46, sword_ang=100.0, sword_lat=12.0, elbow_flare=0.35, elbow_fwd=0.25, elbow_fwd_r=-1.0, sword_roll=40.0, shoulder_raise=6.0, shoulder_fwd_l=7.5)}
++if not FW_GUARD:
++    for ch in sword.children:           # no weapon in the footwork clips
++        ch.hide_render = True; ch.hide_viewport = True
+ scene.set_render(dict(config.RENDER, cycles_samples=a.samples), "CYCLES")
+ sc = bpy.context.scene; bpy.context.view_layer.update()
+ R = rigpose.RigCtl(rig, bm); R.setup_landmarks(eyes); dims = R.dims()
+@@ -125,6 +129,8 @@
+ def build_and_bake(scale):
+     global kfs, timeline, phases, design, frames_p, lvl, hz_ref
+     lvl = footwork.level_params(a.drill, a.level, scale)
++    lvl.update(json.loads(os.environ.get("HEMA_LEVEL_OVR", "{}")))   # gen2: tempo/pause variants
++    if FW_GUARD: lvl.update(GUARDS[FW_GUARD]); lvl["arms"] = "guard"
+     rng = random.Random(seed)
+     kfs, timeline, phases, design = footwork.build(a.drill, lvl, rng, geom, total=a.frames / fps)
+     # centre the motion in the camera: shift all x so that the hip range is centred at x0
+@@ -285,7 +291,9 @@
+     per, face_res = body_checks()
+     hit = [r["frame"] for r in per if r["hand_x_thigh"] or r["forearm_x_thigh"] or r["hand_x_torso"] or r["forearm_x_torso"]]
+     print("ARMS", dict(ARM), "arm-body contact frames:", len(hit), hit[:8], flush=True)
+-    if not hit: break
++    if FW_GUARD and hit:   # gen2: guard arms (sword held) - report which contact type, ARM hang params do not apply
++        print("GUARD contact types", {k: sum(1 for r in per if r[k]) for k in ("hand_x_thigh", "forearm_x_thigh", "hand_x_torso", "forearm_x_torso")}, flush=True)
++    if not hit or FW_GUARD: break
+     ARM["out"] = round(ARM["out"] + 0.02, 3); ARM["fwd"] = round(max(0.0, ARM["fwd"] - 0.01), 3)
+     build_and_bake(scale)
+ feats_occ, lps = gt_pass(occl=True)
+diff -ru -x __pycache__ -x cache gen/render_sword.py gen2/render_sword.py
+--- gen/render_sword.py	2026-10-02 19:48:35.979389474 +0500
++++ gen2/render_sword.py	2026-10-06 09:49:44.584856926 +0500
+@@ -51,6 +51,7 @@
+ 
+ # ---- 2. skill-level deviations (seeded), shrunk until every checkpoint still passes on GT ----
+ lvl = motion.LEVELS[a.level]
++lvl = dict(lvl, **json.loads(os.environ.get("HEMA_LEVEL_OVR", "{}")))   # gen2: tempo/pause variants
+ seed = a.seed + zlib.crc32(f"{a.drill}|{a.body}|{a.level}".encode()) % 100000
+ from hemagen.clearance import Clearance
+ hair = next((o for o in assets if o.type == 'MESH' and "hair" in o.name.lower()), None)
+Only in gen2: t1
+Only in gen2: t2

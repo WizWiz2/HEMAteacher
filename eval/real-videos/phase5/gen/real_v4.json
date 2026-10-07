@@ -1,0 +1,303 @@
+{
+ "_doc": "phase 5 real-shape preset v4 = v3 + clearance fix for zwerchhau cross/finish (hands further forward and right, elbows out: grip off the head, no forearm crossing) and schielhau finish; see eval/real-videos/phase5/CLEARANCE.md",
+ "zornhau": {
+  "kfs": {
+   "init": {
+    "hand_x": 0.92,
+    "hand_y": 0.92,
+    "hand_lat": 0.32,
+    "sword_ang": 55.0
+   },
+   "extend": {
+    "hand_x": 1.1,
+    "hand_y": 0.98,
+    "ankle_r": 1.725,
+    "lean": 8.0,
+    "shoulder_fwd": 12.0
+   },
+   "finish": {
+    "hand_x": 1.14,
+    "hand_y": 1.0,
+    "ankle_r": 1.725,
+    "ankle_l": 0.825,
+    "lean": 9.0,
+    "shoulder_fwd": 16.0
+   }
+  }
+ },
+ "zwerchhau": {
+  "kfs": {
+   "chamber": {
+    "hand_x": 0.4,
+    "hand_y": 1.62
+   },
+   "z1": {
+    "hand_x": 0.6,
+    "hand_y": 1.5
+   },
+   "z2": {
+    "hand_x": 0.7,
+    "hand_y": 1.62
+   },
+   "cross": {
+    "hand_x": 0.8,
+    "hand_y": 1.6,
+    "elbow_flare": 0.15,
+    "elbow_fwd": 0.5
+   },
+   "finish": {
+    "hand_x": 0.85,
+    "hand_y": 1.6,
+    "elbow_flare": 0.15,
+    "shoulder_raise": 10.0,
+    "elbow_fwd": 0.5
+   }
+  },
+  "seq": [
+   [
+    "z1",
+    0.3
+   ],
+   [
+    "chamber",
+    0.3
+   ],
+   [
+    "chamber",
+    0.25
+   ],
+   [
+    "z2",
+    0.18
+   ],
+   [
+    "cross",
+    0.2
+   ],
+   [
+    "finish",
+    0.26
+   ]
+  ],
+  "body": {
+   "short_slim_male": {
+    "kfs": {
+     "cross": {
+      "hand_x": 1.0,
+      "hand_y": 1.64,
+      "elbow_flare": 0.6,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.1,
+      "sword_ang": -22.0
+     },
+     "finish": {
+      "hand_x": 1.12,
+      "hand_y": 1.66,
+      "elbow_flare": 0.6,
+      "shoulder_raise": 10.0,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.25,
+      "sword_ang": -22.0
+     }
+    },
+    "post_kfs": {
+     "recover": {
+      "elbow_fwd_r": 0.0,
+      "elbow_flare": 0.45,
+      "hand_lat": 0.4
+     }
+    }
+   },
+   "tall_heavy_male": {
+    "kfs": {
+     "cross": {
+      "hand_x": 1.0,
+      "hand_y": 1.64,
+      "elbow_flare": 0.6,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.1
+     },
+     "finish": {
+      "hand_x": 1.12,
+      "hand_y": 1.66,
+      "elbow_flare": 0.6,
+      "shoulder_raise": 10.0,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.05
+     }
+    },
+    "post_kfs": {
+     "recover": {
+      "elbow_fwd_r": 0.0,
+      "elbow_flare": 0.45,
+      "hand_lat": 0.4
+     }
+    }
+   },
+   "avg_longlimb_female": {
+    "kfs": {
+     "cross": {
+      "hand_x": 1.0,
+      "hand_y": 1.64,
+      "elbow_flare": 0.6,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.1,
+      "sword_ang": -22.0
+     },
+     "finish": {
+      "hand_x": 1.12,
+      "hand_y": 1.66,
+      "elbow_flare": 0.6,
+      "shoulder_raise": 10.0,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.05,
+      "sword_ang": -22.0
+     }
+    },
+    "post_kfs": {
+     "recover": {
+      "elbow_fwd_r": 0.0,
+      "elbow_flare": 0.45,
+      "hand_lat": 0.4
+     }
+    }
+   },
+   "short_broad_female": {
+    "kfs": {
+     "cross": {
+      "hand_x": 1.0,
+      "hand_y": 1.64,
+      "elbow_flare": 0.6,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.1,
+      "sword_ang": -22.0
+     },
+     "finish": {
+      "hand_x": 1.12,
+      "hand_y": 1.66,
+      "elbow_flare": 0.6,
+      "shoulder_raise": 10.0,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.05,
+      "sword_ang": -22.0
+     }
+    },
+    "post_kfs": {
+     "recover": {
+      "elbow_fwd_r": 0.0,
+      "elbow_flare": 0.45,
+      "hand_lat": 0.4,
+      "hand_x": 0.95
+     }
+    }
+   },
+   "tall_slim_female": {
+    "kfs": {
+     "cross": {
+      "hand_x": 1.0,
+      "hand_y": 1.64,
+      "elbow_flare": 0.6,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.1
+     },
+     "finish": {
+      "hand_x": 1.12,
+      "hand_y": 1.66,
+      "elbow_flare": 0.6,
+      "shoulder_raise": 10.0,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.05
+     }
+    },
+    "post_kfs": {
+     "recover": {
+      "elbow_fwd_r": 0.0,
+      "elbow_flare": 0.45,
+      "hand_lat": 0.4
+     }
+    }
+   },
+   "stocky_short_male": {
+    "kfs": {
+     "cross": {
+      "hand_x": 1.0,
+      "hand_y": 1.64,
+      "elbow_flare": 0.6,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.1
+     },
+     "finish": {
+      "hand_x": 1.12,
+      "hand_y": 1.66,
+      "elbow_flare": 0.6,
+      "shoulder_raise": 10.0,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.05
+     }
+    },
+    "post_kfs": {
+     "recover": {
+      "elbow_fwd_r": 0.0,
+      "elbow_flare": 0.45,
+      "hand_lat": 0.4
+     }
+    }
+   }
+  }
+ },
+ "schielhau": {
+  "kfs": {
+   "chamber": {
+    "hand_x": 0.62,
+    "hand_y": 0.62,
+    "hand_lat": 0.3,
+    "sword_ang": 75.0,
+    "shoulder_raise": 2.0
+   },
+   "extend": {
+    "hand_x": 1.25,
+    "hand_y": 1.05,
+    "hand_lat": 0.0,
+    "shoulder_fwd": 22.0,
+    "lean": 14.0
+   },
+   "finish": {
+    "hand_x": 1.32,
+    "hand_y": 1.08,
+    "hand_lat": -0.08,
+    "shoulder_fwd": 28.0,
+    "lean": 16.0
+   }
+  },
+  "seq": [
+   [
+    "chamber",
+    0.5
+   ],
+   [
+    "chamber",
+    0.35
+   ],
+   [
+    "extend",
+    0.26
+   ],
+   [
+    "finish",
+    0.22
+   ]
+  ],
+  "body": {
+   "short_slim_male": {
+    "kfs": {
+     "extend": {
+      "sword_ang": 28.0
+     },
+     "finish": {
+      "sword_ang": 20.0
+     }
+    }
+   }
+  }
+ }
+}

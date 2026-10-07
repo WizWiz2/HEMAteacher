@@ -8,13 +8,16 @@
 export const CHANNELS = [
   "hand_x", "hand_y", "hand_over_head", "forearm_cos", "forearm_sin", "elbow_angle", "shoulder_offset",
   "wrist_cross_x", "wrist_cross_y", "left_ankle_x", "right_ankle_x", "left_ankle_y", "right_ankle_y",
-  "root_dx", "torso_angle", "hand_dir_x", "hand_dir_y",
+  "root_dx", "torso_angle", "hand_dir_x", "hand_dir_y", "hand_share",
 ] as const;
 // Channels expressed as displacement from the attempt start: stance width, foot height and torso posture differ
 // between bodies far more than between drills, so only their change during the movement is compared.
 const RELATIVE_CHANNELS = [6, 9, 10, 11, 12, 13, 14];
 // Channels that define path length (and therefore the time-invariant parameterisation).
 const PATH_CHANNELS = [0, 1, 9, 10, 13];
+// hand_share (channel 17): share of the hand path in hand + feet path travelled so far. Strikes are mostly hand path,
+// footwork mostly feet path whether the sword is carried or not - a body-size and guard-height independent cue.
+const HAND_PATH = [0, 1], FEET_PATH = [9, 10, 13], HAND_SHARE = 17;
 
 export interface RecognitionTemplate { drill: string; body: string; level: string; durationMs: number; seq: (number | null)[][] }
 export interface RecognitionModel {
@@ -68,8 +71,27 @@ export function frameChannels(f: Record<string, number> = {}): number[] {
     finite(f.left_wrist_x) && finite(f.right_wrist_x) ? f.left_wrist_x - f.right_wrist_x : NaN,
     finite(f.left_wrist_y) && finite(f.right_wrist_y) ? f.left_wrist_y - f.right_wrist_y : NaN,
     v(f.left_ankle_x), v(f.right_ankle_x), v(f.left_ankle_y), v(f.right_ankle_y),
-    v(f.root_x), finite(f.torso_angle) ? f.torso_angle / 45 : NaN, NaN, NaN,
+    v(f.root_x), finite(f.torso_angle) ? f.torso_angle / 45 : NaN, NaN, NaN, NaN,
   ];
+}
+
+/** Guard-invariant arm representation: hand position, hand height over the head (unless keepAbsHoh), wrist crossing and
+ *  elbow angle become displacements from the attempt's start pose, and the forearm direction is rotated by its start
+ *  angle, so the trajectory is compared and not how high / at what angle the guard is held (real Vom Tag is held lower
+ *  than the rendered one). Positions are already normalised by torso length (body scale). */
+export const ARM_REL = { on: true, keepAbsHoh: true };
+const ARM_REL_CHANNELS = [0, 1, 2, 5, 7, 8];
+const startMedian = (rows: number[][], j: number) => {
+  const v = rows.slice(0, 5).map(r => r[j]).filter(Number.isFinite).sort((a, b) => a - b);
+  return v.length ? v[Math.floor((v.length - 1) / 2)] : rows.map(r => r[j]).find(Number.isFinite) ?? NaN;
+};
+function armRelative(rows: number[][]): number[][] {
+  const js = ARM_REL_CHANNELS.filter(j => !(j === 2 && ARM_REL.keepAbsHoh));
+  const s0 = js.map(j => startMedian(rows, j));
+  const a0 = Math.atan2(startMedian(rows, 4), startMedian(rows, 3));
+  return rows.map(r => { const c = [...r]; js.forEach((j, k) => { c[j] = c[j] - s0[k]; });
+    if (Number.isFinite(a0) && Number.isFinite(c[3]) && Number.isFinite(c[4])) { const a = Math.atan2(c[4], c[3]) - a0; c[3] = Math.cos(a); c[4] = Math.sin(a); }
+    return c; });
 }
 
 /** Smoothed channels and cumulative (scaled) path length of an attempt. */
@@ -80,18 +102,21 @@ function pathProfile(samples: TimedFeatures[], pathScales: number[]) {
     return v.length ? v[Math.floor((v.length - 1) / 2)] : rows.map(r => r[j]).find(Number.isFinite) ?? NaN;
   });
   rows = rows.map(r => { const c = [...r]; RELATIVE_CHANNELS.forEach((j, k) => { c[j] = c[j] - start[k]; }); return c; });
+  if (ARM_REL.on) rows = armRelative(rows);
   // centred moving average (NaN-aware) suppresses per-frame landmark jitter before measuring path length
   const smooth = rows.map((_, i) => rows[0].map((__, j) => {
     const w = rows.slice(Math.max(0, i - 2), i + 3).map(r => r[j]).filter(Number.isFinite);
     return w.length ? w.reduce((a, b) => a + b, 0) / w.length : NaN;
   }));
-  const cum = [0];
+  const cum = [0], cumHand = [0], cumFeet = [0];
+  const part = (i: number, js: number[]) => { let s = 0, n = 0;
+    for (const j of js) { const d = (smooth[i][j] - smooth[i - 1][j]) / pathScales[j]; if (Number.isFinite(d)) { s += d * d; n++; } }
+    return n ? Math.sqrt(s / n) : 0; };
   for (let i = 1; i < smooth.length; i++) {
-    let s = 0, n = 0;
-    for (const j of PATH_CHANNELS) { const d = (smooth[i][j] - smooth[i - 1][j]) / pathScales[j]; if (Number.isFinite(d)) { s += d * d; n++; } }
-    cum.push(cum[i - 1] + (n ? Math.sqrt(s / n) : 0));
+    cum.push(cum[i - 1] + part(i, PATH_CHANNELS));
+    cumHand.push(cumHand[i - 1] + part(i, HAND_PATH)); cumFeet.push(cumFeet[i - 1] + part(i, FEET_PATH));
   }
-  return { smooth, cum };
+  return { smooth, cum, cumHand, cumFeet };
 }
 
 /** Path length of a re-sampled sequence over the path channels (same metric as the path-length parameterisation). */
@@ -120,7 +145,7 @@ export function activeDurationMs(samples: TimedFeatures[], pathScales: number[])
 /** Attempt samples -> path-length re-sampled sequence of `points` x CHANNELS (null for unobserved). */
 export function prepareSequence(samples: TimedFeatures[], pathScales: number[], points: number): number[][] | null {
   if (samples.length < 3) return null;
-  const { smooth, cum } = pathProfile(samples, pathScales);
+  const { smooth, cum, cumHand, cumFeet } = pathProfile(samples, pathScales);
   const total = cum.at(-1)!;
   if (!(total > 1e-6)) return null;
   const out: number[][] = [];
@@ -130,6 +155,8 @@ export function prepareSequence(samples: TimedFeatures[], pathScales: number[], 
     while (k < cum.length - 2 && cum[k + 1] < target) k++;
     const span = cum[k + 1] - cum[k], r = span > 0 ? (target - cum[k]) / span : 0;
     out.push(smooth[k].map((a, j) => { const b = smooth[k + 1][j]; return Number.isFinite(a) && Number.isFinite(b) ? a + (b - a) * r : Number.isFinite(a) ? a : b; }));
+    const h = cumHand[k] + (cumHand[k + 1] - cumHand[k]) * r, f = cumFeet[k] + (cumFeet[k + 1] - cumFeet[k]) * r;
+    out[p][HAND_SHARE] = h + f > 1e-6 ? h / (h + f) : NaN;
   }
   // hand path direction along the re-sampled path (vertical vs horizontal vs diagonal strokes)
   for (let p = 0; p < points; p++) {
@@ -187,7 +214,7 @@ export type Decision =
   | { kind: "accepted"; distance: number; similarity: number; slow: boolean; tempo: number }
   | { kind: "other"; drill: string }
   /** complete: the selected drill was nearest, within the accept distance and its whole path was there (ambiguous only). */
-  | { kind: "unknown"; complete?: boolean; incomplete?: "path" | "stance" };
+  | { kind: "unknown"; complete?: boolean; incomplete?: "path" | "stance"; ignored?: boolean };
 
 /** Final / starting foot spacing (medians of the first and last 5 observed frames); NaN without ankles. */
 export function endStanceRatio(samples: TimedFeatures[]): number {
@@ -203,7 +230,82 @@ export const COMPLETE_PATH_RATIO = 0.85;
 
 /** Decide for the drill the user selected. tempoSamples: the part of the attempt the tempo is measured on (default:
  *  all samples), e.g. up to the settle at which the whole movement was already observed. */
+/** Strike segmentation: keep the part of an attempt where the hands travel (HAND_TRIM.lo..hi of the hand path, padded),
+ *  dropping a footwork-only lead-in / lead-out (stepping into the guard, walking back) that otherwise dominates the
+ *  path-length parameterisation of real attempts. */
+export const HAND_TRIM = { on: true, lo: 0.05, hi: 0.95, padMs: 150, mode: "span" as "span" | "burst", thr: 0.3, mergeMs: 250, burstPadMs: 250 };
+/** Strike scoring: when a strike is selected, the feet channels (ankles, root) weigh `feet` x their model weight for
+ *  every drill's templates, so a hand-dominant attempt is judged on the hands (real strikes carry a different amount of
+ *  footwork than the renders). 1 = off. */
+export const STRIKE_SCORING = { feet: 0 };
+const FEET_CHANNELS = [9, 10, 11, 12, 13];
+const strikeModel = (m: RecognitionModel): RecognitionModel => STRIKE_SCORING.feet === 1 ? m
+  : { ...m, weights: m.weights.map((w, j) => FEET_CHANNELS.includes(j) ? w * STRIKE_SCORING.feet : w) };
+export function handActiveWindow(samples: TimedFeatures[], pathScales: number[]): TimedFeatures[] {
+  if (samples.length < 6) return samples;
+  const { cumHand } = pathProfile(samples, pathScales), total = cumHand.at(-1)!;
+  if (!(total > 1e-6)) return samples;
+  const i0 = cumHand.findIndex(c => c >= total * HAND_TRIM.lo), i1 = cumHand.findIndex(c => c >= total * HAND_TRIM.hi);
+  const t0 = samples[Math.max(0, i0)].timeMs - HAND_TRIM.padMs, t1 = samples[i1 < 0 ? samples.length - 1 : i1].timeMs + HAND_TRIM.padMs;
+  const out = samples.filter(s => s.timeMs >= t0 && s.timeMs <= t1);
+  return out.length >= 6 ? out : samples;
+}
+
+/** Share of the hand path in hand + feet path over a whole attempt (NaN without movement). */
+export function handShareOf(samples: TimedFeatures[], pathScales: number[]): number {
+  if (samples.length < 3) return NaN;
+  const { cumHand, cumFeet } = pathProfile(samples, pathScales), h = cumHand.at(-1)!, f = cumFeet.at(-1)!;
+  return h + f > 1e-6 ? h / (h + f) : NaN;
+}
+/** Strike attempt gate: with a strike selected, a not-accepted attempt whose (hand-trimmed) movement is mostly footwork
+ *  (hand share < maxShare) is not a strike attempt at all (stepping into position, walking back): it is ignored and the
+ *  attempt restarts instead of failing as "looks like a step". */
+export const STRIKE_GATE = { on: false, maxShare: 0.3 };
+
+/** Burst segmentation (HAND_TRIM.mode "burst"): the fastest hand movement of the attempt - the frames whose smoothed hand
+ *  speed stays above thr x its peak around the peak (gaps shorter than mergeMs bridged), padded by burstPadMs. A long
+ *  real attempt (stepping in, strike, recovery, next step) is cut down to the strike itself. */
+export function handBurstWindow(samples: TimedFeatures[], pathScales: number[]): TimedFeatures[] {
+  if (samples.length < 6) return samples;
+  const { smooth } = pathProfile(samples, pathScales);
+  const sp = smooth.map((r, i) => { if (!i) return 0; let s = 0, n = 0;
+    for (const j of HAND_PATH) { const d = (r[j] - smooth[i - 1][j]) / pathScales[j]; if (Number.isFinite(d)) { s += d * d; n++; } }
+    const dt = (samples[i].timeMs - samples[i - 1].timeMs) / 1000; return n && dt > 0 ? Math.sqrt(s / n) / dt : 0; });
+  const sps = sp.map((_, i) => { const w = sp.slice(Math.max(0, i - 3), i + 4); return w.reduce((a, b) => a + b, 0) / w.length; });
+  const peak = sps.indexOf(Math.max(...sps)), thr = HAND_TRIM.thr * sps[peak];
+  if (!(sps[peak] > 0)) return samples;
+  let a = peak, b = peak;
+  for (let i = peak; i >= 0; i--) { if (sps[i] >= thr) a = i; else if (samples[a].timeMs - samples[i].timeMs > HAND_TRIM.mergeMs) break; }
+  for (let i = peak; i < sps.length; i++) { if (sps[i] >= thr) b = i; else if (samples[i].timeMs - samples[b].timeMs > HAND_TRIM.mergeMs) break; }
+  const t0 = samples[a].timeMs - HAND_TRIM.burstPadMs, t1 = samples[b].timeMs + HAND_TRIM.burstPadMs;
+  const out = samples.filter(s => s.timeMs >= t0 && s.timeMs <= t1);
+  return out.length >= 6 ? out : samples;
+}
+export const strikeWindow = (samples: TimedFeatures[], pathScales: number[]) =>
+  HAND_TRIM.mode === "burst" ? handBurstWindow(samples, pathScales) : handActiveWindow(samples, pathScales);
+
+/** Activity gates (before acceptance): a step attempt whose hand share exceeds stepMax (the hands did most of the
+ *  moving: a strike or a weapon adjustment) or a strike attempt (hand-trimmed) below strikeMin (footwork only) is not an
+ *  attempt at the selected drill and is ignored. stepMax >= 1 / strikeMin 0 = off (phase 5 default: off, with settle
+ *  detection and the real-shape strike renders in the fixture). */
+export const ACTIVITY_GATE = { stepMax: 9, strikeMin: 0 };
+
 export function decide(selected: string, samples: TimedFeatures[], m: RecognitionModel, tempoSamples = samples): Decision {
+  const strike = selected.endsWith("hau");
+  if (strike ? ACTIVITY_GATE.strikeMin > 0 : ACTIVITY_GATE.stepMax < 1) {
+    const hs = handShareOf(strike && HAND_TRIM.on ? strikeWindow(samples, m.pathScales) : samples, m.pathScales);
+    if (strike ? hs < ACTIVITY_GATE.strikeMin : hs > ACTIVITY_GATE.stepMax) return { kind: "unknown", ignored: true };
+  }
+  const d = decideInner(selected, samples, m, tempoSamples);
+  if (STRIKE_GATE.on && d.kind !== "accepted" && selected.endsWith("hau")) {
+    const w = HAND_TRIM.on ? strikeWindow(samples, m.pathScales) : samples;
+    if (handShareOf(w, m.pathScales) < STRIKE_GATE.maxShare) return { kind: "unknown", ignored: true };
+  }
+  return d;
+}
+function decideInner(selected: string, samples: TimedFeatures[], m: RecognitionModel, tempoSamples = samples): Decision {
+  if (HAND_TRIM.on && selected.endsWith("hau")) { samples = strikeWindow(samples, m.pathScales); tempoSamples = strikeWindow(tempoSamples, m.pathScales); }
+  if (selected.endsWith("hau")) m = strikeModel(m);
   const seq = prepareSequence(samples, m.pathScales, m.points);
   const r = seq && recognize(seq, m);
   if (!r) return { kind: "unknown" };

@@ -1,0 +1,24 @@
+== generic (BASE)
+all: own 0/35 (strikes 0/25, steps 0/10) | wrong 0/280 []
+clean: own 0/23 (strikes 0/19, steps 0/4) | wrong 0/184 []
+== personal calibration (BASE, all)
+generic            own 0/92  strikes 0/70  steps 0/22  wrong 0/736
+generic+personal   own 1/92  strikes 1/70  steps 0/22  wrong 0/736
+  sprez        generic: own 0/20 wrong 0/160 | generic+personal: own 0/20 wrong 0/160
+  jtsay        generic: own 0/6 wrong 0/48 | generic+personal: own 0/6 wrong 0/48
+  helman       generic: own 0/2 wrong 0/16 | generic+personal: own 0/2 wrong 0/16
+  mccamey      generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  forge        generic: own 0/2 wrong 0/16 | generic+personal: own 0/2 wrong 0/16
+  schwaben     generic: own 0/20 wrong 0/160 | generic+personal: own 0/20 wrong 0/160
+  cba          generic: own 0/6 wrong 0/48 | generic+personal: own 0/6 wrong 0/48
+  pblack       generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  schilt       generic: own 0/12 wrong 0/96 | generic+personal: own 1/12 wrong 0/96
+== personal calibration (BASE, clean)
+generic            own 0/62  strikes 0/58  steps 0/4  wrong 0/496
+generic+personal   own 1/62  strikes 1/58  steps 0/4  wrong 0/496
+  sprez        generic: own 0/4 wrong 0/32 | generic+personal: own 0/4 wrong 0/32
+  mccamey      generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  forge        generic: own 0/2 wrong 0/16 | generic+personal: own 0/2 wrong 0/16
+  schwaben     generic: own 0/20 wrong 0/160 | generic+personal: own 0/20 wrong 0/160
+  pblack       generic: own 0/12 wrong 0/96 | generic+personal: own 0/12 wrong 0/96
+  schilt       generic: own 0/12 wrong 0/96 | generic+personal: own 1/12 wrong 0/96

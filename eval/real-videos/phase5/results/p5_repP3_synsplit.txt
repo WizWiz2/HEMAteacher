@@ -1,0 +1,23 @@
+== repP3
+ test old                          M/E  own 92/148 62%  wrong 42/1184 3.5%
+ test old                          beg  own 43/76 57%  wrong 18/608 3.0%
+ test old core                     M/E  own 6/50 12%  wrong 39/400 9.8%
+ test old core                     beg  own 5/26 19%  wrong 15/208 7.2%
+ test rs                           M/E  own 21/21 100%  wrong 1/168 0.6%
+ test rs                           beg  own 9/10 90%  wrong 0/80 0.0%
+ test rs core                      M/E  own 21/21 100%  wrong 1/168 0.6%
+ test rs core                      beg  own 9/10 90%  wrong 0/80 0.0%
+ test wrong-into-core-strike old   M/E  own 0/0  wrong 2/394 0.5%
+ test wrong-into-core-strike old   beg  own 0/0  wrong 0/202 0.0%
+ test wrong-into-core-strike rs    M/E  own 0/0  wrong 0/42 0.0%
+ test wrong-into-core-strike rs    beg  own 0/0  wrong 0/20 0.0%
+ lobo old                          M/E  own 106/120 88%  wrong 7/960 0.7%
+ lobo old                          beg  own 33/42 79%  wrong 5/336 1.5%
+ lobo rs                           M/E  own 23/33 70%  wrong 8/264 3.0%
+ lobo rs                           beg  own 8/11 73%  wrong 3/88 3.4%
+ lobo rs core                      M/E  own 23/33 70%  wrong 8/264 3.0%
+ lobo rs core                      beg  own 8/11 73%  wrong 3/88 3.4%
+ lobo wrong-into-core-strike old   M/E  own 0/0  wrong 2/360 0.6%
+ lobo wrong-into-core-strike old   beg  own 0/0  wrong 1/126 0.8%
+ lobo wrong-into-core-strike rs    M/E  own 0/0  wrong 0/66 0.0%
+ lobo wrong-into-core-strike rs    beg  own 0/0  wrong 0/22 0.0%

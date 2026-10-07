@@ -1,0 +1,5 @@
+== P5
+ all funnel (35): no_start 16 | no_decision 14 | short 2 | tracking 0 | other 2 | accepted 1
+ all per-drill: advance:0/4 krumphau:0/3 passing-step-backward:0/2 passing-step-forward:0/2 retreat:0/2 schielhau:0/4 zornhau:1/7 zwerchhau:0/11 | CORE own 1/28 wrong-on-core-clips 3/224 wrong-into-core 3/147 | all wrong 4/280
+ clean funnel (23): no_start 8 | no_decision 10 | short 2 | tracking 0 | other 2 | accepted 1
+ clean per-drill: advance:0/2 passing-step-forward:0/2 schielhau:0/4 zornhau:1/7 zwerchhau:0/8 | CORE own 1/23 wrong-on-core-clips 3/184 wrong-into-core 2/92 | all wrong 3/184

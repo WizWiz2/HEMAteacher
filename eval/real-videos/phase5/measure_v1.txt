@@ -1,0 +1,76 @@
+
+zornhau: real n=4 (becker,bjorn)  syn base M/E n=31  syn lowtag n=3
+start.hand_x         real    0.42  syn    0.37  lowtag    0.34
+start.hand_y         real    1.05  syn    1.11  lowtag    0.75
+start.over_head      real   -0.23  syn   -0.16  lowtag   -0.55
+start.over_shoulder  real    0.06  syn    0.10  lowtag   -0.25
+start.forearm        real  154.76  syn   47.27  lowtag   25.34
+end.hand_x           real    0.96  syn    0.79  lowtag    0.79
+end.hand_y           real    0.84  syn    0.82  lowtag    0.87
+end.over_head        real   -0.38  syn   -0.50  lowtag   -0.48
+end.forearm          real   -5.08  syn   10.78  lowtag   12.74
+dx                   real    1.02  syn    0.41  lowtag    0.45
+dy                   real   -0.00  syn   -0.30  lowtag    0.03
+dir_deg              real   -0.39  syn  -34.42  lowtag    4.89
+rise                 real    0.17  syn    0.03  lowtag    0.27
+dur_ms               real  933.00  syn  434.00  lowtag  634.00
+peak_speed           real    3.16  syn    2.20  lowtag    2.02
+stepped%             real  100.00  syn  100.00  lowtag  100.00
+root_travel          real    1.63  syn    0.94  lowtag    1.02
+
+zwerchhau: real n=5 (drey,laurel)  syn base M/E n=24  syn lowtag n=2
+start.hand_x         real    0.11  syn    0.28  lowtag    0.50
+start.hand_y         real    1.22  syn    1.15  lowtag    0.88
+start.over_head      real    0.06  syn   -0.14  lowtag   -0.38
+start.over_shoulder  real    0.24  syn    0.16  lowtag   -0.11
+start.forearm        real   19.71  syn   52.47  lowtag   37.49
+end.hand_x           real    0.58  syn    0.68  lowtag    0.72
+end.hand_y           real    1.41  syn    1.11  lowtag    1.03
+end.over_head        real    0.10  syn   -0.21  lowtag   -0.20
+end.forearm          real   88.27  syn   36.62  lowtag   63.26
+dx                   real    0.60  syn    0.47  lowtag    0.55
+dy                   real   -0.02  syn   -0.03  lowtag    0.33
+dir_deg              real   -2.10  syn   -2.83  lowtag   69.39
+rise                 real    0.03  syn    0.34  lowtag    0.86
+dur_ms               real 1100.00  syn  667.00  lowtag 1000.00
+peak_speed           real    1.84  syn    3.55  lowtag    3.65
+stepped%             real  100.00  syn  100.00  lowtag  100.00
+root_travel          real    0.94  syn    0.80  lowtag    1.02
+
+schielhau: real n=4 (bahff,laurel)  syn base M/E n=26  syn lowtag n=2
+start.hand_x         real    0.74  syn    0.38  lowtag    0.22
+start.hand_y         real    0.69  syn    1.17  lowtag    1.01
+start.over_head      real   -0.62  syn   -0.12  lowtag   -0.25
+start.over_shoulder  real   -0.31  syn    0.16  lowtag    0.01
+start.forearm        real   26.61  syn   50.46  lowtag   40.23
+end.hand_x           real    1.19  syn    0.75  lowtag    0.90
+end.hand_y           real    1.05  syn    0.94  lowtag    0.89
+end.over_head        real   -0.32  syn   -0.40  lowtag   -0.38
+end.forearm          real   18.98  syn   20.00  lowtag   27.62
+dx                   real    1.08  syn    0.43  lowtag    0.69
+dy                   real    0.35  syn   -0.22  lowtag    0.10
+dir_deg              real   43.48  syn  -33.36  lowtag    8.58
+rise                 real    0.37  syn    0.13  lowtag    0.52
+dur_ms               real  467.00  syn  500.00  lowtag  834.00
+peak_speed           real    3.80  syn    2.41  lowtag    2.26
+stepped%             real  100.00  syn  100.00  lowtag  100.00
+root_travel          real    0.74  syn    0.89  lowtag    0.86
+
+krumphau: real n=2 (drey)  syn base M/E n=30  syn lowtag n=3
+start.hand_x         real    0.02  syn    0.38  lowtag    0.21
+start.hand_y         real    0.57  syn    1.14  lowtag    0.97
+start.over_head      real   -0.82  syn   -0.16  lowtag   -0.38
+start.over_shoulder  real   -0.41  syn    0.13  lowtag   -0.02
+start.forearm        real   -2.15  syn   46.79  lowtag   23.74
+end.hand_x           real    0.09  syn    0.77  lowtag    0.64
+end.hand_y           real    0.57  syn    0.68  lowtag    0.66
+end.over_head        real   -0.83  syn   -0.60  lowtag   -0.57
+end.forearm          real   -2.51  syn    4.40  lowtag   13.61
+dx                   real    0.25  syn    0.35  lowtag    0.33
+dy                   real    0.39  syn   -0.43  lowtag   -0.24
+dir_deg              real   57.73  syn  -49.15  lowtag  -24.79
+rise                 real    0.42  syn    0.44  lowtag    0.57
+dur_ms               real 1700.00  syn  700.00  lowtag  867.00
+peak_speed           real    1.00  syn    3.86  lowtag    3.44
+stepped%             real    0.00  syn  100.00  lowtag  100.00
+root_travel          real    0.77  syn    0.87  lowtag    0.65
