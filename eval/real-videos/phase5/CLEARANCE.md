@@ -38,3 +38,27 @@ Path probe after the fix (master, experienced and beginner; zwerchhau also with 
 - zwerchhau: 0 failing frames everywhere.
 - schielhau: 0 failing frames, except short_slim_male beginner with 1 frame, which is under the gate. The render
   loop also shrinks beginner deviations on colliding frames.
+
+## Final scoping (real_v4, Oct 7 09:10): zwerchhau fixes are per body, not global
+The global zwerchhau change moved the cut end of the shape-target body (tall_slim_male) and cost one shape metric:
+- v3: 7/7.
+- v4 global: 6/7. dur_ms 600 is under the 660 lower bound, because the hands hit the reach clamp and the burst ends early.
+- Variants that also failed:
+  - slowing z2/cross/finish: 5/7 (forearm 44.8 and dx .88 out of range).
+  - lateral finish sweep (finish hand_lat −.10, cross .15): tall_slim_male 6/7 (dur 600), short_slim_male experienced 4/7.
+
+tall_slim_male zwerchhau never failed the clearance gate. So the final real_v4 keeps the **v3 zwerchhau global keys
+and timing**, and moves the clearance keys into per-body `body` entries for the 6 bodies that had dropped clips:
+short_slim_male, tall_heavy_male, avg_longlimb_female, short_broad_female, tall_slim_female, stocky_short_male.
+Each entry holds the cross/finish hand/elbow keys, the recover `post_kfs` and the blade pitch where needed.
+- Keyframe check (finalize(base_keyframes)):
+  - tall_slim_male is identical to v3, so the shape match is 7/7 by construction.
+  - The other 6 bodies are identical to the "v4 global" keys that were piloted.
+- Path probe, 6 fixed bodies × M/E/B: 0 failing frames.
+  - tall_slim_male beginner: 2 recover frames, the same as v3 (its clip passed the render gate and is not re-rendered).
+- Pilot renders, rendered clearance failing frames:
+  - short_slim_male zwerchhau experienced: 0, shape **7/7** (v3 render of this body: 2/7).
+  - schielhau short_slim_male ×4 re-rendered: 0 each.
+- schielhau global part is unchanged, so tall_slim_male stays 8/8. short_slim_male schielhau shape is 5/8 under both v3 and v4.
+- The 3 kept short_broad_female zwerchhau clips (M/E/slow) were rendered before the fix with the old low-finish
+  override, so they do not have the real shape.

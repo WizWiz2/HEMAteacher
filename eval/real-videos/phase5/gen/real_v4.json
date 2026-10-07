@@ -40,19 +40,17 @@
     "hand_y": 1.62
    },
    "cross": {
-    "hand_x": 1.0,
-    "hand_y": 1.64,
-    "elbow_flare": 0.6,
-    "elbow_fwd": 0.5,
-    "hand_lat": 0.15
+    "hand_x": 0.8,
+    "hand_y": 1.6,
+    "elbow_flare": 0.15,
+    "elbow_fwd": 0.5
    },
    "finish": {
-    "hand_x": 1.12,
-    "hand_y": 1.66,
-    "elbow_flare": 0.6,
+    "hand_x": 0.85,
+    "hand_y": 1.6,
+    "elbow_flare": 0.15,
     "shoulder_raise": 10.0,
-    "elbow_fwd": 0.5,
-    "hand_lat": -0.1
+    "elbow_fwd": 0.5
    }
   },
   "seq": [
@@ -81,54 +79,167 @@
     0.26
    ]
   ],
-  "post_kfs": {
-   "recover": {
-    "elbow_fwd_r": 0.0,
-    "elbow_flare": 0.45,
-    "hand_lat": 0.4
-   }
-  },
   "body": {
    "short_slim_male": {
     "kfs": {
      "cross": {
+      "hand_x": 1.0,
+      "hand_y": 1.64,
+      "elbow_flare": 0.6,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.1,
       "sword_ang": -22.0
      },
      "finish": {
-      "sword_ang": -22.0,
       "hand_x": 1.12,
-      "hand_lat": 0.25
-     }
-    }
-   },
-   "short_broad_female": {
-    "kfs": {
-     "cross": {
-      "sword_ang": -22.0,
-      "hand_y": 1.64,
-      "hand_x": 1.0,
-      "hand_lat": 0.15
-     },
-     "finish": {
-      "sword_ang": -22.0,
       "hand_y": 1.66,
-      "hand_x": 1.12,
-      "hand_lat": -0.1
+      "elbow_flare": 0.6,
+      "shoulder_raise": 10.0,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.25,
+      "sword_ang": -22.0
      }
     },
     "post_kfs": {
      "recover": {
-      "hand_x": 0.95
+      "elbow_fwd_r": 0.0,
+      "elbow_flare": 0.45,
+      "hand_lat": 0.4
+     }
+    }
+   },
+   "tall_heavy_male": {
+    "kfs": {
+     "cross": {
+      "hand_x": 1.0,
+      "hand_y": 1.64,
+      "elbow_flare": 0.6,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.1
+     },
+     "finish": {
+      "hand_x": 1.12,
+      "hand_y": 1.66,
+      "elbow_flare": 0.6,
+      "shoulder_raise": 10.0,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.05
+     }
+    },
+    "post_kfs": {
+     "recover": {
+      "elbow_fwd_r": 0.0,
+      "elbow_flare": 0.45,
+      "hand_lat": 0.4
      }
     }
    },
    "avg_longlimb_female": {
     "kfs": {
      "cross": {
+      "hand_x": 1.0,
+      "hand_y": 1.64,
+      "elbow_flare": 0.6,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.1,
       "sword_ang": -22.0
      },
      "finish": {
+      "hand_x": 1.12,
+      "hand_y": 1.66,
+      "elbow_flare": 0.6,
+      "shoulder_raise": 10.0,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.05,
       "sword_ang": -22.0
+     }
+    },
+    "post_kfs": {
+     "recover": {
+      "elbow_fwd_r": 0.0,
+      "elbow_flare": 0.45,
+      "hand_lat": 0.4
+     }
+    }
+   },
+   "short_broad_female": {
+    "kfs": {
+     "cross": {
+      "hand_x": 1.0,
+      "hand_y": 1.64,
+      "elbow_flare": 0.6,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.1,
+      "sword_ang": -22.0
+     },
+     "finish": {
+      "hand_x": 1.12,
+      "hand_y": 1.66,
+      "elbow_flare": 0.6,
+      "shoulder_raise": 10.0,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.05,
+      "sword_ang": -22.0
+     }
+    },
+    "post_kfs": {
+     "recover": {
+      "elbow_fwd_r": 0.0,
+      "elbow_flare": 0.45,
+      "hand_lat": 0.4,
+      "hand_x": 0.95
+     }
+    }
+   },
+   "tall_slim_female": {
+    "kfs": {
+     "cross": {
+      "hand_x": 1.0,
+      "hand_y": 1.64,
+      "elbow_flare": 0.6,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.1
+     },
+     "finish": {
+      "hand_x": 1.12,
+      "hand_y": 1.66,
+      "elbow_flare": 0.6,
+      "shoulder_raise": 10.0,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.05
+     }
+    },
+    "post_kfs": {
+     "recover": {
+      "elbow_fwd_r": 0.0,
+      "elbow_flare": 0.45,
+      "hand_lat": 0.4
+     }
+    }
+   },
+   "stocky_short_male": {
+    "kfs": {
+     "cross": {
+      "hand_x": 1.0,
+      "hand_y": 1.64,
+      "elbow_flare": 0.6,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.1
+     },
+     "finish": {
+      "hand_x": 1.12,
+      "hand_y": 1.66,
+      "elbow_flare": 0.6,
+      "shoulder_raise": 10.0,
+      "elbow_fwd": 0.5,
+      "hand_lat": 0.05
+     }
+    },
+    "post_kfs": {
+     "recover": {
+      "elbow_fwd_r": 0.0,
+      "elbow_flare": 0.45,
+      "hand_lat": 0.4
      }
     }
    }
