@@ -41,6 +41,12 @@ export function HomePage() {
 
       {error && <p className="error">{error}</p>}
 
+      <Link className="card manuscript-card" to="/meyer">
+        <div className="card-top"><div><span className="rubric">Vier Blössen · четыре открытия</span><h2>Крест Мейера</h2></div><span className="badge">4 режима</span></div>
+        <p>Четыре сектора, подсветка и ритм. Разучивай серии, двигайся непрерывно, проверяй память и реакцию.</p>
+        <span className="start-rune">Открыть квадрат →</span>
+      </Link>
+
       {groups.map((group) => group.items.length > 0 && (
         <section key={group.id} className="library-section">
           <h2>{group.title}</h2>
