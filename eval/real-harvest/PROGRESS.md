@@ -35,3 +35,4 @@ Tools (copied from real/fresh, paths patched): search.sh (queries.txt -> search.
 - Fresh angle distribution: clean 23 = profile 13 + ~30-45deg 10; frontal only 6 NON-clean (jtsay krumphau x3, cba zwerchhau x3). -> clean fresh does not cover frontal use case.
 - Accepted: TVG Steele MB758 (passfwd/passback/advance/retreat, frontal), Harmon krumphau feBKwmT03t4 56.5-60.5, Rocket City schielhau x2 (slow demos).
 - Downloading (dlF.out): SFp5 kl0m f0sU smTe CVLV 42nX nzrb aAUI gnmg.
+- 12:5x accepted frontal: harmon vomtag, jkcs krumphau, ottawa vomtag x2, rocketyt vomtag; rejected kl0m (feet cut), U0ai re-check (spectators + ambiguous cut type in chained sequence)

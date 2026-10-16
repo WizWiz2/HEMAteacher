@@ -56,7 +56,7 @@ KrHUcPipV6o,Rocket City HEMA,Zettel Zwerchhau,reject,pair,
 D8JF3Gak3Ss,VCU HEMA,Responses to Oberhau: Schielhau,reject,pair,
 EJSLT_z67QE,Michael Kozin,6 Essential Longsword Cuts,reject,verified frames: feet cut at bottom; near-frontal; Italian fendente/mezzano terminology (no KdF labels); reps numbered 1-10 at 204-260 but off-spec,
 y6NlmHGolws,Triangle Sword Guild,KdF Sequences: Zwerchhau Basics,reject,verified frames: frontal; component drills (short edge / punching out) not full zwerch reps; blade hard to see,
-Y_MhB6yAQMY,Rocket City HEMA,Guards: Vom Tag,maybe-offspec,verified frames: solo full body but frontal talking demo; vom Tag shoulder variant shown 35-110s,35-110
+Y_MhB6yAQMY,Rocket City HEMA,Guards: Vom Tag,ACCEPT (frontal; 88.4-96),verified frames: solo full body but frontal talking demo; vom Tag shoulder variant shown 35-110s,35-110
 8dReOlmijX4,Martin Fabian,#Zwerchcopter Challenge,KEEP,solo ~30-45deg full body gym; rapid alternating zwerchhau 13-37s; distant bystanders,13-37
 RWbTKQmD53U,Messering around (blue gear),#zwerchcopter in full gear,maybe,solo; backlit/dark; ~30deg,
 dfwIXidVUjY,ChrisDenbyHEMA,20 s zwerchcopter,reject,occluded by heavy bag / small,
@@ -131,3 +131,8 @@ Bn7np3-XpCQ,zornhau,MAYBE-offspec,Swordwind Longsword Cuts Zornhau: solo full bo
 TdTdRGdKAcA,zornhau,REJECT,Schlachtschule: frontal talk then pair
 XQt5mTkyibM,zornhau,REJECT,Adelaide Wrath cut lesson: mostly frontal talking; drill 280-306 is alternating-side cuts with full torso rotation (back to camera) -> ambiguous Zornhau label
 feBKwmT03t4,krumphau,ACCEPT (frontal),Harmon Krumphau Basics: one clean rep 56.5-60.5; 73-76 wind/chamber ambiguous -> not used
+SFp5ojys5R4,guards-basic,ACCEPT (frontal),Harmon Four Guards: Vom Tag high 10.5-17.5
+kl0m92q2QBQ,zwerchhau,REJECT,Harmon Zwerchau Basics: camera zooms in during the reps -> feet cut (full-body frac 0.3-0.55)
+f0sURMSzcac,krumphau,ACCEPT (frontal),JKCS 07 Krumphau: one rep vom Tag->krumphau 103.8-109.5; rest explanation
+smTeAe7cfWY,guards-basic,ACCEPT (frontal),Ottawa Tower Guard: high vom Tag held 43-62
+U0ai_VJqTOs,zwerchhau?,REJECT (recheck Oct16),frontal now OK but spectators in frame and chained reps whose cut type cannot be verified per rep
