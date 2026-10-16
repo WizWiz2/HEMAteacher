@@ -15,3 +15,8 @@ Tools (copied from real/fresh, paths patched): search.sh (queries.txt -> search.
 - Box was rebuilt: needed sudo apt-get install libegl1 for mediapipe. yt-dlp 429 when search+peek+dl run in parallel -> keep it serial-ish.
 - Fresh-set raw videos that were NOT used in fresh (y6Nlm, z-6uB, U0m97, JhuER, ChC0g, XXZs, MtiIN, CW-Rop) symlinked into raw/ (allowed: not fresh persons).
 - Findings so far (~45 peeked): most lessons are PAIR plays or FRONTAL talking demos; clean solo side..45deg reps are rare. KEEP: Mj1DMuAzEmg (2 zornhau). Pending verify: Y_MhB6yAQMY (vom Tag), s1LKv5DnCg4 (zwerch 40-65), y6NlmHGolws (zwerch).
+- 12:10 App drill ids (frontend/public/content/drills.json): advance, guards-basic (Vom Tag/Ochs/Pflug/Alber), krumphau, passing-step-backward, passing-step-forward, retreat, scheitelhau, schielhau, zornhau, zwerchhau. Vom Tag clips -> drill guards-basic (notes guard=...).
+- vite :5210 restarted from real/app/frontend (node_modules was gone -> npm ci in /workspace/hema-gap/frontend; puppeteer-core in /workspace/hema/tools/pp). vr_run.sh -> rawframes/<drill>__<clip>.json (same format as real/rawframes). cut.py cuts manifest rows.
+- KEEP so far: Mj1DMuAzEmg (Laurel R.Kelly zornhau x2), zwerchcopter: 8dReOlmijX4 Fabian, FSOU-uu_QiA Messering, RnG2KcviRLc Ritterschaft, RUJ1O5SxKVc Rensen (2 each, chained-fast),
+  8Mqi_QbXqnI stritschar vom Tag x2 + Alber x1 (profile). Pending: 4hwTpsZ5cgk Björn guards (vom Tag 154-192, Ochs, Pflug 240-284, Alber 284-331; dynamic -> still.py for holds), bhvhekgvYso Stahlakademie footwork (mostly feet close-ups; full-body side 6:12-8:50 includes FALSCH demos -> careful).
+- still.py <id> t0 t1: static-hand holds (guards).
