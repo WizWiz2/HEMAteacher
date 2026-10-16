@@ -29,3 +29,4 @@ Tools (copied from real/fresh, paths patched): search.sh (queries.txt -> search.
 - Fixed stritschar_alber_01 crop (was 0.05-0.6 -> person cut out, 0 landmarks); now 0.4-1.0, recut; needs vr re-run.
 - step_find.py: CUT env var to raise scene-cut threshold for handheld outdoor video.
 - SUMMARY.md written.
+- Round-5 zornhau queries (queries5.txt): 7 peeked, Adelaide downloaded+screened, none accepted. Golden Falcon s1LKv5DnCg4 Zwerhaw lesson ACCEPTED (2 clips, non-chained zwerchs with steps).
