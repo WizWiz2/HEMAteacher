@@ -49,3 +49,19 @@ Tools (copied from real/fresh, paths patched): search.sh (queries.txt -> search.
   mix: harvest 5/15 w0 | seen 2/22 (3/30) w4 | heldout 0/2 w0      real: harvest 3/15 w1 | seen 0/22 w2 | heldout 0/2
   view=side for frontal clips (vside): mix harvest 5/15 w2 | seen 2/22 w3 | heldout 0/2 w0.
   FINDING: app 'front' camera view never arms on real frontal clips (heldout funnel no_start 3/3, harvest-front no_start); in 'side' processing they start but stop short/undecided.
+
+## 2026-10-16 ~13:20 Phase B step 3 done: real reps in the shipped model (branch feat/real-harvest-templates off main 5d9fd70)
+- tools/build_real_fixture.py: KEEP reps of results/reps_side.txt -> fixture clips variant real:train (side-processed, left-facing mirrored); CAP/DROP env.
+- motionTraining.buildModel: real:train clips are extra templates only; scales/weights/typical*/acceptDistance from renders only
+  (first try let them calibrate thresholds: acceptDistance 2.74->3.58, beginner similarity test + scenarios red -> rejected).
+- Synthetic (evaluate-motion-recognition lobo,test; M/E own, beginner own):
+  main        lobo 102/122 w13/976, beg 44/61 | test 122/148 w14/1184, beg 58/76 w9/608
+  all71       lobo 101/122 w13,     beg 44/61 | test 122/148 w14,      beg 56/76 w8
+  cap2-noZw   identical to main
+- CI: all71 -> vitest 70/70, vom-tag ok, --check ok, static ok, check-motion-scenarios FAIL (normal 2/0: beginner krumphau -> "looks like Zwerchhau"; fast 4/2, fps10 4/3, slow4x 8/4). cap2 incl. zwerchhau fails the same way. cap2-noZw: scenarios pass (commit cab6e28) but real-set results identical to syn (no effect).
+- Real sets (CFG=built, person's own templates removed; core own / wrong):
+  syn(main) vside  harvest 3/15 w3/160 | seen 2/22 w3/240 | heldout-front 0/2 w0/24
+  all71 vside      harvest 6/15 w2/160 | seen 2/22 w2/240 | heldout-front 0/2 w0/24
+  cap2-noZw vside  = syn
+- Fresh ONCE (generic single attempt per clip x 9 drills; main and all71, clip view and vside): 0/35 own, 0/28 core, 0/280 wrong in all four. Funnel (main vside): no_start 16, no_decision 15, short 3, tracking 1.
+- Verdict: bar (core >=60%, wrong <=5% on held-out real people) NOT met. Draft PR (head = all71), not merged (scenarios red + small synthetic beginner drop).

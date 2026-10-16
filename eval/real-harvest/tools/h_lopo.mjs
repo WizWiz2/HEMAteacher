@@ -96,6 +96,9 @@ try {
   const realDrills = new Set(tpls.map(t => t.drill));
   function modelFor(person) {
     if (CFG === 'syn') return base;
+    // built: APPROOT's shipped model already contains real:train templates (build_real_fixture.py); drop the evaluated person's
+    if (CFG === 'built') { const sl = 'real:' + person.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40);
+      return {...base, templates: base.templates.filter(t => t.body !== sl)}; }
     const extra = tpls.filter(t => t.body !== 'real:' + person).map(({src, ...t}) => t);
     const keep = CFG === 'real' ? base.templates.filter(t => !realDrills.has(t.drill)) : base.templates;
     return {...base, templates: [...keep, ...extra]};

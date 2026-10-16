@@ -1,0 +1,8 @@
+WebSocket server error: Port 24678 is already in use
+CFG syn real templates 71 (zornhau:2 zwerchhau:54 scheitelhau:7 advance:6 retreat:1 krumphau:1) persons 10
+fresh    all   own 0/35 | core own 0/28 | wrong 0/280
+fresh    front own 0/6 | core own 0/3 | wrong 0/48
+fresh    side  own 0/29 | core own 0/25 | wrong 0/232
+funnel fresh (35): no_start 16 | no_decision 15 | short 3 | tracking 1 | other 0 | accepted 0
+accepted own: 
+wrong: 
