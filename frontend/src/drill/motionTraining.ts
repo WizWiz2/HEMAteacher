@@ -53,7 +53,10 @@ const median = (v: number[]) => { const s = [...v].sort((x, y) => x - y); return
 /** Build the recognition model from training clips only. Thresholds come from the training clips themselves
  *  (leave-one-clip-out distances), never from test clips. */
 export function buildModel(train: FixtureClip[], names: string[]): RecognitionModel {
-  const clips = train.filter(c => c.move && CONTINUOUS_DRILLS.includes(c.drill));
+  const usable = train.filter(c => c.move && CONTINUOUS_DRILLS.includes(c.drill));
+  // Real-people reps ("real:train") are extra exemplars only: scales, weights, typical tempo/path and acceptance
+  // thresholds stay calibrated on the rendered clips, so adding real reps never loosens the acceptance distance.
+  const clips = usable.filter(c => c.variant !== "real:train"), extra = usable.filter(c => c.variant === "real:train");
   // scales: spread of each channel over all training movement frames
   const frames = clips.flatMap(c => movementSamples(c, names).map(s => frameChannels(s.features)));
   const scales = CHANNELS.map((_, j) => {
@@ -136,9 +139,16 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
       if (v.length) model.acceptByDrill[d] = round4(Math.max(TRAINING.acceptFloor * model.acceptDistance, TRAINING.acceptFactor * Math.max(...v)));
     }
   }
+  for (const c of extra) {
+    const seq = prepareSequence(movementSamples(c, names), scales, POINTS);
+    if (seq) model.templates.push({ drill: c.drill, body: c.body, level: c.level, durationMs: c.move![1] - c.move![0],
+      seq: seq.map(r => r.map(v => (Number.isFinite(v) ? Math.round(v * 1e3) / 1e3 : null))) });
+  }
   return model;
 }
 
 /** Training split of the shipped model: main mock clips and the bodies/angles TRAIN renders (docs/bodies-angles-split.md),
  *  master and experienced performers only. Reserved TEST bodies and angles are never used. */
-export const isTrainClip = (c: FixtureClip) => (c.variant === "main" || c.variant === "ba:train") && (c.level === "master" || c.level === "experienced") && CONTINUOUS_DRILLS.includes(c.drill);
+// "real:train": single reps cut from public lessons of real people (eval/real-harvest on data/real-harvest,
+// tools/build_real_fixture.py); held-out real people (eval/real-harvest/heldout_people.txt) are never added.
+export const isTrainClip = (c: FixtureClip) => (c.variant === "main" || c.variant === "ba:train" || c.variant === "real:train") && (c.level === "master" || c.level === "experienced") && CONTINUOUS_DRILLS.includes(c.drill);
