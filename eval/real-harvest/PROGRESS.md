@@ -20,3 +20,8 @@ Tools (copied from real/fresh, paths patched): search.sh (queries.txt -> search.
 - KEEP so far: Mj1DMuAzEmg (Laurel R.Kelly zornhau x2), zwerchcopter: 8dReOlmijX4 Fabian, FSOU-uu_QiA Messering, RnG2KcviRLc Ritterschaft, RUJ1O5SxKVc Rensen (2 each, chained-fast),
   8Mqi_QbXqnI stritschar vom Tag x2 + Alber x1 (profile). Pending: 4hwTpsZ5cgk Björn guards (vom Tag 154-192, Ochs, Pflug 240-284, Alber 284-331; dynamic -> still.py for holds), bhvhekgvYso Stahlakademie footwork (mostly feet close-ups; full-body side 6:12-8:50 includes FALSCH demos -> careful).
 - still.py <id> t0 t1: static-hand holds (guards).
+
+## Session (Oct 16, later)
+- Round-3 peeks: ACCEPT 9mREqmP7jhM (Paul Becker student, Scheitelhau on commands, side/45) -> 2 clips. Others rejected/offspec (see review.csv).
+- Björn Rüther guards 4hwTpsZ5cgk: still.py holds -> Vom Tag 156.5-163.5, 171.5-179.5; Alber 300.8-308.1.
+- Stahlakademie footwork bhvhekgvYso rejected (no clean labelable steps).
