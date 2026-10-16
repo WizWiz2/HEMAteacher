@@ -30,3 +30,8 @@ Tools (copied from real/fresh, paths patched): search.sh (queries.txt -> search.
 - step_find.py: CUT env var to raise scene-cut threshold for handheld outdoor video.
 - SUMMARY.md written.
 - Round-5 zornhau queries (queries5.txt): 7 peeked, Adelaide downloaded+screened, none accepted. Golden Falcon s1LKv5DnCg4 Zwerhaw lesson ACCEPTED (2 clips, non-chained zwerchs with steps).
+
+## PHASE B (Oct 16 12:27): frontal..45deg now in spec (user). Steps: 1 harvest frontal, 2 fresh angle check + frontal held-out, 3 templates + eval + draft PR.
+- Fresh angle distribution: clean 23 = profile 13 + ~30-45deg 10; frontal only 6 NON-clean (jtsay krumphau x3, cba zwerchhau x3). -> clean fresh does not cover frontal use case.
+- Accepted: TVG Steele MB758 (passfwd/passback/advance/retreat, frontal), Harmon krumphau feBKwmT03t4 56.5-60.5, Rocket City schielhau x2 (slow demos).
+- Downloading (dlF.out): SFp5 kl0m f0sU smTe CVLV 42nX nzrb aAUI gnmg.

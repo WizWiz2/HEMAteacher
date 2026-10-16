@@ -110,7 +110,7 @@ yT9GqV1V0ic,other,REJECT,Laurel pell cutting multiple people; unlabeled cuts vs 
 WcO_Sh4h7eo,other,REJECT,Harmon short: two people, shaky, partial body
 4hwTpsZ5cgk,guards-basic,ACCEPT,Björn Rüther guards; Vom Tag 156-180 and Alber 294-310 used
 bhvhekgvYso,steps,REJECT,Stahlakademie Fußarbeit: stance right/wrong demos, foot close-ups, steps mixed with cuts and camera angle changes; no clean labelable step reps
-MB758cP5AaE,steps,MAYBE-offspec,TVG Steele Schrittevideo: on-screen labels Passschritt 14-23s / Gleitschritt 27-37 / Nachstellschritt 44-50 / Zirkelschritt 55-70; solo full body but FRONTAL (moves toward camera), sword point down. Downloaded raw only.
+MB758cP5AaE,steps,ACCEPT (frontal OK since Oct 16 12:27),TVG Steele Schrittevideo: on-screen labels Passschritt 14-23s / Gleitschritt 27-37 / Nachstellschritt 44-50 / Zirkelschritt 55-70; solo full body but FRONTAL (moves toward camera), sword point down. Downloaded raw only.
 6cmQOaJ771Q,steps,MAYBE-offspec,Matheus Alfred-Olmedo solo footwork small spaces: frontal, no visible sword, unlabeled step mix
 Alg3clifwNU,schielhau,REJECT,vertical phone video at pell; small; mixed cuts
 gOyZBC1G968,krumphau,REJECT,group class
@@ -123,10 +123,11 @@ A1tTDcakB0w,steps,REJECT,Skallagrim stance: two people, talking
 qWYOJq8LrYE,schielhau,REJECT,selfie close-up, partial body
 gOX8KMyUaJ8,steps,REJECT,Зов Стали stance/movement: mostly frontal with panning handheld camera; one-handed sabre-school sword; steps not clearly labelable
 s1LKv5DnCg4,zwerchhau,ACCEPT,Golden Falcon Zwerhaw lesson; solo demos 43.5-51.5 and 59.5-67.5 ~45deg; non-chained reps
-iqWw6Bn5LhQ,schielhau,MAYBE-offspec,Rocket City solo schielhau: frontal, small figure
+iqWw6Bn5LhQ,schielhau,ACCEPT (frontal; 2 slow demo reps 226.8-231, 238-242),Rocket City solo schielhau: frontal, small figure
 Gj8mHWx45ts,zornhau,REJECT,Scholars of Alcala: pair drill
 53dkVhBaULw,zornhau,REJECT,group/pair class, occluding instructor
 eyHSnz8VDLI,zornhau,REJECT,NZSEMA: pair, text slides
 Bn7np3-XpCQ,zornhau,MAYBE-offspec,Swordwind Longsword Cuts Zornhau: solo full body but frontal, 21 min talk
 TdTdRGdKAcA,zornhau,REJECT,Schlachtschule: frontal talk then pair
 XQt5mTkyibM,zornhau,REJECT,Adelaide Wrath cut lesson: mostly frontal talking; drill 280-306 is alternating-side cuts with full torso rotation (back to camera) -> ambiguous Zornhau label
+feBKwmT03t4,krumphau,ACCEPT (frontal),Harmon Krumphau Basics: one clean rep 56.5-60.5; 73-76 wind/chamber ambiguous -> not used
