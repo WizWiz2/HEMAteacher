@@ -36,3 +36,8 @@ Tools (copied from real/fresh, paths patched): search.sh (queries.txt -> search.
 - Accepted: TVG Steele MB758 (passfwd/passback/advance/retreat, frontal), Harmon krumphau feBKwmT03t4 56.5-60.5, Rocket City schielhau x2 (slow demos).
 - Downloading (dlF.out): SFp5 kl0m f0sU smTe CVLV 42nX nzrb aAUI gnmg.
 - 12:5x accepted frontal: harmon vomtag, jkcs krumphau, ottawa vomtag x2, rocketyt vomtag; rejected kl0m (feet cut), U0ai re-check (spectators + ambiguous cut type in chained sequence)
+- Synthetic azimuth coverage (render_ba: cam=(0.7+d sin az, -d cos az); az=0 = profile, characters face right): ba 351 jobs az -24.7..44.8; ba2 54 jobs -24.7..43.9; ba3 96 jobs -22.6..44.6 (18 at 0, 18 at 40). NOTHING beyond 45deg from profile -> frontal (60-90deg) renders missing.
+- App has cameraView 'front' (normalize.ts: MediaPipe depth z -> fore/aft x, screen x -> lateral). Frontal eval must run process(raw, facing, mode, 'front') + adaptDrillForCameraView(...,'front'); ~45deg clips -> 'side'.
+- Template/eval harness to reuse: /workspace/hema/real/p3/lopo.mjs (bursts -> prepareSequence templates, LOPO replay via CM.setRecognitionModel). Plan: copy to harvest/tools/h_lopo.mjs with sources harvest+seen, per-clip cameraView, sets: harvest LOPO, seen30, frontal held-out, fresh once.
+- Base choice: main (5d9fd70, CI green) vs feat/real-shape-strikes (#25, CI red on beginner-similarity). -> branch off main (merge needs green CI).
+- RESUME: CVLVJsiMxwc (Kuba Potocki footwork, 30 min, solo frontal arcade) screening in bg (dlF.out continues with 42nX nzrb aAUI gnmg). Then: frontal held-out pick, cut.py, vr_run.sh, h_lopo.
