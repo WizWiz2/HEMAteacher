@@ -25,3 +25,7 @@ Tools (copied from real/fresh, paths patched): search.sh (queries.txt -> search.
 - Round-3 peeks: ACCEPT 9mREqmP7jhM (Paul Becker student, Scheitelhau on commands, side/45) -> 2 clips. Others rejected/offspec (see review.csv).
 - Björn Rüther guards 4hwTpsZ5cgk: still.py holds -> Vom Tag 156.5-163.5, 171.5-179.5; Alber 300.8-308.1.
 - Stahlakademie footwork bhvhekgvYso rejected (no clean labelable steps).
+- Round-4 search (queries4.txt: footwork/krumphau/schielhau, 13 queries): peeked 12, all rejected or offspec (see review.csv). TVG Steele Schrittevideo MB758cP5AaE = best step source but frontal (offspec).
+- Fixed stritschar_alber_01 crop (was 0.05-0.6 -> person cut out, 0 landmarks); now 0.4-1.0, recut; needs vr re-run.
+- step_find.py: CUT env var to raise scene-cut threshold for handheld outdoor video.
+- SUMMARY.md written.

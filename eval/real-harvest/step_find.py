@@ -4,7 +4,7 @@ d = json.load(open(f'/workspace/hema/harvest/screen/{sys.argv[1]}.json')); R = d
 X0 = float(sys.argv[2]) if len(sys.argv) > 2 else 0; X1 = float(sys.argv[3]) if len(sys.argv) > 3 else 1
 def main(r):
     ps = [p for p in r['p'] if X0 <= p['hipx'] <= X1]; ps.sort(key=lambda p: -p['torso']); return ps[0] if ps else None
-P = [main(r) for r in R]; T = [r['t'] for r in R]; cuts = [r['t'] for r in R if r['cut'] > 18]
+P = [main(r) for r in R]; T = [r['t'] for r in R]; cuts = [r['t'] for r in R if r['cut'] > float(__import__('os').environ.get('CUT','18'))]
 ok = lambda p: bool(p) and p['full'] > .5 and p['bot'] < .99 and p['top'] > 0
 i = 6; last = -99
 while i < len(R) - 20:
