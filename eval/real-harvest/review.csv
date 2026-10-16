@@ -1,6 +1,6 @@
 video_id,channel,title,verdict,reason,windows
 mjT4JepA-Vc,Anton Kohutovič,Longsword techniques: zornhau...,reject,pair plays / edited / closeups,
-Mj1DMuAzEmg,Laurel City (Rob Kelly),Longsword Solo Drill 4 (Zornhau),KEEP?,solo outdoor side-ish full body 51-90s; verify reps,51-92
+Mj1DMuAzEmg,Laurel City (Rob Kelly),Longsword Solo Drill 4 (Zornhau),KEEP,verified frames: solo ~45deg full body; zornhau from vom Tag at 61.5-65.8 and 71.5-75.5 (rest = follow-ups),61.5-75.5
 nzrbfkTtFYg,Primal Hema,Longsword 101 Ch2 Wrathcut/Zornhau,maybe,solo full body but near-frontal (off-spec); talking-head inserts,65-500
 NHTV6a0FQNo,VCU HEMA,The Zornhau,reject,pairs / montage / comments; VCU is seen person anyway,
 eahdy1t-rv4,Mexican Conquistador,Zornhau: el primer corte maestro,reject,selfie close-up / legs cut,
@@ -11,7 +11,7 @@ vTZHALGga5U,Virtual Fechtschule,Project GIF Zornhau,reject,pairs + manuscript im
 8_-l1Tqnw6M,tempest blade argus,historical longsword Zornhau,reject,frontal close-up talking / test cutting,
 0lNdsgAYqys,Sébastien Le Gaillard,Escrime Médiévale Zornhau (2),reject,pair plays,
 aIpNsN_cDnM,Sword Carolina,Lesson 1 Zornhau angle & distance,reject,frontal 2 people / partner drill,
-U0ai_VJqTOs,Тарас Верпеко,5 Мастерских ударов / 5 Meisterhau,KEEP?,solo in gym; full body; ~30-45deg; small figure; background people far; check each cut label,0-110
+U0ai_VJqTOs,Тарас Верпеко,5 Мастерских ударов / 5 Meisterhau,maybe-offspec,description lists order zorn/zwerch/schiel/krump/scheitel; frames: walks TOWARD camera (frontal) + small backlit figure -> cut type not verifiable from frames; not labelled,23-100
 mFhOTo4X0f8,Forte Swordplay,German Longsword 101 pt1,reject,frontal explanatory medium shot,
 M7VMauZfw2I,Академия Исторического Фехтования,основы техники (43 min),maybe,solo full body but frontal; long talking; scan later for side segments,
 1vUDCI87eqo,Volker Kunkel,Anderthalbhänder Meisterhiebe,reject,armoured pair show with crowd,
@@ -36,3 +36,22 @@ ChC0gpiQYtY,Blademasters Academy,German Longsword 101 lvl1,reject,pairs,
 XXZsYOityxY,ZornhauEV,Solo drill antique sword,reject,mixed flow + closeups,
 MtiINgaAqIs,Blood and Iron,10 solo drills,reject,drills not app drills; frontal,
 CW-RopLE3BI,Mortal Snail,Learn with me Zornhau,reject,learner indoor frontal + pair inserts,
+xlA1zvEbBY0,Björn Rüther,Master Strikes: Zwerch,reject,pair plays only,
+feBKwmT03t4,Aaron Harmon,Krumphau Basics,maybe,solo full body outdoor but frontal (off-spec),
+s1LKv5DnCg4,Золотой Сокол,Zwerhaw (поперечный удар),KEEP?,solo demo ~43-60s side-ish full body with captions (вращение клинка / удар с шагом); rest talking+pairs,40-65
+VaV_Nr31Nuk,Sukkamariini,Zwerchhau and just for fun,maybe,solo test-cutting bottles; mixed cuts; ~45deg,
+18XkMqvnPpw,French Hema Boy,Glory to the Zwerch,reject,pairs/sparring montage,
+t8-i-v4J6ZM,School of Seven Swords,Zwerchhau drill,reject,pair drill,
+Gw1HVFQtuAI,Bill Ernoehazy,zwerchcopter challenge,reject,back view at pell; legs partly,
+f0sURMSzcac,JKCS-Goslar,07 Krumphau,maybe,solo full body vertical video but frontal; series 01-07 may cover all cuts,
+Jud7ahG89UA,Europäische Schwertkunst,Schielhau 06,reject,pair,
+VIKMPIFJkzk,Bratislavský šermiarsky,Schielhau Krumphau,reject,pair/fisheye,
+gMbhLFt6ey0,Laurel City,Demonstration clip Schielhau,reject,pair demo with audience,
+d7BeeS2xlF0,Canto Spada,Развитие атак из Vom Tag,reject,triptych split-screen pair,
+smTeAe7cfWY,Ottawa Swordplay,Tower Guard (Vom Tag),maybe,solo full body but frontal; vom Tag guard,
+OK5CEluNDT0,Jack Harmsworth,krumphau crooked strike,reject,class pairs,
+cyqFaS-7xJA,PaARMA,Krumphau,reject,pair with crowd,
+aAUIOrgmQak,Forte Swordplay,Krumphau 101,maybe,solo intro frontal then pairs,
+KrHUcPipV6o,Rocket City HEMA,Zettel Zwerchhau,reject,pair,
+D8JF3Gak3Ss,VCU HEMA,Responses to Oberhau: Schielhau,reject,pair,
+EJSLT_z67QE,Michael Kozin,6 Essential Longsword Cuts,reject,verified frames: feet cut at bottom; near-frontal; Italian fendente/mezzano terminology (no KdF labels); reps numbered 1-10 at 204-260 but off-spec,
