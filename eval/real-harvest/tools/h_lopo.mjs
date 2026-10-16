@@ -20,7 +20,8 @@ try {
   const {adaptDrillForCameraView} = await v.ssrLoadModule('/src/drill/cameraView.ts');
   const MT = await v.ssrLoadModule('/src/drill/motionTraining.ts');
   const drills = JSON.parse(readFileSync(ROOT + '/public/content/drills.json'));
-  const base = CM.recognitionModel();
+  const MV = process.env.VIEWOVR === 'front' ? 'front' : 'side';  // model slot evaluated (front: per-view model on fix/front-view)
+  const base = CM.recognitionModel(MV);
   const DR = MT.CONTINUOUS_DRILLS;
   const viewOf = c => process.env.VIEWOVR || c.view;
   function attempt(frames, drillId, facing, view) {
@@ -107,14 +108,14 @@ try {
   for (const set of SETS) {
     const ev = clips.filter(c => c.set === (set === 'heldout' ? 'harvest' : set) && DR.includes(c.drill) && (set === 'heldout' ? c.heldout : set === 'harvest' ? !c.heldout : true));
     for (const person of [...new Set(ev.map(c => c.person))]) {
-      CM.setRecognitionModel(modelFor(person));
+      CM.setRecognitionModel(modelFor(person), MV);
       for (const c of ev.filter(x => x.person === person)) for (const d of DR) {
         const a = attempt(c.frames, d, c.facing, viewOf(c));
         rows.push({set, clip: c.id, person, drill: c.drill, view: c.view, evview: viewOf(c), clean: c.clean, weapon: c.weapon, selected: d, own: d === c.drill, accepted: a.state === 'completed', funnel: a.funnel});
       }
     }
   }
-  CM.setRecognitionModel(base);
+  CM.setRecognitionModel(base, MV);
   if (out) writeFileSync(out, JSON.stringify({cfg: CFG, templates: tcount, rows}));
   const CORE = new Set((process.env.CORE || 'zornhau,zwerchhau,schielhau,passing-step-forward,advance').split(','));
   const S = f => { const x = rows.filter(f); return `${x.filter(r => r.accepted).length}/${x.length}`; };

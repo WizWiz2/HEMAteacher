@@ -65,3 +65,28 @@ Tools (copied from real/fresh, paths patched): search.sh (queries.txt -> search.
   cap2-noZw vside  = syn
 - Fresh ONCE (generic single attempt per clip x 9 drills; main and all71, clip view and vside): 0/35 own, 0/28 core, 0/280 wrong in all four. Funnel (main vside): no_start 16, no_decision 15, short 3, tracking 1.
 - Verdict: bar (core >=60%, wrong <=5% on held-out real people) NOT met. Draft PR (head = all71), not merged (scenarios red + small synthetic beginner drop).
+
+## 2026-10-16 13:05 PHASE C: front camera mode (branch fix/front-view off main 5d9fd70, worktree /workspace/hema-fv)
+Diagnosis (tools/fv_diag.mjs -> results/fv_diag_front.json; 10 frontal harvest/seen motion clips; never fresh):
+- drillEngine.ts on main short-circuits motion drills in front view ("повернись боком") -> front mode can never start (= the no_start funnel).
+- Even bypassed: front normalisation maps MediaPipe z to fore/aft x. ankle_x jitter front .035-.115 torso/frame vs side .002-.006
+  (10-20x); arming-stable frame pairs (pattern RMS delta < .035) front .02-.42 vs side .63-.93; longest stable run often < 200 ms
+  (arming needs 200); whole-clip path front 4-7x side (tvg advance 17.5 vs 2.8). Zeroing z restores stability (.73-.97).
+Plan: front = 2D image plane (x lateral, y vertical, z dropped), approach proxy root_x = k*ln(torso px), front-only model
+(motionModel.front.json/motionPatterns.front.json) from frontal renders + harvest frontal reps; side untouched.
+Renders: /workspace/hema/baf (gen_jobs_front.py, 81 jobs az 60-90, 9 drills, interleaved), pilot /workspace/hema/bafp (2 jobs).
+  lanes: cd /workspace/hema/baf && BA=/workspace/hema/baf JOBS=/workspace/hema/baf/jobsf.tsv THR=3 setsid nohup /workspace/hema/ba3/run_ba3.sh <lane> > lane<lane>.out 2>&1 &
+  extract: cd /workspace/hema/baf && BA=/workspace/hema/baf NL=3 setsid nohup ./extract_loop.sh > extract_loop.out 2>&1 &  (vite :5210 from real/app/frontend must be up)
+  progress: baf/progress.txt (DONE/FAIL lines), baf/raw/*.json extracted.
+- 13:27 Pilot 1 (d 3.7 zornhau): MediaPipe lost the first 2.2 s (person ~110 px) -> frontal distance range changed to 2.6-3.3 m (test 2.9).
+  Pilot 2 (d 3.15 / 2.9): 239/240 detected both, clearance 0. FULL BATCH STARTED 13:27 /workspace/hema/baf (81 jobs, 2 copied from pilot2), lanes 1-3 THR=3 + extract_loop (NL=3). ETA ~16:50.
+  Kill only: pkill -f "run_ba3.sh"; pkill -f "blender.*baf/render_ba.py"; pkill -f "baf.*extract_loop|extract_loop.sh"
+- Code on fix/front-view (commits 451f5a6.., WIP): normalize front = image plane (z=0), root_x(front) = 2*ln(torso px), per-view
+  model/patterns (motionModel.front.json etc.), drillEngine passes view, passing-step crossing on ankle y in front, clipView(),
+  isFrontTrainClip/isFrontTestClip, protocols front-lobo/front-test, build-motion-fixture --base + 'front' variant.
+  After the fix: front-mode arming stability = side (stable .63-.93, runs >= 600 ms); held-out funnel no_start 3/3 -> short 3/3 (side templates).
+- Real frontal reps (h_lopo VIEWOVR=front TLOG results/reps_front_all.txt, non-held-out front clips): 12 KEEP
+  (falcon zwerch 1, tvg passfwd 3, passback 1, advance 3, retreat 3, harmon krumph 1). build_real_fixture.py VARIANT=real:front VIEW=front.
+- NEXT when baf done: node frontend/scripts/build-motion-fixture.mjs /tmp/fx_front.json.gz --base <main fixture> /workspace/hema/baf/raw:front:/workspace/hema/baf/clips
+  then VARIANT=real:front VIEW=front python3 tools/build_real_fixture.py results/reps_front_all.txt clips.json /tmp/fx_front.json.gz frontend/test-fixtures/motion-poses.json.gz
+  then build-motion-patterns, evaluate-motion-recognition (lobo,test,front-lobo,front-test), h_lopo VIEWOVR=front CFG=built (harvest/seen/heldout), CI, PR.
