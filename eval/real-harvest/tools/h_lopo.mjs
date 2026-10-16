@@ -74,7 +74,7 @@ try {
   const clips = clipsAll.map(c => ({...c, frames: JSON.parse(readFileSync(c.raw)).frames}));
   const tpls = [], tlog = [];
   for (const c of clips.filter(c => TPLSRC.includes(c.set) && !c.heldout && c.weapon.startsWith('longsword') && c.clean && DR.includes(c.drill))) {
-    const strike = c.drill.endsWith('hau'), view = c.view;
+    const strike = c.drill.endsWith("hau"), view = viewOf(c);
     for (const [k, r] of reps(allSamples(c.frames, c.facing, view), strike).entries()) {
       let w = r.win; if (strike && MR.HAND_TRIM?.on) w = MR.strikeWindow(w, base.pathScales);
       const seq = w.length > 5 ? MR.prepareSequence(w, base.pathScales, base.points) : null;
@@ -107,7 +107,7 @@ try {
       CM.setRecognitionModel(modelFor(person));
       for (const c of ev.filter(x => x.person === person)) for (const d of DR) {
         const a = attempt(c.frames, d, c.facing, viewOf(c));
-        rows.push({set, clip: c.id, person, drill: c.drill, view: viewOf(c), clean: c.clean, weapon: c.weapon, selected: d, own: d === c.drill, accepted: a.state === 'completed', funnel: a.funnel});
+        rows.push({set, clip: c.id, person, drill: c.drill, view: c.view, evview: viewOf(c), clean: c.clean, weapon: c.weapon, selected: d, own: d === c.drill, accepted: a.state === 'completed', funnel: a.funnel});
       }
     }
   }
@@ -119,4 +119,8 @@ try {
     const base_ = r => r.set === set && ok(r); if (!rows.some(base_)) continue;
     console.log(`${set.padEnd(8)} ${nm.padEnd(5)} own ${S(r => base_(r) && r.own)} | core own ${S(r => base_(r) && r.own && CORE.has(r.drill))} | wrong ${S(r => base_(r) && !r.own)}`);
   }
+  const FN = ['no_start', 'no_decision', 'short', 'tracking', 'other', 'accepted'];
+  for (const set of SETS) { const o = rows.filter(r => r.set === set && r.own); console.log(`funnel ${set} (${o.length}):`, FN.map(f => `${f} ${o.filter(r => r.funnel === f).length}`).join(' | ')); }
+  console.log('accepted own:', rows.filter(r => r.own && r.accepted).map(r => r.set + ':' + r.clip).join(' '));
+  console.log('wrong:', rows.filter(r => !r.own && r.accepted).map(r => r.set + ':' + r.clip + '->' + r.selected).join(' '));
 } finally { await v.close(); }

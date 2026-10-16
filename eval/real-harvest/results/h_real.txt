@@ -1,0 +1,14 @@
+CFG real real templates 69 (zornhau:2 zwerchhau:56 scheitelhau:7 passing-step-forward:1 passing-step-backward:1 advance:2) persons 9
+harvest  all   own 3/20 | core own 3/15 | wrong 1/160
+harvest  front own 0/6 | core own 0/3 | wrong 0/48
+harvest  side  own 3/14 | core own 3/12 | wrong 1/112
+seen     all   own 0/30 | core own 0/22 | wrong 2/240
+seen     front own 0/1 | core own 0/0 | wrong 0/8
+seen     side  own 0/29 | core own 0/22 | wrong 2/232
+heldout  all   own 0/3 | core own 0/2 | wrong 0/24
+heldout  front own 0/3 | core own 0/2 | wrong 0/24
+funnel harvest (20): no_start 8 | no_decision 4 | short 3 | tracking 0 | other 2 | accepted 3
+funnel seen (30): no_start 4 | no_decision 7 | short 15 | tracking 1 | other 3 | accepted 0
+funnel heldout (3): no_start 3 | no_decision 0 | short 0 | tracking 0 | other 0 | accepted 0
+accepted own: harvest:messer_zwerchhau_02 harvest:ritter_zwerchhau_02 harvest:rensen_zwerchhau_02
+wrong: harvest:lynx_advance_01->retreat seen:drey_krumphau_01->advance seen:bjorn_zornhau_02->retreat

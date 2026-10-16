@@ -44,3 +44,8 @@ Tools (copied from real/fresh, paths patched): search.sh (queries.txt -> search.
 - 13:2x tools/clips_index.py + tools/h_lopo.mjs (APPROOT=/workspace/hema-front/frontend = worktree branch feat/real-harvest-templates off main 5d9fd70; node_modules symlink hema-gap). First run (partial harvest rawframes): syn harvest own 2/15 w1/120, seen 3/30 w3/240 (= known main baseline); mix harvest 4/15 w0, seen 3/30 w3; real harvest 3/15 w0, seen 2/30 w1.
   Finding: frontal clips in 'front' view -> feet path 5-8x typical (MediaPipe z noise) -> step templates rejected as 'long'.
 - 13:4x Step 1 done for this session: 33 clips / 16 people (SUMMARY.md). Frontal held-out = Rocket City schielhau instructor + JKCS krumphau instructor (heldout_people.txt). Lynx advance added; nzrb/kl0m rejected; CVLV pending.
+- 13:5x EVAL (h_lopo injection, base = main model). results/h_<cfg>[_vside].txt. Core own / wrong:
+  syn: harvest 3/15 w1/160 | seen 2/22 (all 3/30) w3/240 | heldout-front 0/2 w0/24
+  mix: harvest 5/15 w0 | seen 2/22 (3/30) w4 | heldout 0/2 w0      real: harvest 3/15 w1 | seen 0/22 w2 | heldout 0/2
+  view=side for frontal clips (vside): mix harvest 5/15 w2 | seen 2/22 w3 | heldout 0/2 w0.
+  FINDING: app 'front' camera view never arms on real frontal clips (heldout funnel no_start 3/3, harvest-front no_start); in 'side' processing they start but stop short/undecided.
