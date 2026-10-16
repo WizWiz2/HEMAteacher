@@ -1,0 +1,10 @@
+# persons/channels in the LOCKED fresh set -> exclude everything by them
+TheForgeWMA
+Paul Black
+Schwabenfedern
+Schiltschlac
+Jeff Tsay
+Center for Blade Arts
+Sprezzatura
+Helman
+McCamey
