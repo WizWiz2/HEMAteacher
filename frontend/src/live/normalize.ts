@@ -51,11 +51,12 @@ export function normalizePose(pose: RawPose, facing: Facing, scale: number, minV
     const depth = (point.z - root.z) / scale;
     landmarks[name] = cameraView === "front"
       ? {
-          // Front camera: MediaPipe depth becomes the canonical fore/aft axis.
-          // Screen horizontal becomes the body's lateral axis.
-          x: -depth,
+          // Front camera: image plane only. MediaPipe depth is far too noisy to serve as the fore/aft axis
+          // (10-20x the side-view landmark jitter on real frontal clips), so it is dropped; x is the screen
+          // horizontal (person's lateral axis, not mirrored), fore/aft comes from apparent size (see sampleProcessor).
+          x: screenX,
           y: -((point.y - root.y) / scale),
-          z: -screenX,
+          z: 0,
           visibility: landmark.visibility,
         }
       : {

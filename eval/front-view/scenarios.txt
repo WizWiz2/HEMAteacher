@@ -1,0 +1,38 @@
+normal    expected accept: accepted 54/54
+fast      expected accept: accepted 52/54
+   UNEXPECTED main/advance/short_broad_female_experienced -> not accepted Похоже на шаг назад, а не шаг вперёд. Повтори выбранное движение 
+   UNEXPECTED main/passing-step-forward/tall_slim_male_experienced -> not accepted Похоже на проходной шаг назад, а не проходной шаг вперёд. Повтори выбранное движение 
+fps10     expected accept: accepted 51/54
+   UNEXPECTED main/advance/short_broad_female_experienced -> not accepted Похоже на шаг назад, а не шаг вперёд. Повтори выбранное движение 
+   UNEXPECTED main/krumphau/tall_slim_male_beginner -> not accepted Похоже на Zwerchhau, а не Krumphau. Повтори выбранное движение 
+   UNEXPECTED main/passing-step-forward/tall_slim_male_experienced -> not accepted Похоже на проходной шаг назад, а не проходной шаг вперёд. Повтори выбранное движение 
+slow4x    expected accept: accepted 50/54
+   UNEXPECTED main/advance/short_broad_female_experienced -> not accepted Слишком долго: попытка длиннее 10 секунд. Выполни одно движение целиком 
+   UNEXPECTED main/advance/tall_slim_male_beginner -> not accepted Похоже на шаг назад, а не шаг вперёд. Повтори выбранное движение 
+   UNEXPECTED main/krumphau/short_broad_female_experienced -> not accepted Похоже на Zwerchhau, а не Krumphau. Повтори выбранное движение 
+   UNEXPECTED main/passing-step-backward/short_broad_female_beginner -> not accepted Слишком долго: попытка длиннее 10 секунд. Выполни одно движение целиком 
+reversed  expected reject: accepted 0/54
+frozen    expected reject: accepted 0/54
+slow12x   expected reject: accepted 0/54
+truncated expected reject: accepted 19/54
+   UNEXPECTED main/advance/short_broad_female_beginner -> accepted Движение распознано 80
+   UNEXPECTED main/advance/short_broad_female_experienced -> accepted Движение распознано 84
+   UNEXPECTED main/advance/short_broad_female_master -> accepted Движение распознано 85
+   UNEXPECTED main/advance/tall_slim_male_beginner -> accepted Движение распознано 78
+   UNEXPECTED main/advance/tall_slim_male_master -> accepted Движение распознано 82
+   UNEXPECTED main/passing-step-backward/short_broad_female_experienced -> accepted Движение распознано 90
+   UNEXPECTED main/passing-step-backward/short_broad_female_master -> accepted Движение распознано 94
+   UNEXPECTED main/passing-step-backward/tall_slim_male_beginner -> accepted Движение распознано 76
+   UNEXPECTED main/passing-step-backward/tall_slim_male_experienced -> accepted Движение распознано 89
+   UNEXPECTED main/passing-step-backward/tall_slim_male_master -> accepted Движение распознано 94
+   UNEXPECTED main/passing-step-forward/short_broad_female_beginner -> accepted Движение распознано 77
+   UNEXPECTED main/passing-step-forward/short_broad_female_experienced -> accepted Движение распознано 87
+   UNEXPECTED main/passing-step-forward/short_broad_female_master -> accepted Движение распознано 93
+   UNEXPECTED main/passing-step-forward/tall_slim_male_beginner -> accepted Движение распознано 78
+   UNEXPECTED main/retreat/short_broad_female_beginner -> accepted Движение распознано 81
+   UNEXPECTED main/retreat/short_broad_female_experienced -> accepted Движение распознано 80
+   UNEXPECTED main/retreat/short_broad_female_master -> accepted Движение распознано 89
+   UNEXPECTED main/retreat/tall_slim_male_beginner -> accepted Движение распознано 83
+   UNEXPECTED main/retreat/tall_slim_male_master -> accepted Движение распознано 90
+gap       expected reject: accepted 0/54
+{"normal":{"expected":"accept","accepted":54,"total":54},"fast":{"expected":"accept","accepted":52,"total":54},"fps10":{"expected":"accept","accepted":51,"total":54},"slow4x":{"expected":"accept","accepted":50,"total":54},"reversed":{"expected":"reject","accepted":0,"total":54},"frozen":{"expected":"reject","accepted":0,"total":54},"slow12x":{"expected":"reject","accepted":0,"total":54},"truncated":{"expected":"reject","accepted":19,"total":54},"gap":{"expected":"reject","accepted":0,"total":54}}

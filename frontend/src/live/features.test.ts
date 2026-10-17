@@ -46,12 +46,13 @@ describe("normalization", () => {
     expect(left.landmarks.left_ankle.y).toBeCloseTo(right.landmarks.left_ankle.y, 4);
   });
 
-  it("maps front-camera depth to canonical fore/aft and screen x to body lateral", () => {
+  it("front camera keeps the image plane and drops MediaPipe depth", () => {
     const pose = rawPose({ hipX: 0.5, hipY: 0.5, torso: 0.15, face: "right" });
     pose.landmarks.left_wrist = point(0.42, 0.35, -0.12);
     const normalized = normalizePose(pose, "right", torsoOf(pose), 0.5, "front")!;
-    expect(normalized.landmarks.left_wrist.x).toBeGreaterThan(0.5);
-    expect(normalized.landmarks.left_wrist.z).toBeGreaterThan(0.4);
+    expect(normalized.landmarks.left_wrist.x).toBeCloseTo((0.42 - 0.5) / 0.15, 4);
+    expect(normalized.landmarks.left_wrist.y).toBeCloseTo((0.5 - 0.35) / 0.15, 4);
+    expect(normalized.landmarks.left_wrist.z).toBe(0);
   });
 });
 

@@ -5,6 +5,9 @@ import { smoothFeatures, trimHistory, type TimedSample } from './smoothing';
 import type { RawPose } from './landmarks';
 import type { TrackingMode } from '../drill/types';
 
+/** Front view: torso-size change (log) per unit of root_x; a 0.6 m step at ~3 m changes it by ~0.2. */
+export const FRONT_APPROACH = 2;
+
 /** Stateful preprocessing shared by live camera, replay and batch video tests. */
 export class LiveSampleProcessor {
   readonly scale = new TorsoScale();
@@ -13,7 +16,12 @@ export class LiveSampleProcessor {
     const size = this.scale.push(torsoPixels(raw));
     const normalized = size ? normalizePose(raw, facing, size, .42, cameraView) : null;
     const features = normalized ? liveFeatures(normalized.landmarks) : null;
-    if (features && size && raw.landmarks.left_hip?.visibility >= .42 && raw.landmarks.right_hip?.visibility >= .42)
+    if (features && size && cameraView === "front") {
+      // Front camera: walking toward the camera makes the body larger in the image. root_x is the fore/aft proxy
+      // FRONT_APPROACH * ln(current torso length in pixels) (only its change during an attempt is used).
+      const now = torsoPixels(raw, .42);
+      if (now) features.root_x = FRONT_APPROACH * Math.log(now);
+    } else if (features && size && raw.landmarks.left_hip?.visibility >= .42 && raw.landmarks.right_hip?.visibility >= .42)
       features.root_x = (raw.landmarks.left_hip.x + raw.landmarks.right_hip.x) * .5 * raw.width / size * (facing === "right" ? 1 : -1);
     this.history = trimHistory([...this.history, {timeMs: raw.timestampMs, features}], raw.timestampMs);
     const smoothed = smoothFeatures(this.history, raw.timestampMs, smoothingMs, 3, trackingMode);
