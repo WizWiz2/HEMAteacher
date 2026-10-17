@@ -39,6 +39,7 @@ jobs:
       - name: Validate continuous movement on recorded MediaPipe poses
         run: |
           node frontend/scripts/build-motion-patterns.mjs --check
+          node frontend/scripts/build-follow-references.mjs --check
           node frontend/scripts/check-motion-scenarios.mjs
       - name: Validate standalone Sites output
         run: |

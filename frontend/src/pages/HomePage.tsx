@@ -47,6 +47,12 @@ export function HomePage() {
         <span className="start-rune">Открыть квадрат →</span>
       </Link>
 
+      <Link className="card manuscript-card" to="/follow">
+        <div className="card-top"><div><span className="rubric">Nachmachen · за мастером</span><h2>Повторяй за эталоном</h2></div><span className="badge">9 движений</span></div>
+        <p>Эталон двигается по кругу в выбранном темпе, ты повторяешь перед камерой. Приложение считает повторы и показывает сходство с эталоном.</p>
+        <span className="start-rune">Начать тренировку →</span>
+      </Link>
+
       {groups.map((group) => group.items.length > 0 && (
         <section key={group.id} className="library-section">
           <h2>{group.title}</h2>

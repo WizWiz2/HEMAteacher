@@ -7,6 +7,7 @@ export function NavigationMenu() {
       <nav>
         <Link to="/">Тренировка</Link>
         <Link to="/meyer">Крест Мейера</Link>
+        <Link to="/follow">Повторяй за эталоном</Link>
         <Link to="/analysis">Подробный разбор видео</Link>
         <Link to="/dev/checkpoint-capture">Снять контрольную точку</Link>
       </nav>
