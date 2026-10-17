@@ -42,7 +42,8 @@ export const FOLLOW_SETTINGS = {
   minDurationMs: 200,
   maxDurationMs: 6000,
   preRollMs: 250,
-  maxGapMs: 400,
+  /** Longer gaps between pose frames (tracking lost) restart the counter. */
+  maxGapMs: 700,
 };
 
 const dist = (a: number[], b: number[]) => Math.sqrt(a.reduce((s, x, i) => s + (x - b[i]) ** 2, 0) / a.length);
@@ -152,10 +153,13 @@ export class RepCounter {
     // Stillness relative to the drill's size: every pose of the last settleMs stays within a small radius of the
     // current one (front-view steps move the feet only a few hundredths of a torso length per frame).
     const stillRadius = Math.max(st.stillFloor, this.extent * st.stillExtent);
-    const window = this.history.filter(h => h.s.timeMs >= sample.timeMs - st.settleMs);
-    const still = window.every(h => dist(h.v, v) < stillRadius);
+    // The window reaches back to the last pose older than settleMs, so a low frame rate (a slow phone) still settles.
+    let from = -1;
+    for (let i = this.history.length - 1; i >= 0; i--) if (this.history[i].s.timeMs <= sample.timeMs - st.settleMs) { from = i; break; }
+    const window = from < 0 ? [] : this.history.slice(from);
+    const still = window.length >= 2 && window.every(h => dist(h.v, v) < stillRadius);
     this.settledSince = still ? (this.settledSince ?? sample.timeMs) : null;
-    const settled = this.settledSince !== null && window.length >= 3 && sample.timeMs - window[0].s.timeMs >= st.settleMs * 0.8;
+    const settled = still;
 
     if (!this.burst) {
       // Strikes keep the first guard until a repetition ends (a pause mid-strike must not become the new guard).
