@@ -6,6 +6,7 @@ import { HomePage } from "./pages/HomePage";
 import { LibraryPage } from "./pages/LibraryPage";
 import { MovementPage } from "./pages/MovementPage";
 import { MeyerSquarePage } from "./pages/MeyerSquarePage";
+import { FollowAlongPage } from "./pages/FollowAlongPage";
 import { RecordPage } from "./pages/RecordPage";
 import { SessionPage } from "./pages/SessionPage";
 
@@ -28,6 +29,7 @@ export function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/meyer" element={<MeyerSquarePage />} />
+        <Route path="/follow" element={<FollowAlongPage />} />
         <Route path="/drills/:id" element={<DrillPage />} />
         {VideoRegressionPage && <Route path="/dev/video-regression" element={<Suspense fallback={<p>Загрузка тестового инструмента…</p>}><VideoRegressionPage /></Suspense>} />}
         <Route path="/dev/checkpoint-capture" element={<CheckpointCapturePage />} />
