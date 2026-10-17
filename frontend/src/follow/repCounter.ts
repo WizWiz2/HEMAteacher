@@ -28,7 +28,7 @@ export type CounterPhase = "waiting" | "ready" | "moving";
 export const FOLLOW_SETTINGS = {
   /** Pose counted as settled when it stays within this fraction of the drill's extent (with a noise floor). */
   stillExtent: 0.12,
-  stillFloor: 0.012,
+  stillFloor: 0.02,
   /** A settled pose must last this long to become the guard (strikes) or to end a step. */
   settleMs: 220,
   /** Movement starts once the pose has left the rest pose by this fraction of the drill's extent (with a noise floor). */

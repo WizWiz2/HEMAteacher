@@ -82,7 +82,6 @@ export function FollowAlongPage() {
     setFraming(prev => (prev === f.message ? prev : f.message));
     const usable = sample.motionUsable ?? sample.usable;
     const rep = counter.current.push({timeMs: sample.timeMs, features: usable ? sample.features : null});
-    if (import.meta.env.DEV) ((window as unknown as {__followSamples?: unknown[]}).__followSamples ??= []).push({timeMs: sample.timeMs, features: usable ? sample.features : null});
     setPhase(prev => (prev === counter.current.phase ? prev : counter.current.phase));
     if (rep && sessionRef.current === "running") {
       setReps([...counter.current.reps]);
@@ -159,7 +158,8 @@ export function FollowAlongPage() {
   }
 
   const last = reps.at(-1);
-  const status = !live.live ? "Включи камеру и встань в полный рост"
+  const status = session === "done" ? "Подход завершён"
+    : !live.live ? "Включи камеру и встань в полный рост"
     : live.phase !== "ready" ? "Загружаю распознавание…"
     : phase === "waiting" ? (STRIKES.includes(drill) ? "Встань в стойку и замри на секунду" : "Встань в стойку и замри")
     : phase === "moving" ? "Движение…"
