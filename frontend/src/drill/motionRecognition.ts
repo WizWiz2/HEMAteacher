@@ -10,11 +10,18 @@ export const CHANNELS = [
   "wrist_cross_x", "wrist_cross_y", "left_ankle_x", "right_ankle_x", "left_ankle_y", "right_ankle_y",
   "root_dx", "torso_angle", "hand_dir_x", "hand_dir_y",
 ] as const;
+/** Experimental blade channels (feature flag, off by default; docs/blade-tracking.md): guard->tip direction, tip
+ *  relative to the head, tip position (torso units, relative to the hip centre). Appended after CHANNELS. */
+export const BLADE_CHANNELS = ["blade_cos", "blade_sin", "tip_head_x", "tip_head_y", "tip_x", "tip_y"] as const;
+/** Blade-channel switch. Synced from the model by setRecognitionModel (a model with blade channels turns it on). */
+export const BLADE = { enabled: false, path: false, interpolate: true };
+export const activeChannels = (): readonly string[] => (BLADE.enabled ? [...CHANNELS, ...BLADE_CHANNELS] : CHANNELS);
 // Channels expressed as displacement from the attempt start: stance width, foot height and torso posture differ
 // between bodies far more than between drills, so only their change during the movement is compared.
 const RELATIVE_CHANNELS = [6, 9, 10, 11, 12, 13, 14];
 // Channels that define path length (and therefore the time-invariant parameterisation).
-const PATH_CHANNELS = [0, 1, 9, 10, 13];
+const BASE_PATH_CHANNELS = [0, 1, 9, 10, 13];
+const pathChannels = () => (BLADE.enabled && BLADE.path ? [...BASE_PATH_CHANNELS, 21, 22] : BASE_PATH_CHANNELS);
 
 export interface RecognitionTemplate { drill: string; body: string; level: string; durationMs: number; seq: (number | null)[][] }
 export interface RecognitionModel {
@@ -69,7 +76,29 @@ export function frameChannels(f: Record<string, number> = {}): number[] {
     finite(f.left_wrist_y) && finite(f.right_wrist_y) ? f.left_wrist_y - f.right_wrist_y : NaN,
     v(f.left_ankle_x), v(f.right_ankle_x), v(f.left_ankle_y), v(f.right_ankle_y),
     v(f.root_x), finite(f.torso_angle) ? f.torso_angle / 45 : NaN, NaN, NaN,
+    ...(BLADE.enabled ? bladeChannels(f) : []),
   ];
+}
+
+function bladeChannels(f: Record<string, number>): number[] {
+  const gx = f.blade_guard_x, gy = f.blade_guard_y, tx = f.blade_tip_x, ty = f.blade_tip_y;
+  if (!finite(gx) || !finite(gy) || !finite(tx) || !finite(ty)) return [NaN, NaN, NaN, NaN, NaN, NaN];
+  const l = Math.hypot(tx - gx, ty - gy);
+  const head = finite(f.nose_x) && finite(f.nose_y);
+  return [l > 1e-3 ? (tx - gx) / l : NaN, l > 1e-3 ? (ty - gy) / l : NaN, head ? tx - f.nose_x : NaN, head ? ty - f.nose_y : NaN, tx, ty];
+}
+
+/** The blade is often lost in the fast part of a swing (motion blur): bridge interior gaps of the blade channels
+ *  linearly between the last and next detection (no extrapolation at the ends). */
+function fillBladeGaps(rows: number[][]) {
+  for (let j = CHANNELS.length; j < CHANNELS.length + BLADE_CHANNELS.length; j++) {
+    let last = -1;
+    for (let i = 0; i < rows.length; i++) {
+      if (!Number.isFinite(rows[i][j])) continue;
+      if (last >= 0 && i - last > 1) for (let k = last + 1; k < i; k++) rows[k][j] = rows[last][j] + (rows[i][j] - rows[last][j]) * (k - last) / (i - last);
+      last = i;
+    }
+  }
 }
 
 /** Smoothed channels and cumulative (scaled) path length of an attempt. */
@@ -80,6 +109,7 @@ function pathProfile(samples: TimedFeatures[], pathScales: number[]) {
     return v.length ? v[Math.floor((v.length - 1) / 2)] : rows.map(r => r[j]).find(Number.isFinite) ?? NaN;
   });
   rows = rows.map(r => { const c = [...r]; RELATIVE_CHANNELS.forEach((j, k) => { c[j] = c[j] - start[k]; }); return c; });
+  if (BLADE.enabled && BLADE.interpolate) fillBladeGaps(rows);
   // centred moving average (NaN-aware) suppresses per-frame landmark jitter before measuring path length
   const smooth = rows.map((_, i) => rows[0].map((__, j) => {
     const w = rows.slice(Math.max(0, i - 2), i + 3).map(r => r[j]).filter(Number.isFinite);
@@ -88,7 +118,7 @@ function pathProfile(samples: TimedFeatures[], pathScales: number[]) {
   const cum = [0];
   for (let i = 1; i < smooth.length; i++) {
     let s = 0, n = 0;
-    for (const j of PATH_CHANNELS) { const d = (smooth[i][j] - smooth[i - 1][j]) / pathScales[j]; if (Number.isFinite(d)) { s += d * d; n++; } }
+    for (const j of pathChannels()) { const d = (smooth[i][j] - smooth[i - 1][j]) / pathScales[j]; if (Number.isFinite(d)) { s += d * d; n++; } }
     cum.push(cum[i - 1] + (n ? Math.sqrt(s / n) : 0));
   }
   return { smooth, cum };
@@ -99,7 +129,7 @@ export function sequencePath(seq: (number | null)[][], pathScales: number[]): nu
   let total = 0;
   for (let i = 1; i < seq.length; i++) {
     let s = 0, n = 0;
-    for (const j of PATH_CHANNELS) {
+    for (const j of pathChannels()) {
       const a = seq[i][j], b = seq[i - 1][j];
       if (a !== null && b !== null && Number.isFinite(a) && Number.isFinite(b)) { s += ((a - b) / pathScales[j]) ** 2; n++; }
     }

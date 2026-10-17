@@ -115,22 +115,27 @@ export type Mutation = "reversed" | "frozen" | "slow4x" | "slow12x" | "fast" | "
  * Negatives: reversed movement, frozen pose, slow12x (beyond the 10 s bound), truncated (pose frozen from the middle of
  * the labelled movement), gap (500 ms tracking dropout from 30% of the labelled movement, above the 400 ms gap limit). */
 export function mutate(clip: FixtureClip, kind: Mutation): FixtureClip {
+  // blade detections (optional, experimental) follow the same frame mapping as the poses
+  const bl = (map: (i: number) => number | null, n: number) => (clip.b ? { b: Array.from({ length: n }, (_, j) => { const i = map(j); return i === null ? null : clip.b![i] ?? null; }) } : {});
   if (kind === "fast") return { ...clip, id: clip.id + "#fast", t: clip.t.map(t => clip.t[0] + (t - clip.t[0]) * 0.6) };
   if (kind === "fps10") { const keep = clip.t.map((_, i) => i).filter(i => i % 3 === 0);
-    return { ...clip, id: clip.id + "#fps10", t: keep.map(i => clip.t[i]), p: keep.map(i => clip.p[i]) }; }
+    return { ...clip, id: clip.id + "#fps10", t: keep.map(i => clip.t[i]), p: keep.map(i => clip.p[i]), ...bl(j => keep[j], keep.length) }; }
   if (kind === "truncated" || kind === "gap") {
     const [a, b] = clip.move!, from = a + (b - a) * (kind === "truncated" ? 0.5 : 0.3);
     const k = clip.t.findIndex(t => t >= from);
-    if (kind === "truncated") return { ...clip, id: clip.id + "#truncated", move: null, p: clip.p.map((p, i) => (i < k ? p : clip.p[k])) };
-    return { ...clip, id: clip.id + "#gap", move: null, p: clip.p.map((p, i) => (clip.t[i] >= clip.t[k] && clip.t[i] < clip.t[k] + 500 ? [] : p)) };
+    if (kind === "truncated") return { ...clip, id: clip.id + "#truncated", move: null, p: clip.p.map((p, i) => (i < k ? p : clip.p[k])), ...bl(i => (i < k ? i : k), clip.t.length) };
+    const inGap = (i: number) => clip.t[i] >= clip.t[k] && clip.t[i] < clip.t[k] + 500;
+    return { ...clip, id: clip.id + "#gap", move: null, p: clip.p.map((p, i) => (inGap(i) ? [] : p)), ...bl(i => (inGap(i) ? null : i), clip.t.length) };
   }
-  if (kind === "frozen") return { ...clip, id: clip.id + "#frozen", p: clip.p.map(() => clip.p.find(p => p.length) ?? []) };
+  if (kind === "frozen") { const f = Math.max(0, clip.p.findIndex(p => p.length));
+    return { ...clip, id: clip.id + "#frozen", p: clip.p.map(() => clip.p.find(p => p.length) ?? []), ...bl(() => f, clip.t.length) }; }
   if (kind === "reversed") {
     const [a, b] = clip.move!, idx = clip.t.map((t, i) => [t, i]).filter(([t]) => t >= a && t <= b).map(([, i]) => i);
     const dt = clip.t[1] - clip.t[0], hold = Math.round(1500 / dt);
     const end = clip.p[idx.at(-1)!], start = clip.p[idx[0]];
-    const p = [...Array(hold).fill(end), ...idx.reverse().map(i => clip.p[i]), ...Array(hold).fill(start)];
-    return { ...clip, id: clip.id + "#reversed", move: null, p, t: p.map((_, i) => clip.t[0] + i * dt) };
+    const order = [...Array(hold).fill(idx.at(-1)!), ...[...idx].reverse(), ...Array(hold).fill(idx[0])] as number[];
+    const p = [...Array(hold).fill(end), ...[...idx].reverse().map(i => clip.p[i]), ...Array(hold).fill(start)];
+    return { ...clip, id: clip.id + "#reversed", move: null, p, t: p.map((_, i) => clip.t[0] + i * dt), ...bl(j => order[j], p.length) };
   }
   const k = kind === "slow4x" ? 4 : 12;
   return { ...clip, id: clip.id + "#" + kind, t: clip.t.map(t => clip.t[0] + (t - clip.t[0]) * k) };

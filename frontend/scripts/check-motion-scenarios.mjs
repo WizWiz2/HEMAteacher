@@ -6,14 +6,25 @@
 // slow12x (beyond the 10 s bound), truncated (stops half-way) and gap (500 ms tracking dropout) must not be.
 // Known gaps are allowed explicitly (measured counts, see docs/motion-recognition.md "Limitations"); any additional
 // unexpected outcome fails the job, so regressions are caught.
-// Usage (repo root): node frontend/scripts/check-motion-scenarios.mjs
+// Usage (repo root): node frontend/scripts/check-motion-scenarios.mjs [--blade]
+// --blade: experimental blade-tracking path (docs/blade-tracking.md): blade model + fixture blade detections; diagnostic,
+// prints the same table without failing (the flag is off by default and not gated).
 import {createServer} from 'vite';
 const v=await createServer({root:'frontend',server:{middlewareMode:true},optimizeDeps:{noDiscovery:true,include:[]},logLevel:'error'});
 try {
  const {streamClip,mutate}=await v.ssrLoadModule('/src/drill/motionEvaluation.ts');
  const {CONTINUOUS_DRILLS}=await v.ssrLoadModule('/src/drill/motionTraining.ts');
  const {loadMotionFixture,loadDrills}=await import('../test-fixtures/loadFixture.mjs');
- const fx=loadMotionFixture(),drills=loadDrills();
+ const blade=process.argv.includes('--blade');
+ let fx=loadMotionFixture();const drills=loadDrills();
+ if(blade){
+  const {withBlade}=await import('../test-fixtures/loadFixture.mjs');
+  const {BLADE_MIN_CONFIDENCE}=await v.ssrLoadModule('/src/live/bladeTracking.ts');
+  const {setRecognitionModel}=await v.ssrLoadModule('/src/drill/continuousMotion.ts');
+  const {readFileSync}=await import('node:fs');
+  setRecognitionModel(JSON.parse(readFileSync('frontend/src/drill/motionModelBlade.json','utf8')));
+  fx=withBlade(fx,BLADE_MIN_CONFIDENCE);
+ }
  const clips=fx.clips.filter(c=>c.variant==='main'&&CONTINUOUS_DRILLS.includes(c.drill));
  const expectAccept={normal:true,fast:true,fps10:true,slow4x:true,reversed:false,frozen:false,slow12x:false,truncated:false,gap:false};
  // Allowed unexpected outcomes per scenario (measured with the shipped model):
@@ -34,5 +45,5 @@ try {
   for(const x of wrong)console.log('   UNEXPECTED',x.c.id,'->',x.r.completed?'accepted':'not accepted',x.r.message??'',x.r.similarity??'');
  }
  console.log(JSON.stringify(summary));
- if(bad)process.exitCode=1;
+ if(bad&&!blade)process.exitCode=1;
 }finally{await v.close();}
