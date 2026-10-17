@@ -1,0 +1,15 @@
+WebSocket server error: Port 24678 is already in use
+CFG built real templates 77 (zornhau:1 zwerchhau:61 scheitelhau:3 passing-step-forward:4 passing-step-backward:2 advance:4 retreat:1 krumphau:1) persons 10
+harvest  all   own 5/20 | core own 4/15 | wrong 5/160
+harvest  front own 2/6 | core own 1/3 | wrong 4/48
+harvest  side  own 3/14 | core own 3/12 | wrong 1/112
+seen     all   own 1/30 | core own 1/22 | wrong 8/240
+seen     front own 0/1 | core own 0/0 | wrong 1/8
+seen     side  own 1/29 | core own 1/22 | wrong 7/232
+heldout  all   own 0/3 | core own 0/2 | wrong 1/24
+heldout  front own 0/3 | core own 0/2 | wrong 1/24
+funnel harvest (20): no_start 2 | no_decision 4 | short 1 | tracking 0 | other 8 | accepted 5
+funnel seen (30): no_start 3 | no_decision 7 | short 1 | tracking 0 | other 18 | accepted 1
+funnel heldout (3): no_start 0 | no_decision 0 | short 1 | tracking 0 | other 2 | accepted 0
+accepted own: harvest:messer_zwerchhau_01 harvest:messer_zwerchhau_02 harvest:rensen_zwerchhau_02 harvest:falcon_zwerchhau_01 harvest:tvg_retreat_01 seen:laurel_schielhau_02
+wrong: harvest:tvg_passfwd_01->advance harvest:tvg_passback_01->retreat harvest:tvg_advance_01->retreat harvest:harmon_krumphau_01->advance harvest:lynx_advance_01->retreat seen:drey_zwerchhau_01->schielhau seen:drey_krumphau_01->schielhau seen:laurel_zwerchhau_01->schielhau seen:vcu_krumphau_01->schielhau seen:bahff_schielhau_01->advance seen:bjorn_zornhau_02->retreat seen:stritschar_retreat_01->scheitelhau seen:swc_passfwd_01->schielhau heldout:rocket_schielhau_01->zornhau

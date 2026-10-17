@@ -1,0 +1,55 @@
+WebSocket server error: Port 24678 is already in use
+
+== front-lobo
+all master/experienced                         own    34/56  61%   wrong-drill     8/448   1.8%
+all beginner                                   own      0/0   0%   wrong-drill       0/0   0.0%
+  body avg_longlimb_female M/E                 own      6/9  67%   wrong-drill      0/72   0.0% 
+  body avg_longlimb_female B                   own      0/0   0%   wrong-drill       0/0   0.0%
+  body short_broad_female M/E                  own      6/8  75%   wrong-drill      0/64   0.0% 
+  body short_broad_female B                    own      0/0   0%   wrong-drill       0/0   0.0%
+  body short_slim_male M/E                     own      8/9  89%   wrong-drill      1/72   1.4% 
+  body short_slim_male B                       own      0/0   0%   wrong-drill       0/0   0.0%
+  body tall_heavy_male M/E                     own      5/9  56%   wrong-drill      1/72   1.4% 
+  body tall_heavy_male B                       own      0/0   0%   wrong-drill       0/0   0.0%
+  body tall_slim_male M/E                      own      8/9  89%   wrong-drill      0/72   0.0% 
+  body tall_slim_male B                        own      0/0   0%   wrong-drill       0/0   0.0%
+  body real:golden_falcon_demonstrator_credited_in_f M/E own      0/1   0%   wrong-drill       0/8   0.0% 
+  body real:golden_falcon_demonstrator_credited_in_f B own      0/0   0%   wrong-drill       0/0   0.0%
+  body real:tvg_steele_instructor M/E          own     1/10  10%   wrong-drill      6/80   7.5% 
+  body real:tvg_steele_instructor B            own      0/0   0%   wrong-drill       0/0   0.0%
+  body real:aaron_harmon M/E                   own      0/1   0%   wrong-drill       0/8   0.0% 
+  body real:aaron_harmon B                     own      0/0   0%   wrong-drill       0/0   0.0%
+  azimuth profile (±10°) M/E                   own     1/12   8%   wrong-drill      6/96   6.3% 
+  azimuth profile (±10°) B                     own      0/0   0%   wrong-drill       0/0   0.0%
+  azimuth frontal 60–90° M/E                   own    33/44  75%   wrong-drill     2/352   0.6% 
+  azimuth frontal 60–90° B                     own      0/0   0%   wrong-drill       0/0   0.0%
+source\selected       zornha scheit krumph zwerch schiel advanc retrea passin passin
+zornhau                  3/5    1/5    0/5    0/5    1/5    0/5    0/5    0/5    0/5
+scheitelhau              0/5    5/5    0/5    0/5    0/5    0/5    0/5    0/5    0/5
+krumphau                 0/6    0/6    4/6    0/6    0/6    0/6    0/6    0/6    0/6
+zwerchhau                0/6    0/6    0/6    3/6    0/6    0/6    0/6    0/6    0/6
+schielhau                0/5    0/5    0/5    0/5    4/5    0/5    0/5    0/5    0/5
+advance                  0/8    0/8    0/8    0/8    0/8    5/8    2/8    0/8    0/8
+retreat                  0/8    0/8    0/8    0/8    0/8    0/8    5/8    0/8    0/8
+passing-step-forward     0/8    0/8    0/8    0/8    0/8    2/8    1/8    2/8    0/8
+passing-step-backward    0/5    0/5    0/5    0/5    0/5    0/5    1/5    0/5    3/5
+
+== front-test
+all master/experienced                         own    12/18  67%   wrong-drill     0/144   0.0%
+all beginner                                   own      0/0   0%   wrong-drill       0/0   0.0%
+  body stocky_short_male M/E                   own      6/9  67%   wrong-drill      0/72   0.0% 
+  body stocky_short_male B                     own      0/0   0%   wrong-drill       0/0   0.0%
+  body tall_slim_female M/E                    own      6/9  67%   wrong-drill      0/72   0.0% 
+  body tall_slim_female B                      own      0/0   0%   wrong-drill       0/0   0.0%
+  azimuth frontal 60–90° M/E                   own    12/18  67%   wrong-drill     0/144   0.0% 
+  azimuth frontal 60–90° B                     own      0/0   0%   wrong-drill       0/0   0.0%
+source\selected       zornha scheit krumph zwerch schiel advanc retrea passin passin
+zornhau                  1/2    0/2    0/2    0/2    0/2    0/2    0/2    0/2    0/2
+scheitelhau              0/2    2/2    0/2    0/2    0/2    0/2    0/2    0/2    0/2
+krumphau                 0/2    0/2    1/2    0/2    0/2    0/2    0/2    0/2    0/2
+zwerchhau                0/2    0/2    0/2    1/2    0/2    0/2    0/2    0/2    0/2
+schielhau                0/2    0/2    0/2    0/2    2/2    0/2    0/2    0/2    0/2
+advance                  0/2    0/2    0/2    0/2    0/2    2/2    0/2    0/2    0/2
+retreat                  0/2    0/2    0/2    0/2    0/2    0/2    1/2    0/2    0/2
+passing-step-forward     0/2    0/2    0/2    0/2    0/2    0/2    0/2    1/2    0/2
+passing-step-backward    0/2    0/2    0/2    0/2    0/2    0/2    0/2    0/2    1/2
