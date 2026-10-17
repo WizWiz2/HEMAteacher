@@ -90,3 +90,8 @@ Renders: /workspace/hema/baf (gen_jobs_front.py, 81 jobs az 60-90, 9 drills, int
 - NEXT when baf done: node frontend/scripts/build-motion-fixture.mjs /tmp/fx_front.json.gz --base <main fixture> /workspace/hema/baf/raw:front:/workspace/hema/baf/clips
   then VARIANT=real:front VIEW=front python3 tools/build_real_fixture.py results/reps_front_all.txt clips.json /tmp/fx_front.json.gz frontend/test-fixtures/motion-poses.json.gz
   then build-motion-patterns, evaluate-motion-recognition (lobo,test,front-lobo,front-test), h_lopo VIEWOVR=front CFG=built (harvest/seen/heldout), CI, PR.
+- 2026-10-17 19:14 (UTC+5) RESTART after box rebuild: 69/81 mp4 present (done/ markers missing for zornhau short_slim_male_master_front,
+  zwerchhau tall_slim_female_master_az80 - mp4+raw exist, fine). claims/ reset; partial work dirs of retreat/passing-step-* tall_slim_female_beginner_az70 removed.
+  Lanes 1-3 + extract_loop restarted; vite :5210 restarted (npm install), tools/pp npm ci (puppeteer-core was missing).
+  passing-step-forward test tall_slim_female_beginner_az70 FAILS deterministically: RuntimeError "timeline too long: 5.98s" (needs frames/tempo fix) -> expect 80/81.
+  Remaining: retreat+passing-step-backward az70, all 9 stocky_short_male_beginner_az85 jobs.
