@@ -135,7 +135,11 @@ export function FollowAlongPage() {
             const a = anchor.current;
             anchor.current = a ? {x: a.x + (hip[0] - a.x) * .08, y: a.y + (hip[1] - a.y) * .08, s: a.s + (torso - a.s) * .08} : {x: hip[0], y: hip[1], s: torso};
             const g = anchor.current;
-            drawSkeleton(ctx.ctx, placePose(pose, [g.x, g.y], g.s, flip), {...REFERENCE_STYLE, width: 2.4});
+            // Hip on hip: the reference's own travel (a step with the strike) is removed, so arms and legs are compared
+            // where the user stands.
+            const refHip = hipOf(pose);
+            const origin: Point = [g.x - (flip ? -refHip[0] : refHip[0]) * g.s, g.y - refHip[1] * g.s];
+            drawSkeleton(ctx.ctx, placePose(pose, origin, g.s, flip), {...REFERENCE_STYLE, width: 2.4});
           }
         }
       }
@@ -242,6 +246,11 @@ export function FollowAlongPage() {
       <p>Повтор — это выход из стойки и возврат в неё (для ударов) или законченный шаг (для шагов). Сходство — расстояние между траекторией твоих кистей и стоп и эталонными повторами этого упражнения: 100 — совпадает, около 50 — заметно отличается. Сходство не определяет, какой именно удар ты сделал, и не проверяет клинок. Лучше всего камера видит, когда ты стоишь к ней лицом или вполоборота, целиком в кадре.</p>
     </details>
   </main>;
+}
+
+function hipOf(pose: Record<string, Point>): Point {
+  const l = pose.left_hip, r = pose.right_hip;
+  return l && r ? [(l[0] + r[0]) / 2, (l[1] + r[1]) / 2] : [0, 0];
 }
 
 function prepare(canvas: HTMLCanvasElement) {

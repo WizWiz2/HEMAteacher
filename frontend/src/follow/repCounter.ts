@@ -86,7 +86,9 @@ export function scoreSegment(drill: string, samples: TimedFeatures[], view: Moti
   // excludeBody: leave-one-body-out scoring in tests (a clip must not be compared with its own template).
   const own = model.templates.filter(t => t.drill === drill && t.body !== excludeBody);
   if (!own.length || samples.length < 4) return null;
-  const candidates = [samples];
+  // The recogniser smooths over 5 frames; at a low camera frame rate that would blur a half-second strike, so the
+  // segment is first brought to the rate the templates were built at.
+  const candidates = [resampleTimed(samples, 1000 / 30)];
   let bestScore: { d: number; seq: number[][]; part: TimedFeatures[] } | null = null;
   for (const part of candidates) {
     const seq = prepareSequence(part, model.pathScales, model.points);
@@ -104,6 +106,29 @@ export function scoreSegment(drill: string, samples: TimedFeatures[], view: Moti
   if (pathRatio < 0.45) hint = drill.endsWith("hau") ? "Движение короче, чем у эталона: доводи удар до конца" : "Шаг короче, чем у эталона";
   else if (tempo > 2.2) hint = "Медленнее эталона: попробуй слитно, без пауз";
   return { similarity: similarityScore(bestScore.d), distance: bestScore.d, tempo, hint, seq: bestScore.seq };
+}
+
+/** Linear re-sampling of feature samples onto a regular time grid (features missing on either side stay missing). */
+export function resampleTimed(samples: TimedFeatures[], stepMs: number): TimedFeatures[] {
+  if (samples.length < 2) return samples;
+  const t0 = samples[0].timeMs, t1 = samples.at(-1)!.timeMs;
+  const median = [...samples.slice(1).map((s, i) => s.timeMs - samples[i].timeMs)].sort((a, b) => a - b)[Math.floor((samples.length - 2) / 2)];
+  if (!(median > stepMs * 1.5)) return samples;
+  const out: TimedFeatures[] = [];
+  let k = 0;
+  for (let t = t0; t <= t1 + 1e-6; t += stepMs) {
+    while (k < samples.length - 2 && samples[k + 1].timeMs < t) k++;
+    const a = samples[k], b = samples[k + 1];
+    const r = b.timeMs > a.timeMs ? Math.min(1, Math.max(0, (t - a.timeMs) / (b.timeMs - a.timeMs))) : 0;
+    const fa = a.features, fb = b.features;
+    let features: Record<string, number> | undefined;
+    if (fa && fb) {
+      features = {};
+      for (const key of Object.keys(fa)) if (Number.isFinite(fa[key]) && Number.isFinite(fb[key])) features[key] = fa[key] + (fb[key] - fa[key]) * r;
+    } else features = r < 0.5 ? fa : fb;
+    out.push({ timeMs: Math.round(t), features });
+  }
+  return out;
 }
 
 interface Burst { startMs: number; baseline: number[]; samples: FollowSample[]; vectors: number[][]; far: number }
