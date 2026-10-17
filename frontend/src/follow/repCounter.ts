@@ -40,7 +40,7 @@ export const FOLLOW_SETTINGS = {
   homeRadius: 0.35,
   homeFloor: 0.08,
   minDurationMs: 200,
-  maxDurationMs: 6000,
+  maxDurationMs: 10000,
   preRollMs: 250,
   /** Longer gaps between pose frames (tracking lost) restart the counter. */
   maxGapMs: 700,
@@ -193,7 +193,12 @@ export class RepCounter {
       if (!this.rest) { this.phase = "waiting"; return null; }
       this.phase = "ready";
       if (dist(v, this.rest) > Math.max(st.onsetFloor, this.extent * st.onsetExtent)) {
-        const pre = this.history.filter(h => h.s.timeMs >= sample.timeMs - st.preRollMs);
+        // The repetition starts where the pose left the rest pose (the onset threshold is crossed only part-way into
+        // the windup), at least preRollMs back.
+        const rest = this.rest;
+        let from = this.history.length - 1;
+        while (from > 0 && (dist(this.history[from - 1].v, rest) >= stillRadius || this.history[from - 1].s.timeMs >= sample.timeMs - st.preRollMs)) from--;
+        const pre = this.history.slice(Math.max(0, from - 1));
         this.burst = { startMs: pre[0].s.timeMs, baseline: this.rest, samples: pre.map(h => h.s), vectors: pre.map(h => h.v), far: 0 };
         this.phase = "moving";
       } else if (settled && this.strike) this.rest = v; // slow drift of the guard while standing in it
@@ -219,7 +224,8 @@ export class RepCounter {
     if (b.far < this.extent * st.minExtent || sample.timeMs - b.startMs < st.minDurationMs) return null;
     // Strike part: from leaving the guard to the farthest point (+ a little), where the cut ends.
     const farIndex = b.vectors.reduce((best, x, i) => (dist(x, b.baseline) > dist(b.vectors[best], b.baseline) ? i : best), 0);
-    const strikePart = b.samples.slice(0, Math.min(b.samples.length, farIndex + 3));
+    const farTime = b.samples[farIndex].timeMs;
+    const strikePart = b.samples.filter(x => x.timeMs <= farTime + 150);
     return this.record(b, sample, [strikePart, b.samples]);
   }
 

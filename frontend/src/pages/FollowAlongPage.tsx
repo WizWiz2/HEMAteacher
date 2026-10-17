@@ -82,7 +82,7 @@ export function FollowAlongPage() {
     setFraming(prev => (prev === f.message ? prev : f.message));
     const usable = sample.motionUsable ?? sample.usable;
     const rep = counter.current.push({timeMs: sample.timeMs, features: usable ? sample.features : null});
-    if (import.meta.env.DEV) ((window as unknown as {__followDebug?: unknown[]}).__followDebug ??= []).push({t: sample.timeMs, usable, hx: sample.features?.action_hand_x, hy: sample.features?.action_hand_y, phase: counter.current.phase});
+    if (import.meta.env.DEV) ((window as unknown as {__followSamples?: unknown[]}).__followSamples ??= []).push({timeMs: sample.timeMs, features: usable ? sample.features : null});
     setPhase(prev => (prev === counter.current.phase ? prev : counter.current.phase));
     if (rep && sessionRef.current === "running") {
       setReps([...counter.current.reps]);
