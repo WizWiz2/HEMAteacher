@@ -243,7 +243,10 @@ export class RepCounter {
       if (settled && !this.strike && this.order(v)) this.footOrder = this.order(v);
       if (!this.rest) { this.phase = "waiting"; return null; }
       this.phase = "ready";
-      if (dist(v, this.rest) > Math.max(st.onsetFloor, this.extent * st.onsetExtent)) {
+      // Frontal strikes: a small cut can end closer to the guard than the onset distance; arriving in the end-of-cut
+      // zone starts the repetition too.
+      const heldCut = Math.max(this.extent * st.minExtentHeld, 1.5 * stillRadius);
+      if (dist(v, this.rest) > Math.max(st.onsetFloor, this.extent * st.onsetExtent) || (this.ends.length > 0 && dist(v, this.rest) >= heldCut && inEndZone(v, this.ends))) {
         // The repetition starts where the pose left the rest pose (the onset threshold is crossed only part-way into
         // the windup), at least preRollMs back.
         const rest = this.rest;
@@ -252,7 +255,7 @@ export class RepCounter {
         const pre = this.history.slice(Math.max(0, from - 1));
         this.burst = { startMs: pre[0].s.timeMs, baseline: this.rest, samples: pre.map(h => h.s), vectors: pre.map(h => h.v), far: 0, cut: false, left: false };
         this.phase = "moving";
-      } else if (settled && this.strike) { this.rest = v; this.restHeldMs = Math.max(this.restHeldMs, heldMs); } // slow drift of the guard while standing in it
+      } else if (settled && this.strike && (!this.ends.length || (looksLikeGuard(v, this.ends) && dist(v, this.rest) < stillRadius))) { this.rest = v; this.restHeldMs = Math.max(this.restHeldMs, heldMs); } // slow drift of the guard while standing in it (frontal: not into the start of the cut)
       return null;
     }
     const b = this.burst;
@@ -265,7 +268,7 @@ export class RepCounter {
     if (this.strike && this.ends.length) {
       if (!b.cut && dist(v, b.baseline) >= this.extent * st.minExtent && inEndZone(v, this.ends)) b.cut = true;
       // A small body / short cut: stopping in the end-of-cut zone counts as arriving, even below minExtent.
-      if (!b.cut && settled && inEndZone(v, this.ends) && dist(v, b.baseline) >= Math.max(this.extent * st.minExtentHeld, 2 * stillRadius)) b.cut = true;
+      if (!b.cut && settled && inEndZone(v, this.ends) && dist(v, b.baseline) >= Math.max(this.extent * st.minExtentHeld, 1.5 * stillRadius)) b.cut = true; // same as heldCut
       if (!b.left && (!looksLikeGuard(v, this.ends) || dist(v, b.baseline) >= this.extent * st.minExtentNoCut)) b.left = true;
       // Before the movement has got anywhere, a guard held longer than the one this burst started from is the real
       // guard: the burst started from a stop on the way (back from a cut, or a pause in the wind-up). Start over there.
@@ -281,7 +284,7 @@ export class RepCounter {
         if (!settled) return null;
         // Stopped back in guard without reaching the end of a cut, leaving the guard zone or travelling most of a typical
         // strike: shuffling or tracking noise, not a strike.
-        if (!b.left) { this.burst = null; this.rest = v; this.restHeldMs = heldMs; this.phase = "ready"; return null; }
+        if (!b.left || b.far < this.extent * st.minExtent) { this.burst = null; this.rest = v; this.restHeldMs = heldMs; this.phase = "ready"; return null; }
       }
       return this.endStrike(b, v, sample, settled && heldMs >= st.guardHoldMs && b.cut && looksLikeGuard(v, this.ends));
     }

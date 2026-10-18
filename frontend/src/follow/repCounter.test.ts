@@ -125,6 +125,27 @@ describe("follow-along repetition counter", () => {
     }
   });
 
+  it("counts every loop of a small frontal zornhau (live recording)", () => {
+    // short_slim front through the live pipeline (~6-7 fps), three runs of ~49-56 s on loop: the hands travel ~0.15-0.19, below minExtent;
+    // the cut ends with a hold in the end-of-cut zone. The first loop runs before the guard has been seen.
+    const runs: [string, number[]][] = [
+      // first sample in the end-of-cut zone, one per loop
+      ["follow-live-zornhau-short-slim-front", [13051, 21005, 29048, 37173, 45299]],
+      ["follow-live-zornhau-short-slim-front-2", [12951, 21051, 29106, 37003, 44959, 53074]],
+      // here a long wind-up settles right before the cut, whose end lies closer to that guard than the onset distance
+      ["follow-live-zornhau-short-slim-front-3", [12870, 20779, 28854, 37071, 45104, 52906]],
+    ];
+    for (const [name, arrivals] of runs) {
+      const counter = new RepCounter("zornhau", "front");
+      for (const s of loadFollowRecording(name)) counter.push({ timeMs: s.timeMs, features: (s.features as Record<string, number>) ?? null });
+      expect(counter.reps.length, name).toBe(arrivals.length);
+      for (const [i, t] of arrivals.entries()) {
+        expect(counter.reps[i].startMs, name).toBeLessThan(t);
+        expect(counter.reps[i].endMs, name).toBeGreaterThan(t);
+      }
+    }
+  });
+
   it("does not count short tracking spikes of the hands as frontal strikes", () => {
     const c = frontClips.find(x => x.drill === "zornhau")!;
     const still = featuresOf(c).find(x => x.features)!;
