@@ -5,7 +5,8 @@ import { useLivePose, type LiveSample } from "../live/useLivePose";
 import type { RawPose } from "../live/landmarks";
 import type { Facing } from "../live/normalize";
 import { RepCounter, summarize, type CounterPhase, type FollowRep, type FollowSummary } from "../follow/repCounter";
-import { REFERENCE_STYLE, drawSkeleton, loadReferences, loopProgress, placePose, poseAt, referenceKey, type Point, type ReferenceClip, type ReferenceSet } from "../follow/reference";
+import { REFERENCE_STYLE, drawSkeleton, loadReferences, loopProgress, placePose, poseAt, referenceKey, type ReferenceClip, type ReferenceSet } from "../follow/reference";
+import { bodyAnchor, containBox, followAnchor, placeGhost, type GhostAnchor } from "../follow/ghostAlign";
 import "../follow/follow.css";
 
 const STRIKES = ["zornhau", "zwerchhau", "schielhau", "scheitelhau", "krumphau"];
@@ -41,7 +42,7 @@ export function FollowAlongPage() {
   const refCanvas = useRef<HTMLCanvasElement>(null);
   const ghostCanvas = useRef<HTMLCanvasElement>(null);
   const startedAt = useRef(performance.now());
-  const anchor = useRef<{x: number; y: number; s: number} | null>(null);
+  const anchor = useRef<GhostAnchor | null>(null);
   const settings = useRef({drill, view, tempo, ghost, facing, sound});
   settings.current = {drill, view, tempo, ghost, facing, sound};
 
@@ -123,23 +124,11 @@ export function FollowAlongPage() {
       if (gc) {
         const ctx = prepare(gc);
         if (ctx && s.ghost && video && raw) {
-          const box = contentBox(video);
-          const l = (n: string) => raw.landmarks[n];
-          const ls = l("left_shoulder"), rs = l("right_shoulder"), lh = l("left_hip"), rh = l("right_hip");
-          if ([ls, rs, lh, rh].every(p => p && p.visibility > .5)) {
-            const hip: Point = [box.x + (lh!.x + rh!.x) / 2 * box.w, box.y + (lh!.y + rh!.y) / 2 * box.h];
-            const sh: Point = [box.x + (ls!.x + rs!.x) / 2 * box.w, box.y + (ls!.y + rs!.y) / 2 * box.h];
-            const torso = Math.hypot(sh[0] - hip[0], sh[1] - hip[1]);
-            // Slow anchor: the ghost follows where the user stands, not every sway of the hips.
-            const a = anchor.current;
-            anchor.current = a ? {x: a.x + (hip[0] - a.x) * .08, y: a.y + (hip[1] - a.y) * .08, s: a.s + (torso - a.s) * .08} : {x: hip[0], y: hip[1], s: torso};
-            const g = anchor.current;
-            // Hip on hip: the reference's own travel (a step with the strike) is removed, so arms and legs are compared
-            // where the user stands.
-            const refHip = hipOf(pose);
-            const origin: Point = [g.x - (flip ? -refHip[0] : refHip[0]) * g.s, g.y - refHip[1] * g.s];
-            drawSkeleton(ctx.ctx, placePose(pose, origin, g.s, flip), {...REFERENCE_STYLE, width: 2.4});
-          }
+          const box = containBox(video.clientWidth, video.clientHeight, video.videoWidth, video.videoHeight);
+          // Anchor on the user's hip centre and torso, updated once per pose sample and smoothed by pose time.
+          const body = bodyAnchor(raw.landmarks, box, raw.timestampMs);
+          if (body && body.t !== anchor.current?.t) anchor.current = followAnchor(anchor.current, body);
+          if (body && anchor.current) drawSkeleton(ctx.ctx, placeGhost(pose, anchor.current, flip), {...REFERENCE_STYLE, width: 2.4});
         }
       }
     };
@@ -248,11 +237,6 @@ export function FollowAlongPage() {
   </main>;
 }
 
-function hipOf(pose: Record<string, Point>): Point {
-  const l = pose.left_hip, r = pose.right_hip;
-  return l && r ? [(l[0] + r[0]) / 2, (l[1] + r[1]) / 2] : [0, 0];
-}
-
 function prepare(canvas: HTMLCanvasElement) {
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
@@ -272,11 +256,3 @@ function drawFloor(ctx: CanvasRenderingContext2D, w: number, y: number) {
   ctx.restore();
 }
 
-function contentBox(video: HTMLVideoElement) {
-  const elW = video.clientWidth, elH = video.clientHeight;
-  const vw = video.videoWidth || elW, vh = video.videoHeight || elH;
-  if (!elW || !elH || !vw || !vh) return {x: 0, y: 0, w: elW, h: elH};
-  const scale = Math.min(elW / vw, elH / vh);
-  const w = vw * scale, h = vh * scale;
-  return {x: (elW - w) / 2, y: (elH - h) / 2, w, h};
-}
