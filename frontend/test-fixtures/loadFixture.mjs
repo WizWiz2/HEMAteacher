@@ -11,3 +11,7 @@ export function loadMotionFixture() {
 export function loadDrills() {
   return JSON.parse(readFileSync(fileURLToPath(new URL("../public/content/drills.json", import.meta.url)), "utf8"));
 }
+/** Pose samples recorded from the app's live pipeline (fake webcam playing a rendered clip on loop). */
+export function loadFollowRecording(name) {
+  return JSON.parse(gunzipSync(readFileSync(fileURLToPath(new URL(`./${name}.json.gz`, import.meta.url)))).toString());
+}

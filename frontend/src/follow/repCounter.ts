@@ -38,6 +38,11 @@ export const FOLLOW_SETTINGS = {
   minExtent: 0.45,
   /** Frontal strikes that never reach the references' end-of-cut zone must travel this much to count. */
   minExtentNoCut: 0.7,
+  /** Frontal strikes: a pose held in the references' end-of-cut zone at least this far from the guard is the end of a
+   *  (short) cut, whatever its amplitude. */
+  minExtentHeld: 0.2,
+  /** Frontal strikes that never reach the end-of-cut zone must spend this long beyond half of their excursion. */
+  minAwayMs: 200,
   /** Strikes: back within this fraction of the strike's excursion from the guard = back in guard. */
   homeRadius: 0.35,
   homeFloor: 0.08,
@@ -48,6 +53,8 @@ export const FOLLOW_SETTINGS = {
   maxGapMs: 700,
   /** Strikes: a movement scoring this much better played backwards is a return, not a repetition. */
   returnMargin: 15,
+  /** Frontal strikes (returns retrace the cut closely in the image plane): a smaller margin is enough. */
+  returnMarginFront: 5,
   /** Strikes: a guard-like pose held this long after the cut ends the repetition even away from where it started. */
   guardHoldMs: 700,
 };
@@ -167,7 +174,7 @@ export function resampleTimed(samples: TimedFeatures[], stepMs: number): TimedFe
   return out;
 }
 
-interface Burst { startMs: number; baseline: number[]; samples: FollowSample[]; vectors: number[][]; far: number; /** Strikes: has reached the end-of-cut zone. */ cut: boolean; /** Strikes: has left the guard zone or travelled minExtentNoCut. */ left: boolean }
+interface Burst { startMs: number; baseline: number[]; samples: FollowSample[]; vectors: number[][]; far: number; /** Strikes: has reached the end-of-cut zone. */ cut: boolean; /** Strikes: has left the guard zone or travelled minExtentNoCut. */ left: boolean; dir?: { key: number; forward: number; backward: number } }
 
 export class RepCounter {
   readonly drill: string;
@@ -236,7 +243,10 @@ export class RepCounter {
       if (settled && !this.strike && this.order(v)) this.footOrder = this.order(v);
       if (!this.rest) { this.phase = "waiting"; return null; }
       this.phase = "ready";
-      if (dist(v, this.rest) > Math.max(st.onsetFloor, this.extent * st.onsetExtent)) {
+      // Frontal strikes: a small cut can end closer to the guard than the onset distance; arriving in the end-of-cut
+      // zone starts the repetition too.
+      const heldCut = Math.max(this.extent * st.minExtentHeld, 1.5 * stillRadius);
+      if (dist(v, this.rest) > Math.max(st.onsetFloor, this.extent * st.onsetExtent) || (this.ends.length > 0 && dist(v, this.rest) >= heldCut && inEndZone(v, this.ends))) {
         // The repetition starts where the pose left the rest pose (the onset threshold is crossed only part-way into
         // the windup), at least preRollMs back.
         const rest = this.rest;
@@ -245,7 +255,7 @@ export class RepCounter {
         const pre = this.history.slice(Math.max(0, from - 1));
         this.burst = { startMs: pre[0].s.timeMs, baseline: this.rest, samples: pre.map(h => h.s), vectors: pre.map(h => h.v), far: 0, cut: false, left: false };
         this.phase = "moving";
-      } else if (settled && this.strike) { this.rest = v; this.restHeldMs = Math.max(this.restHeldMs, heldMs); } // slow drift of the guard while standing in it
+      } else if (settled && this.strike && (!this.ends.length || (looksLikeGuard(v, this.ends) && dist(v, this.rest) < stillRadius))) { this.rest = v; this.restHeldMs = Math.max(this.restHeldMs, heldMs); } // slow drift of the guard while standing in it (frontal: not into the start of the cut)
       return null;
     }
     const b = this.burst;
@@ -257,10 +267,15 @@ export class RepCounter {
     }
     if (this.strike && this.ends.length) {
       if (!b.cut && dist(v, b.baseline) >= this.extent * st.minExtent && inEndZone(v, this.ends)) b.cut = true;
+      // A small body / short cut: stopping in the end-of-cut zone counts as arriving, even below minExtent.
+      if (!b.cut && settled && inEndZone(v, this.ends) && dist(v, b.baseline) >= Math.max(this.extent * st.minExtentHeld, 1.5 * stillRadius)) b.cut = true; // same as heldCut
       if (!b.left && (!looksLikeGuard(v, this.ends) || dist(v, b.baseline) >= this.extent * st.minExtentNoCut)) b.left = true;
       // Before the movement has got anywhere, a guard held longer than the one this burst started from is the real
       // guard: the burst started from a stop on the way (back from a cut, or a pause in the wind-up). Start over there.
       if (!b.cut && settled && heldMs > this.restHeldMs && dist(v, b.baseline) > stillRadius && looksLikeGuard(v, this.ends)) {
+        // ...unless the movement so far was a whole cut and its way back (a body whose end of the cut lies close to its
+        // guard never enters the end zone): count it and take this guard for the next one.
+        if (b.far >= this.extent * st.minExtent && this.direction(b).forward >= this.direction(b).backward + st.returnMarginFront) return this.endStrike(b, v, sample, true);
         this.burst = null; this.rest = v; this.restHeldMs = heldMs; this.phase = "ready"; return null;
       }
       // Passing back through the guard before the cut has arrived (krumphau, zwerchhau wind-ups) does not end the
@@ -269,7 +284,7 @@ export class RepCounter {
         if (!settled) return null;
         // Stopped back in guard without reaching the end of a cut, leaving the guard zone or travelling most of a typical
         // strike: shuffling or tracking noise, not a strike.
-        if (!b.left) { this.burst = null; this.rest = v; this.restHeldMs = heldMs; this.phase = "ready"; return null; }
+        if (!b.left || b.far < this.extent * st.minExtent) { this.burst = null; this.rest = v; this.restHeldMs = heldMs; this.phase = "ready"; return null; }
       }
       return this.endStrike(b, v, sample, settled && heldMs >= st.guardHoldMs && b.cut && looksLikeGuard(v, this.ends));
     }
@@ -285,19 +300,35 @@ export class RepCounter {
     // Back in guard. The next repetition starts from the guard the body settles into now (re-established on the
     // next pause), so the tail of the return cannot start a new repetition.
     this.burst = null; this.rest = null; this.phase = "waiting";
-    if (b.far < this.extent * st.minExtent || sample.timeMs - b.startMs < st.minDurationMs) return null;
+    if ((!b.cut && b.far < this.extent * st.minExtent) || sample.timeMs - b.startMs < st.minDurationMs) return null;
+    if (!b.cut && this.ends.length) {
+      // Frontal strike that never arrived at an end of cut: it must have been away from the guard for a while (a
+      // tracking spike of a few frames is not a strike).
+      let awayMs = 0;
+      for (let i = 1; i < b.samples.length; i++) if (dist(b.vectors[i], b.baseline) > b.far / 2) awayMs += b.samples[i].timeMs - b.samples[i - 1].timeMs;
+      if (awayMs < st.minAwayMs) return null;
+    }
     // Strike part: from leaving the guard to the farthest point (+ a little), where the cut ends.
     const farIndex = b.vectors.reduce((best, x, i) => (dist(x, b.baseline) > dist(b.vectors[best], b.baseline) ? i : best), 0);
     const farTime = b.samples[farIndex].timeMs;
     const strikePart = b.samples.filter(x => x.timeMs <= farTime + 150);
     // A way back that retraces the cut (krumphau, zwerchhau returns go back up over the head) matches the references
     // far better played backwards: it is the return to a guard the counter had not seen, not a repetition.
+    const { forward, backward } = this.direction(b, strikePart);
+    if (backward >= forward + (this.ends.length ? st.returnMarginFront : st.returnMargin)) { this.returns++; return null; }
+    return this.record(b, sample, [strikePart, b.samples]);
+  }
+
+  /** Similarity of the burst played forwards (whole or up to the cut) and backwards. */
+  private direction(b: Burst, strikePart?: FollowSample[]): { forward: number; backward: number } {
+    const key = b.samples.length * 2 + (strikePart ? 1 : 0);
+    if (b.dir?.key === key) return b.dir;
     const timed = (list: FollowSample[]) => list.map(s => ({ timeMs: s.timeMs, features: s.features ?? undefined }));
     const t1 = b.samples.at(-1)!.timeMs;
-    const forward = Math.max(...[strikePart, b.samples].map(p => (p.length >= 4 ? scoreSegment(this.drill, timed(p), this.view)?.similarity ?? 0 : 0)));
+    const forward = Math.max(...[strikePart ?? [], b.samples].map(p => (p.length >= 4 ? scoreSegment(this.drill, timed(p), this.view)?.similarity ?? 0 : 0)));
     const backward = scoreSegment(this.drill, timed([...b.samples].reverse().map(s => ({ ...s, timeMs: t1 - s.timeMs }))), this.view)?.similarity ?? 0;
-    if (backward >= forward + st.returnMargin) { this.returns++; return null; }
-    return this.record(b, sample, [strikePart, b.samples]);
+    b.dir = { key, forward, backward };
+    return b.dir;
   }
 
   private endStep(b: Burst, v: number[], sample: FollowSample, settled: boolean): FollowRep | null {
