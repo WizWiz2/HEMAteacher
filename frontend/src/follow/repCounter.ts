@@ -78,6 +78,28 @@ export function similarityScore(distance: number): number {
   return Math.round(100 / (1 + r * r));
 }
 
+/** Strikes: each template's start pose (the guard) and its farthest pose (where the cut ends), in the counter's channels. */
+export function strikeEnds(drill: string, view: MotionView): { guard: number[]; end: number[] }[] {
+  const pattern = motionPatternFor(drill, view);
+  // Only facing the camera do the hands clearly separate guard and end of the cut (they cross the body); in profile
+  // a high guard and an extended cut overlap too much across bodies and camera angles to tell apart reliably.
+  if (!pattern || !isStrike(drill) || view !== "front") return [];
+  const idx = counterFeatures(drill, view).map(f => pattern.features.indexOf(f));
+  const pick = (v: number[]) => idx.map(i => v[i]);
+  return pattern.templates.map(t => {
+    const guard = pick(t.frames[0]);
+    const end = t.frames.map(pick).reduce((best, v) => (dist(v, guard) > dist(best, guard) ? v : best), guard);
+    return { guard, end };
+  });
+}
+
+/** Strikes: is a held pose the guard (nearer to some template's start pose than to any template's end pose)? A pose held at
+ *  the end of the cut must not become the guard, or every later "repetition" would be return + guard + cut. */
+export function looksLikeGuard(v: number[], ends: { guard: number[]; end: number[] }[]): boolean {
+  if (!ends.length) return true;
+  return Math.min(...ends.map(e => dist(v, e.guard))) <= Math.min(...ends.map(e => dist(v, e.end)));
+}
+
 export interface RepScore { similarity: number; distance: number; tempo: number; hint: string | null; seq: number[][] }
 
 /** Score one segment against the selected drill (best over the whole segment and its strike-only part). */
@@ -150,6 +172,7 @@ export class RepCounter {
   private burst: Burst | null = null;
   /** Passing steps: fore/aft order of the feet in the last clearly split stance (+1/-1, 0 = not seen yet). */
   private footOrder = 0;
+  private ends: { guard: number[]; end: number[] }[];
 
   constructor(drill: string, view: MotionView = "front", private settings = FOLLOW_SETTINGS) {
     this.drill = drill;
@@ -158,6 +181,7 @@ export class RepCounter {
     if (!this.features.length) throw new Error(`no motion pattern for ${drill}`);
     this.extent = drillExtent(drill, view);
     this.strike = isStrike(drill);
+    this.ends = strikeEnds(drill, view);
   }
 
   reset() {
@@ -188,7 +212,10 @@ export class RepCounter {
 
     if (!this.burst) {
       // Strikes keep the first guard until a repetition ends (a pause mid-strike must not become the new guard).
-      if (settled && (!this.strike || !this.rest)) this.rest = v;
+      if (settled && !this.strike) this.rest = v;
+      // Strikes: the guard is the first held pose that looks like a guard; a pose held at the end of the cut
+      // (counting started mid-movement, or a long hold before the return) is skipped.
+      if (settled && this.strike && !this.rest && looksLikeGuard(v, this.ends)) this.rest = v;
       if (settled && !this.strike && this.order(v)) this.footOrder = this.order(v);
       if (!this.rest) { this.phase = "waiting"; return null; }
       this.phase = "ready";

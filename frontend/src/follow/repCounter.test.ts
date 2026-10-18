@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { loadMotionFixture } from "../../test-fixtures/loadFixture.mjs";
 import { CONTINUOUS_DRILLS, clipFeatures, clipView, type FixtureClip } from "../drill/motionTraining";
 import type { TimedFeatures } from "../drill/motionRecognition";
-import { RepCounter, isStrike, resampleTimed, scoreSegment, similarityScore, summarize, type FollowRep } from "./repCounter";
+import { RepCounter, isStrike, looksLikeGuard, resampleTimed, strikeEnds, scoreSegment, similarityScore, summarize, type FollowRep } from "./repCounter";
 
 const fixture = loadMotionFixture();
 const features = new Map<string, TimedFeatures[]>();
@@ -55,6 +55,36 @@ describe("follow-along repetition counter", () => {
       return count(c, twice).length === 2;
     });
     expect(ok.length / clips.length).toBeGreaterThanOrEqual(0.75);
+  });
+
+  it("does not take a pose held at the end of a strike for the guard (counting started mid-loop, frontal)", () => {
+    // Regression: a looping clip joined at the hold after the cut made the counter lock onto the end pose as the
+    // guard, so every repetition was return + guard + cut and scored ~25 instead of ~90 (2 of 35 clips were fine).
+    const strikes = frontClips.filter(c => isStrike(c.drill));
+    const results = strikes.map(c => {
+      const s = featuresOf(c).filter(x => x.features), span = s.at(-1)!.timeMs - s[0].timeMs + 33;
+      const normal = count(c, s), best = normal.length ? Math.max(...normal.map(r => r.similarity)) : 0;
+      const join = c.move![1] + 200;
+      const loops = [0, 1, 2, 3].flatMap(k => s.map(x => ({ ...x, timeMs: x.timeMs + k * span })));
+      const reps = count(c, loops.filter(x => x.timeMs >= join).map(x => ({ ...x, timeMs: x.timeMs - join })));
+      // Every counted repetition scores like the clip started from the guard (no return + guard + cut segments).
+      return { c, reps, ok: reps.length >= 2 && Math.min(...reps.map(r => r.similarity)) >= best - 10 };
+    });
+    const ok = (list: typeof results) => list.filter(r => r.ok).length / list.length;
+    expect(ok(results)).toBeGreaterThanOrEqual(0.7);
+    for (const drill of ["zornhau", "schielhau"]) expect(ok(results.filter(r => r.c.drill === drill)), drill).toBe(1);
+    const clip = results.find(r => r.c.id === "front:train/zornhau/tall_heavy_male_experienced_front")!;
+    expect(Math.min(...clip.reps.map(r => r.similarity))).toBeGreaterThanOrEqual(85);
+  });
+
+  it("only takes a guard-like pose as the guard (frontal strikes)", () => {
+    for (const drill of ["zornhau", "zwerchhau", "schielhau", "scheitelhau", "krumphau"]) {
+      const ends = strikeEnds(drill, "front");
+      expect(ends.length, drill).toBeGreaterThan(0);
+      for (const e of ends) { expect(looksLikeGuard(e.guard, ends), drill).toBe(true); expect(looksLikeGuard(e.end, ends), drill).toBe(false); }
+    }
+    expect(strikeEnds("zornhau", "side")).toEqual([]);
+    expect(strikeEnds("advance", "front")).toEqual([]);
   });
 
   it("does not count standing still with landmark jitter", () => {
