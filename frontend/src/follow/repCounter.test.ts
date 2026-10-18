@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadMotionFixture } from "../../test-fixtures/loadFixture.mjs";
+import { loadFollowRecording, loadMotionFixture } from "../../test-fixtures/loadFixture.mjs";
 import { CONTINUOUS_DRILLS, clipFeatures, clipView, type FixtureClip } from "../drill/motionTraining";
 import type { TimedFeatures } from "../drill/motionRecognition";
 import { RepCounter, inEndZone, isStrike, looksLikeGuard, resampleTimed, strikeEnds, scoreSegment, similarityScore, summarize, type FollowRep } from "./repCounter";
@@ -72,11 +72,11 @@ describe("follow-along repetition counter", () => {
       // Every counted repetition scores like the clip started from the guard (no return + guard + cut segments).
       return { c, counted: normal.length > 0, ok: reps.length >= 2 && Math.min(...reps.map(r => r.similarity)) >= best - 10 };
     });
-    // Clips the counter does not count from a normal start either (a movement below minExtent) say nothing here.
-    const counted = results.filter(r => r.counted);
-    expect(counted.length).toBeGreaterThanOrEqual(strikes.length - 2);
+    // Every clip counts from a normal start too (short / small cuts included), so none is skipped.
+    expect(results.filter(r => !r.counted).map(r => r.c.id)).toEqual([]);
+    const counted = results;
     const ok = (list: typeof results) => list.filter(r => r.ok).length / list.length;
-    expect(ok(counted)).toBeGreaterThanOrEqual(0.9);
+    expect(ok(counted)).toBeGreaterThanOrEqual(0.95);
     for (const drill of ["zornhau", "zwerchhau", "schielhau", "scheitelhau", "krumphau"]) {
       const clips = counted.filter(r => r.c.drill === drill);
       expect(clips.filter(r => r.ok).length, drill).toBeGreaterThanOrEqual(clips.length - 1);
@@ -107,6 +107,36 @@ describe("follow-along repetition counter", () => {
     if (falcon) expect(count(falcon).length).toBe(1);
     expect(strikeEnds("zornhau", "side")).toEqual([]);
     expect(strikeEnds("advance", "front")).toEqual([]);
+  });
+
+  it("counts every loop of a frontal krumphau whose end of cut lies next to the guard (live recording)", () => {
+    // tall_heavy front through the app's live pipeline, ~30 s on loop: guard -> cut -> hold -> return over the head ->
+    // rest -> drift back to guard. Hand positions at the guard, the end of the cut and the rest after the return are
+    // within ~0.15 of each other, so the cut never reaches the end zone; the returns must still not count.
+    const live = loadFollowRecording("follow-live-krumphau-tall-heavy-front");
+    const counter = new RepCounter("krumphau", "front");
+    for (const s of live) counter.push({ timeMs: s.timeMs, features: (s.features as Record<string, number>) ?? null });
+    // Cuts start at ~8.9, 15.0, 20.9 and 27.0 s (the one at ~2.8 s is before the guard has been seen).
+    const cutStarts = [8900, 15050, 20900, 27050];
+    expect(counter.reps.length).toBe(cutStarts.length);
+    for (const [i, t] of cutStarts.entries()) {
+      expect(counter.reps[i].startMs).toBeLessThan(t);
+      expect(counter.reps[i].endMs).toBeGreaterThan(t);
+    }
+  });
+
+  it("does not count short tracking spikes of the hands as frontal strikes", () => {
+    const c = frontClips.find(x => x.drill === "zornhau")!;
+    const still = featuresOf(c).find(x => x.features)!;
+    let seed = 11;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647 - 0.5) * 0.02;
+    // Two-frame jumps of both hands every 1.5 s on top of landmark jitter.
+    const samples = Array.from({ length: 600 }, (_, i) => ({
+      timeMs: i * 33,
+      features: Object.fromEntries(Object.entries(still.features!).map(([k, v]) =>
+        [k, v + rnd() + (k.startsWith("action_hand") && i > 30 && i % 45 < 2 ? (k.endsWith("y") ? 0.25 : 0.15) : 0)])),
+    }));
+    for (const drill of ["zornhau", "zwerchhau", "schielhau", "scheitelhau", "krumphau"]) expect(count(c, samples, drill).length, drill).toBe(0);
   });
 
   it("does not count standing still with landmark jitter", () => {
