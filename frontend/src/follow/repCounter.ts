@@ -46,6 +46,8 @@ export const FOLLOW_SETTINGS = {
   preRollMs: 250,
   /** Longer gaps between pose frames (tracking lost) restart the counter. */
   maxGapMs: 700,
+  /** Strikes: a movement scoring this much better played backwards is a return, not a repetition. */
+  returnMargin: 15,
   /** Strikes: a guard-like pose held this long after the cut ends the repetition even away from where it started. */
   guardHoldMs: 700,
 };
@@ -90,16 +92,11 @@ export function strikeEnds(drill: string, view: MotionView): { guard: number[]; 
   if (!pattern || !isStrike(drill) || view !== "front") return [];
   const idx = counterFeatures(drill, view).map(f => pattern.features.indexOf(f));
   const pick = (v: number[]) => idx.map(i => v[i]);
-  const shapes = pattern.templates.map(t => {
+  // Every reference counts, including one cutting from the other side (zwerchhau can be cut from either side).
+  return pattern.templates.map(t => {
     const guard = pick(t.frames[0]);
     const end = pick(t.frames[t.frames.length - 1]);
     return { guard, end };
-  });
-  // A reference cutting from the other side (its guard is nearer to the others' end of the cut than to their guards)
-  // would make the end of a cut look like a guard: left out.
-  return shapes.filter((s, i) => {
-    const others = shapes.filter((_, j) => j !== i);
-    return others.length < 2 || Math.min(...others.map(o => dist(s.guard, o.guard))) <= Math.min(...others.map(o => dist(s.guard, o.end)));
   });
 }
 
@@ -261,8 +258,8 @@ export class RepCounter {
     if (this.strike && this.ends.length) {
       if (!b.cut && dist(v, b.baseline) >= this.extent * st.minExtent && inEndZone(v, this.ends)) b.cut = true;
       if (!b.left && (!looksLikeGuard(v, this.ends) || dist(v, b.baseline) >= this.extent * st.minExtentNoCut)) b.left = true;
-      // Before the cut has arrived, a guard held longer than the one this burst started from is the real guard: the
-      // burst started from a stop on the way (back from a cut, or a pause in the wind-up). Start over from there.
+      // Before the movement has got anywhere, a guard held longer than the one this burst started from is the real
+      // guard: the burst started from a stop on the way (back from a cut, or a pause in the wind-up). Start over there.
       if (!b.cut && settled && heldMs > this.restHeldMs && dist(v, b.baseline) > stillRadius && looksLikeGuard(v, this.ends)) {
         this.burst = null; this.rest = v; this.restHeldMs = heldMs; this.phase = "ready"; return null;
       }
@@ -293,6 +290,13 @@ export class RepCounter {
     const farIndex = b.vectors.reduce((best, x, i) => (dist(x, b.baseline) > dist(b.vectors[best], b.baseline) ? i : best), 0);
     const farTime = b.samples[farIndex].timeMs;
     const strikePart = b.samples.filter(x => x.timeMs <= farTime + 150);
+    // A way back that retraces the cut (krumphau, zwerchhau returns go back up over the head) matches the references
+    // far better played backwards: it is the return to a guard the counter had not seen, not a repetition.
+    const timed = (list: FollowSample[]) => list.map(s => ({ timeMs: s.timeMs, features: s.features ?? undefined }));
+    const t1 = b.samples.at(-1)!.timeMs;
+    const forward = Math.max(...[strikePart, b.samples].map(p => (p.length >= 4 ? scoreSegment(this.drill, timed(p), this.view)?.similarity ?? 0 : 0)));
+    const backward = scoreSegment(this.drill, timed([...b.samples].reverse().map(s => ({ ...s, timeMs: t1 - s.timeMs }))), this.view)?.similarity ?? 0;
+    if (backward >= forward + st.returnMargin) { this.returns++; return null; }
     return this.record(b, sample, [strikePart, b.samples]);
   }
 

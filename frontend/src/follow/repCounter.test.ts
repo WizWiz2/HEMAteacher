@@ -102,8 +102,9 @@ describe("follow-along repetition counter", () => {
     // The top of the wind-up is not the end of the cut; the end of each reference cut is.
     for (const drill of ["zwerchhau", "krumphau"]) for (const e of strikeEnds(drill, "front")) expect(inEndZone(e.end, strikeEnds(drill, "front")), drill).toBe(true);
     expect(inEndZone([-0.55, 1.6], strikeEnds("zwerchhau", "front"))).toBe(false);
-    // The zwerchhau reference cutting from the other side is left out of the guard check.
-    expect(strikeEnds("zwerchhau", "front").every(e => e.guard[0] < 0)).toBe(true);
+    // A zwerchhau cut from the other side (a real reference) keeps its guard: the only real frontal zwerchhau counts.
+    const falcon = fixture.clips.find(c => c.id === "real-front/zwerchhau/falcon_zwerchhau_01_r1");
+    if (falcon) expect(count(falcon).length).toBe(1);
     expect(strikeEnds("zornhau", "side")).toEqual([]);
     expect(strikeEnds("advance", "front")).toEqual([]);
   });
