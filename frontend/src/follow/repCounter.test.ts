@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { loadMotionFixture } from "../../test-fixtures/loadFixture.mjs";
 import { CONTINUOUS_DRILLS, clipFeatures, clipView, type FixtureClip } from "../drill/motionTraining";
 import type { TimedFeatures } from "../drill/motionRecognition";
-import { RepCounter, isStrike, looksLikeGuard, resampleTimed, strikeEnds, scoreSegment, similarityScore, summarize, type FollowRep } from "./repCounter";
+import { RepCounter, inEndZone, isStrike, looksLikeGuard, resampleTimed, strikeEnds, scoreSegment, similarityScore, summarize, type FollowRep } from "./repCounter";
 
 const fixture = loadMotionFixture();
 const features = new Map<string, TimedFeatures[]>();
@@ -60,6 +60,8 @@ describe("follow-along repetition counter", () => {
   it("does not take a pose held at the end of a strike for the guard (counting started mid-loop, frontal)", () => {
     // Regression: a looping clip joined at the hold after the cut made the counter lock onto the end pose as the
     // guard, so every repetition was return + guard + cut and scored ~25 instead of ~90 (2 of 35 clips were fine).
+    // Joining also lands on stops inside the movement (a pause in the zwerchhau wind-up, a stop on the way back) and
+    // wind-ups that pass back through the guard (krumphau, zwerchhau): those must not split or shift the repetition.
     const strikes = frontClips.filter(c => isStrike(c.drill));
     const results = strikes.map(c => {
       const s = featuresOf(c).filter(x => x.features), span = s.at(-1)!.timeMs - s[0].timeMs + 33;
@@ -68,13 +70,27 @@ describe("follow-along repetition counter", () => {
       const loops = [0, 1, 2, 3].flatMap(k => s.map(x => ({ ...x, timeMs: x.timeMs + k * span })));
       const reps = count(c, loops.filter(x => x.timeMs >= join).map(x => ({ ...x, timeMs: x.timeMs - join })));
       // Every counted repetition scores like the clip started from the guard (no return + guard + cut segments).
-      return { c, reps, ok: reps.length >= 2 && Math.min(...reps.map(r => r.similarity)) >= best - 10 };
+      return { c, counted: normal.length > 0, ok: reps.length >= 2 && Math.min(...reps.map(r => r.similarity)) >= best - 10 };
     });
+    // Clips the counter does not count from a normal start either (a movement below minExtent) say nothing here.
+    const counted = results.filter(r => r.counted);
+    expect(counted.length).toBeGreaterThanOrEqual(strikes.length - 2);
     const ok = (list: typeof results) => list.filter(r => r.ok).length / list.length;
-    expect(ok(results)).toBeGreaterThanOrEqual(0.7);
-    for (const drill of ["zornhau", "schielhau"]) expect(ok(results.filter(r => r.c.drill === drill)), drill).toBe(1);
-    const clip = results.find(r => r.c.id === "front:train/zornhau/tall_heavy_male_experienced_front")!;
-    expect(Math.min(...clip.reps.map(r => r.similarity))).toBeGreaterThanOrEqual(85);
+    expect(ok(counted)).toBeGreaterThanOrEqual(0.9);
+    for (const drill of ["zornhau", "zwerchhau", "schielhau", "scheitelhau", "krumphau"]) {
+      const clips = counted.filter(r => r.c.drill === drill);
+      expect(clips.filter(r => r.ok).length, drill).toBeGreaterThanOrEqual(clips.length - 1);
+    }
+    for (const drill of ["zornhau", "schielhau"]) expect(ok(counted.filter(r => r.c.drill === drill)), drill).toBe(1);
+  });
+
+  it("scores the whole frontal krumphau / zwerchhau cut, not just the wind-up through the guard", () => {
+    for (const drill of ["krumphau", "zwerchhau"]) {
+      const clips = frontClips.filter(c => c.drill === drill);
+      const sims = clips.map(c => count(c)).filter(r => r.length === 1).map(r => r[0].similarity);
+      expect(sims.length, drill).toBeGreaterThanOrEqual(clips.length - 1);
+      expect(median(sims), drill).toBeGreaterThanOrEqual(85);
+    }
   });
 
   it("only takes a guard-like pose as the guard (frontal strikes)", () => {
@@ -83,6 +99,11 @@ describe("follow-along repetition counter", () => {
       expect(ends.length, drill).toBeGreaterThan(0);
       for (const e of ends) { expect(looksLikeGuard(e.guard, ends), drill).toBe(true); expect(looksLikeGuard(e.end, ends), drill).toBe(false); }
     }
+    // The top of the wind-up is not the end of the cut; the end of each reference cut is.
+    for (const drill of ["zwerchhau", "krumphau"]) for (const e of strikeEnds(drill, "front")) expect(inEndZone(e.end, strikeEnds(drill, "front")), drill).toBe(true);
+    expect(inEndZone([-0.55, 1.6], strikeEnds("zwerchhau", "front"))).toBe(false);
+    // The zwerchhau reference cutting from the other side is left out of the guard check.
+    expect(strikeEnds("zwerchhau", "front").every(e => e.guard[0] < 0)).toBe(true);
     expect(strikeEnds("zornhau", "side")).toEqual([]);
     expect(strikeEnds("advance", "front")).toEqual([]);
   });
