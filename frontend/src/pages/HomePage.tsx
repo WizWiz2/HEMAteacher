@@ -34,12 +34,18 @@ export function HomePage() {
         <span className="rubric">Ars Longi Gladii</span>
         <h1>HEMA Trainer</h1>
         <p>
-          Повтори контрольные позиции перед камерой. Приложение показывает крупную подсказку,
-          проговаривает её вслух и автоматически переводит к следующей фазе.
+          Тренировка длинного меча перед камерой. Начни с «Повторяй за эталоном»: повторяй удары и шаги
+          за мастером, приложение считает повторы. Или разминай удары по кресту Мейера.
         </p>
       </section>
 
       {error && <p className="error">{error}</p>}
+
+      <Link className="card manuscript-card" to="/follow">
+        <div className="card-top"><div><span className="rubric">Nachmachen · за мастером</span><h2>Повторяй за эталоном</h2></div><span className="badge">9 движений</span></div>
+        <p>Эталон двигается по кругу в выбранном темпе, ты повторяешь перед камерой. Приложение считает повторы и показывает сходство с эталоном.</p>
+        <span className="start-rune">Начать тренировку →</span>
+      </Link>
 
       <Link className="card manuscript-card" to="/meyer">
         <div className="card-top"><div><span className="rubric">Vier Blössen · четыре открытия</span><h2>Крест Мейера</h2></div><span className="badge">4 режима</span></div>
@@ -47,11 +53,10 @@ export function HomePage() {
         <span className="start-rune">Открыть квадрат →</span>
       </Link>
 
-      <Link className="card manuscript-card" to="/follow">
-        <div className="card-top"><div><span className="rubric">Nachmachen · за мастером</span><h2>Повторяй за эталоном</h2></div><span className="badge">9 движений</span></div>
-        <p>Эталон двигается по кругу в выбранном темпе, ты повторяешь перед камерой. Приложение считает повторы и показывает сходство с эталоном.</p>
-        <span className="start-rune">Начать тренировку →</span>
-      </Link>
+      <section className="library-section">
+        <h2>Отдельные упражнения</h2>
+        <p>Стойки, шаги и удары по одному: встань перед камерой, приложение ведёт по фазам и подсказывает голосом.</p>
+      </section>
 
       {groups.map((group) => group.items.length > 0 && (
         <section key={group.id} className="library-section">
