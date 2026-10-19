@@ -118,10 +118,14 @@ describe("follow-along repetition counter", () => {
     for (const s of live) counter.push({ timeMs: s.timeMs, features: (s.features as Record<string, number>) ?? null });
     // Cuts start at ~8.9, 15.0, 20.9 and 27.0 s (the one at ~2.8 s is before the guard has been seen).
     const cutStarts = [8900, 15050, 20900, 27050];
+    // The hands come down at the end of each cut at (first sample below the cut level after the wind-up):
+    const arrivals = [9587, 15543, 21588, 27903];
     expect(counter.reps.length).toBe(cutStarts.length);
     for (const [i, t] of cutStarts.entries()) {
       expect(counter.reps[i].startMs).toBeLessThan(t);
       expect(counter.reps[i].endMs).toBeGreaterThan(t);
+      // Credited where the cut stops, not after the return over the head and a new guard (was 3-4 s late).
+      expect(counter.reps[i].endMs - arrivals[i]).toBeLessThan(1000);
     }
   });
 
