@@ -5,11 +5,10 @@ export function NavigationMenu() {
     <details className="nav-menu">
       <summary aria-label="Открыть меню">Меню</summary>
       <nav>
-        <Link to="/">Тренировка</Link>
-        <Link to="/meyer">Крест Мейера</Link>
+        <Link to="/">Главная</Link>
         <Link to="/follow">Повторяй за эталоном</Link>
-        <Link to="/analysis">Подробный разбор видео</Link>
-        <Link to="/dev/checkpoint-capture">Снять контрольную точку</Link>
+        <Link to="/meyer">Крест Мейера</Link>
+        {/* /analysis and /dev/checkpoint-capture stay reachable by URL; they are developer tools, not in the menu. */}
       </nav>
     </details>
   );
