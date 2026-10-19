@@ -27,6 +27,7 @@
 .follow-meter {height: 8px; background: #d9c39a; border: 1px solid #98795655;}
 .follow-meter i {display: block; height: 100%; background: linear-gradient(90deg, #96632d, #8f251d); transition: width .3s;}
 .follow-hint {margin: 0; color: var(--ink-soft); font-size: .92rem;}
+.follow-band {margin: .1rem 0 0; color: var(--ink-soft); font-size: .88rem; font-style: italic;}
 .follow-history {display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 0; padding: 0; list-style: none;}
 .follow-history li {min-width: 38px; padding: 3px 6px; text-align: center; border: 1px solid var(--line); background: rgba(246,228,190,.55); font: 600 .85rem Georgia, serif;}
 .follow-history li:last-child {background: #8f251d; color: #fff3cd; border-color: #8f251d;}

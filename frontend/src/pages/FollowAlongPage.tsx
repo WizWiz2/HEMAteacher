@@ -19,6 +19,13 @@ function repsLabel(n: number) {
   return `${n} ${form === "one" ? "повтор" : form === "few" ? "повтора" : "повторов"}`;
 }
 
+/** Soft reading of the score: renders as references make 40-60 a normal live repetition, so no verdict below that. */
+function similarityBand(sim: number): string {
+  if (sim >= 70) return "Близко к эталону";
+  if (sim >= 35) return "Обычный живой повтор: сравнивай с прошлыми";
+  return "Движение сильно отличается от эталона";
+}
+
 export function FollowAlongPage() {
   const [drill, setDrill] = useState("zornhau");
   const [view, setView] = useState<MotionView>("front");
@@ -201,6 +208,7 @@ export function FollowAlongPage() {
         {last ? <>
           <div className="follow-score"><span>Сходство с эталоном</span><strong>{last.similarity}</strong><span>/ 100</span></div>
           <div className="follow-meter" aria-hidden="true"><i style={{width: `${last.similarity}%`}} /></div>
+          <p className="follow-band">{similarityBand(last.similarity)}</p>
           {last.hint && <p className="follow-hint">{last.hint}</p>}
         </> : <p className="follow-hint">{session === "running" ? "Каждое завершённое движение с возвратом в стойку — один повтор." : "Сходство появится после первого повтора."}</p>}
         {reps.length > 1 && <ol className="follow-history" aria-label="Последние повторы">{reps.slice(-8).map(r => <li key={r.index} title={`Повтор ${r.index}`}>{r.similarity}</li>)}</ol>}
@@ -232,7 +240,7 @@ export function FollowAlongPage() {
     </section>
 
     <details className="meyer-about"><summary>Как считается</summary>
-      <p>Повтор — это выход из стойки и возврат в неё (для ударов) или законченный шаг (для шагов). Сходство — расстояние между траекторией твоих кистей и стоп и эталонными повторами этого упражнения: 100 — совпадает, около 50 — заметно отличается. Сходство не определяет, какой именно удар ты сделал, и не проверяет клинок. Лучше всего камера видит, когда ты стоишь к ней лицом или вполоборота, целиком в кадре.</p>
+      <p>Повтор — это выход из стойки и возврат в неё (для ударов) или законченный шаг (для шагов). Сходство — грубая мера близости траектории твоих кистей и стоп к эталонным повторам: 100 — почти как эталон. Эталоны — компьютерные модели, поэтому у живого человека правильный повтор обычно набирает 40–60. Ориентируйся на то, растут ли сходство и стабильность от подхода к подходу, а не на точное число. Сходство не определяет, какой именно удар ты сделал, и не проверяет клинок. Лучше всего камера видит, когда ты стоишь к ней лицом или вполоборота, целиком в кадре.</p>
     </details>
   </main>;
 }
