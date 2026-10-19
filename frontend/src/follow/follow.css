@@ -43,3 +43,8 @@
   .follow-board {grid-template-columns: auto 1fr;}
   .follow-actions {grid-column: 1 / -1;}
 }
+.frame-check {list-style: none; margin: .4rem 0 0; padding: .5rem .7rem; display: grid; gap: .2rem; border: 1px solid var(--line, #c9b48a); border-radius: 6px; font-size: .92rem;}
+.frame-check li {display: flex; gap: .45rem; align-items: baseline;}
+.frame-check li.ok span {color: #3d6b2f; font-weight: 700;}
+.frame-check li.bad {color: #8b1e1e;}
+.frame-check li.bad span {font-weight: 700;}

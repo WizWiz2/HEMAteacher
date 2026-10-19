@@ -1,3 +1,6 @@
+import { frameCheck, frameRate, type FrameCheckItem } from "../follow/frameCheck";
+import { activePoseDelegate } from "../live/poseLandmarker";
+import type { FramingAssessment } from "../live/framing";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { DRILL_NAMES, type MotionView } from "../drill/continuousMotion";
@@ -40,6 +43,9 @@ export function FollowAlongPage() {
   const [framing, setFraming] = useState("");
   const [summary, setSummary] = useState<FollowSummary | null>(null);
   const [flash, setFlash] = useState(0);
+  const [check, setCheck] = useState<FrameCheckItem[]>([]);
+  const lastFraming = useRef<{f: FramingAssessment; at: number} | null>(null);
+  const sampleTimes = useRef<number[]>([]);
 
   const counter = useRef<RepCounter>(new RepCounter(drill, view));
   const sessionRef = useRef(session);
@@ -86,6 +92,10 @@ export function FollowAlongPage() {
 
   const onSample = useCallback((sample: LiveSample) => {
     lastRaw.current = sample.raw;
+    const now = performance.now();
+    lastFraming.current = {f: sample.framing, at: now};
+    sampleTimes.current.push(now);
+    while (sampleTimes.current.length && sampleTimes.current[0] < now - 2000) sampleTimes.current.shift();
     const f = sample.motionFraming ?? sample.framing;
     setFraming(prev => (prev === f.message ? prev : f.message));
     const usable = sample.motionUsable ?? sample.usable;
@@ -99,6 +109,17 @@ export function FollowAlongPage() {
   }, [beep]);
 
   const live = useLivePose(view === "front" ? "right" : facing, onSample, {cameraView: view, trackingMode: "full_body", targetGhost: false});
+  // Pre-set frame check, refreshed twice a second while the camera is on and no set is running.
+  useEffect(() => {
+    if (!live.live || session === "running") return;
+    const id = setInterval(() => {
+      const now = performance.now(), lf = lastFraming.current;
+      const times = sampleTimes.current.filter(t => t >= now - 2000);
+      setCheck(frameCheck(lf && now - lf.at < 1000 ? lf.f : null, frameRate(times), activePoseDelegate));
+    }, 500);
+    return () => clearInterval(id);
+  }, [live.live, session]);
+
   const mirrored = live.live && (live.cameraFacingMode ?? live.requestedCamera) === "user";
   const mirroredRef = useRef(mirrored);
   mirroredRef.current = mirrored;
@@ -198,6 +219,9 @@ export function FollowAlongPage() {
             : <button type="button" className="ghost" disabled={live.phase !== "ready"} onClick={() => void live.switchCamera()}>Переключить камеру</button>}
           <span className="follow-framing" role="status">{live.error || (live.live && live.phase === "ready" ? framing : "")}</span>
         </div>
+        {live.live && session !== "running" && check.length > 0 && <ul className="frame-check" aria-label="Проверка кадра">
+          {check.map(i => <li key={i.id} className={i.ok ? "ok" : "bad"}><span aria-hidden="true">{i.ok ? "✓" : "✗"}</span>{i.text}</li>)}
+        </ul>}
       </div>
     </section>
 
