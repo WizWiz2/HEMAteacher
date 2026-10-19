@@ -55,6 +55,8 @@ export const FOLLOW_SETTINGS = {
   returnMargin: 15,
   /** Frontal strikes (returns retrace the cut closely in the image plane): a smaller margin is enough. */
   returnMarginFront: 5,
+  /** Frontal strikes: a stop this far (fraction of the wind-up's rise) below the top of the wind-up ends the cut. */
+  earlyDrop: 0.6,
   /** Strikes: a guard-like pose held this long after the cut ends the repetition even away from where it started. */
   guardHoldMs: 700,
 };
@@ -174,7 +176,7 @@ export function resampleTimed(samples: TimedFeatures[], stepMs: number): TimedFe
   return out;
 }
 
-interface Burst { startMs: number; baseline: number[]; samples: FollowSample[]; vectors: number[][]; far: number; /** Strikes: has reached the end-of-cut zone. */ cut: boolean; /** Strikes: has left the guard zone or travelled minExtentNoCut. */ left: boolean; dir?: { key: number; forward: number; backward: number } }
+interface Burst { startMs: number; baseline: number[]; samples: FollowSample[]; vectors: number[][]; far: number; /** Strikes: has reached the end-of-cut zone. */ cut: boolean; /** Strikes: has left the guard zone or travelled minExtentNoCut. */ left: boolean; dir?: { key: number; forward: number; backward: number }; /** Highest hand point so far (strikes). */ peak?: number; /** Stop already checked for an early credit (its settle start). */ stopChecked?: number }
 
 export class RepCounter {
   readonly drill: string;
@@ -261,6 +263,7 @@ export class RepCounter {
     const b = this.burst;
     b.samples.push(sample); b.vectors.push(v);
     b.far = Math.max(b.far, dist(v, b.baseline));
+    if (this.strike) b.peak = Math.max(b.peak ?? -Infinity, v[1]);
     if (sample.timeMs - b.startMs > st.maxDurationMs) {
       // Away from the start for too long: the guard / stance has changed; start over from the current pose.
       this.burst = null; this.rest = null; this.phase = "waiting"; return null;
@@ -277,6 +280,17 @@ export class RepCounter {
         // guard never enters the end zone): count it and take this guard for the next one.
         if (b.far >= this.extent * st.minExtent && this.direction(b).forward >= this.direction(b).backward + st.returnMarginFront) return this.endStrike(b, v, sample, true);
         this.burst = null; this.rest = v; this.restHeldMs = heldMs; this.phase = "ready"; return null;
+      }
+      // Credit the cut where it stops, instead of after the return and a new guard: stopped well below the top of
+      // the wind-up after a real excursion, and the movement so far plays forwards (a return over the head plays
+      // backwards). A pause at the top of a wind-up (zwerchhau) is not low enough.
+      if (settled && this.settledSince !== null && b.stopChecked !== this.settledSince && b.far >= this.extent * st.minExtent && b.peak !== undefined) {
+        b.stopChecked = this.settledSince;
+        const rise = b.peak - b.baseline[1];
+        if (rise > 0 && b.peak - v[1] >= st.earlyDrop * rise && sample.timeMs - b.startMs >= st.minDurationMs) {
+          const { forward, backward } = this.direction(b);
+          if (forward >= backward + st.returnMarginFront) return this.endStrike(b, v, sample, true);
+        }
       }
       // Passing back through the guard before the cut has arrived (krumphau, zwerchhau wind-ups) does not end the
       // strike; stopping there does (a cut that ends away from the references' end poses still counts).
