@@ -1,15 +1,43 @@
-# HEMA Motion Coach
+# HEMA Trainer (HEMAteacher)
 
-Локальное приложение для самостоятельной отработки footwork между занятиями с тренером.
-Человек выбирает движение, которое тренер уже показал, снимает попытку на одну камеру, и программа показывает, чем попытка отличается от эталонной записи.
+Браузерное приложение для самостоятельной отработки длинного меча (немецкая школа) перед камерой между занятиями с тренером. Камера и MediaPipe Pose работают прямо в браузере, видео никуда не отправляется.
 
-Это не тренер и не оценка «правильной» техники HEMA. Это вторая пара глаз: сравнение с конкретной записью.
+Это не тренер и не оценка «правильной» техники HEMA, а вторая пара глаз.
 
-> **Architecture direction:** core training is browser-first. Live checkpoint drills and detailed uploaded-video analysis both run on the user device. See [CR-001](docs/CR-001-LIVE-CHECKPOINT-DRILLS.md), [CR-002](docs/CR-002-FIELD-TEST-REDESIGN.md) and [CR-003](docs/CR-003-BROWSER-FIRST.md), and [CR-004](docs/CR-004-PERSONALIZED-ANATOMY.md). FastAPI remains only as an optional legacy/cloud layer.
+## Режимы
 
-## Live drills
+- **Повторяй за эталоном** (`/#/follow`) — основной режим. Слева эталон двигается по кругу в выбранном темпе, справа камера, поверх неё можно включить «призрак» эталона. Приложение считает повторы и показывает сходство траектории кистей и стоп с эталоном, стабильность и мягкие подсказки. Есть 9 движений: Zornhau, Zwerchhau, Schielhau, Scheitelhau, Krumphau, шаг вперёд и назад, проходной шаг вперёд и назад. Перед подходом показывается проверка кадра: всё тело видно, расстояние подходит, частота кадров, предупреждение, если распознавание идёт на процессоре.
+- **Крест Мейера** (`/#/meyer`) — четыре сектора с подсветкой и ритмом: серии, непрерывное движение, память, реакция.
+- **Отдельные упражнения** (`/#/drills/<id>`) — стойки, шаги и удары по фазам с голосовыми подсказками и распознаванием движения (подробности ниже).
 
-Главный MVP-flow теперь работает без загрузки видео: камера и MediaPipe Pose Landmarker работают прямо в браузере, а упражнение проходит как последовательность checkpoint'ов.
+Камера: основной сценарий — **человек стоит лицом к камере**, целиком в кадре, телефон или ноутбук примерно на уровне груди. Боковой ракурс тоже поддерживается.
+
+## Текущее состояние (октябрь 2026)
+
+- Эталоны и модели построены в основном на синтетике: рендеры Blender/MPFB плюс 12 реальных повторов из публичных видео. Своих записей целевых пользователей пока нет.
+- «Повторяй за эталоном»:
+  - на синтетических клипах повторы считаются надёжно, включая вход в середине движения и низкий fps;
+  - на реальном человеке счёт ещё не проверен;
+  - сходство откалибровано на рендерах, поэтому правильный живой повтор обычно набирает 40–60, а не 90+. Это грубая мера, смотреть стоит на динамику.
+- Распознавание в отдельных упражнениях:
+  - на синтетике работает;
+  - на реальных людях пока слабое: своё движение узнаётся в 2 из 6 реальных фронтальных клипов;
+  - стойки не распознаются.
+- Контент помечен `unvalidated` — тренер его ещё не проверил.
+
+## Запуск
+
+```bash
+cd frontend
+npm ci
+npm run dev        # http://localhost:5173, камера работает на localhost или по HTTPS
+```
+
+На Windows можно запустить `start.bat` (и остановить `stop.bat`). Сборка статического сайта описана ниже, в «Static deployment» и «Static hosting».
+
+## Отдельные упражнения (live drills)
+
+Работают без загрузки видео: камера и MediaPipe Pose Landmarker работают прямо в браузере, а упражнение проходит как последовательность checkpoint'ов.
 
 В репозитории есть прототипный beginner-набор:
 - advance;
@@ -44,7 +72,7 @@
 Без цветных меток приложение по-прежнему **не заявляет**, что видит клинок.
 
 
-## Quick start
+## Запуск через start.bat (Windows)
 
 Двойной щелчок по `start.bat` в корне репозитория.
 
@@ -69,7 +97,7 @@ python launcher.py --with-backend
 
 Для подробного анализа:
 
-1. откройте «Подробный разбор видео»;
+1. откройте `/#/analysis` (в меню этого инструмента нет, это режим для разработки);
 2. выберите движение;
 3. один раз импортируйте видео-эталон тренера;
 4. браузер извлечёт pose locally и сохранит видео + pose в IndexedDB;
@@ -187,13 +215,20 @@ Detailed uploaded-video analysis canonicalizes both the trainer/reference sequen
 
 ### Training camera views
 
-Live drills support both **side** and **front** camera views. Side view remains the most reliable default. Front view maps MediaPipe depth into the canonical fore/aft axis and deliberately uses softer tolerances for depth-sensitive features.
+Live drills and follow-along support both **front** and **side** camera views. Front (facing the camera) is the main use case. The front view uses image-plane coordinates only (MediaPipe depth is ignored, z = 0) with its own model `motionModel.front.json`; passing steps are detected by the feet swapping image height.
 
 The camera can be expanded to a full-viewport training surface, and preview mirroring can be toggled manually. Selfie cameras are mirrored automatically; rear cameras are not.
 
 See [CR-005](docs/CR-005-DRILL-UX-VIEWS.md).
 
 ## Tests
+
+```bash
+cd frontend && npm test                      # vitest: recognition, follow-along counter, UI logic
+node frontend/scripts/check-motion-scenarios.mjs   # streaming scenarios on recorded poses (repo root)
+```
+
+Legacy backend:
 
 ```bash
 cd backend
@@ -206,11 +241,11 @@ python -m pytest
 ## Known limitations
 
 - Одна камера.
-- Ракурс задан заранее. В этой версии все движения снимаются сбоку. Произвольный 3D-ракурс не восстанавливается.
+- Ракурс задан заранее: лицом к камере (основной) или сбоку. Произвольный 3D-ракурс не восстанавливается.
 - В кадре один человек.
-- Только footwork, без оружия.
-- Клинок, спарринг и удары не разбираются.
+- Клинок не отслеживается (кроме экспериментального режима с цветными метками); оцениваются кисти, корпус и стопы.
+- Модели откалиброваны в основном на синтетике; на реальных людях распознавание и шкала сходства ещё не проверены как следует (см. «Текущее состояние»).
 - Схожесть с эталоном — не объективная правильность исторического фехтования.
 - Высота таза измеряется относительно стоп, а не пола комнаты.
-- Глубина (ось Z) с одной камеры неточная, боковые признаки имеют маленький вес.
+- Глубина (ось Z) с одной камеры не используется во фронтальном виде; в боковом у неё маленький вес.
 - Подробный разбор выполняется после записи, но локально в браузере; видео на сервер не уходит.
