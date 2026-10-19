@@ -149,7 +149,8 @@ export function scoreSegment(drill: string, samples: TimedFeatures[], view: Moti
   const pathRatio = model.typicalPath?.[drill] ? sequencePath(bestScore.seq, model.pathScales) / model.typicalPath[drill] : NaN;
   let hint: string | null = null;
   if (pathRatio < 0.45) hint = drill.endsWith("hau") ? "Движение короче, чем у эталона: доводи удар до конца" : "Шаг короче, чем у эталона";
-  else if (tempo > 2.2) hint = "Медленнее эталона: попробуй слитно, без пауз";
+  // Real people move 3-4x slower than the rendered references; only a much slower repetition gets a hint.
+  else if (tempo > 5) hint = "Заметно медленнее эталона: попробуй слитно, без пауз";
   return { similarity: similarityScore(bestScore.d), distance: bestScore.d, tempo, hint, seq: bestScore.seq };
 }
 
