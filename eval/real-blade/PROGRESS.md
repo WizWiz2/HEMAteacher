@@ -16,3 +16,19 @@ Baselines e2e (30 real clips, own / wrong-of-240): blade off 3/30 · 3; old hybr
 - 13:35 by-eye label precision: 64 random labels (48 mixed + 16 held) ~52/64 correct (~80%); main error = tip/pommel flip, also wall racks/partner swords.
 - 13:37 resumed (worker 3): labels 2302/3210, jobs alive; ETA ~14:30.
 - 14:00 labels 2509/3210, jobs alive (box seems to pause; rate varies).
+- 14:35 built real set from 3072 labels: build_real.py now drops owl<0.2 / iou<0.75 and flags tip/pommel-ambiguous (A=1, 29) -> 1207 crops (848 train, 359 held).
+  train_real.py: 4th target = axis-only flag (|cos| loss). AXALL=1 -> all real labels axis-only (direction learned from renders only); AXALL=0 -> only ambiguous.
+  No elbows in cands, so forearm-based tip resolution not done (needs pose rerun).
+  Running (val = Ottawa Swordplay, Michael Kozin, JKCS-Goslar; 14 ep, realW 3, THR=2): net_i3 AXALL=1 (train_i3.log), net_i4 AXALL=0 (train_i4.log). ~80 s/epoch -> ~15:00.
+  Code pushed to feat/blade-tracking-prototype 545871c (eval/real-blade/). Worktree /workspace/hema-blade (branch blade-wip).
+  Next: python eval_frames.py name=net_i3.pt (and i4) ; labels still trickling (3105) — rebuild later optional.
+- 15:00 results (val 3 train ch, n=105, final ep): i3 AXALL=1 <15° 6%, med 69° (direction lost -> axis-only for ALL real is bad);
+  i4 AXALL=0 <15° 17%, <30° 37%, med 40°. Not comparable 1:1 with i1 (val was n=80, other channels) -> retrain i1 recipe on same val needed.
+  Launched eval_frames.py on held-out frames for net_i1 + net_i4 -> eval_i4.log.
+- 14:50 held-out (359 frames, 9 held ch) eval_i4.log: correct<15° of all — classical conf>=1.1 71.3% (cov 93%, median 4°); old net 13%; i1 22.3% (med 50°); i4 24.8% (med 40°);
+  hybrid cls>=3+old 49.6%, +i1 52.6%, +i4 49.9%. => nets far below classical; i4 ≈ i1.
+- 14:55 pose.py (MediaPipe full, nearest person to label hands) -> pose_lab.jsonl (1652 ok labels). fixflip.py: tip := end along elbow->wrist.
+  Stats: keep 866, flip 397 (31%), unsure 384, nopose 5. By-eye 32 flipped (fl1.jpg, fl2.jpg): majority now WRONG (two-handed grip:
+  forearms cross/point across the hilt, not along blade; high guards point opposite). Forearm rule REJECTED; labels left as-is (far end from hands).
+- 15:00 rebuilt: rc_nofilt.npz 1548 (1112 train/436 held), rc_filt.npz 1258. Training full-direction loss (AXONLY=0), same val:
+  i5 = nofilt (=i1 recipe) train_i5.log; i6 = filt train_i6.log.
