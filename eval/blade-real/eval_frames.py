@@ -2,11 +2,13 @@
 import sys,json,subprocess,numpy as np,torch
 src=open('/workspace/hema/kp/train.py').read(); import torch.nn as nn
 exec(src[src.index('class Net'):src.index('def loss_fn')])
-R=np.load('real_crops.npz'); idx=[i for i in range(len(R['X'])) if R['S'][i]=='held']
+R=dict(np.load('real_crops.npz')); import os
+VAL=os.environ.get('VALCH')
+idx=[i for i in range(len(R['X'])) if (R['C'][i] in VAL.split(',') if VAL else R['S'][i]=='held')]
 C=json.load(open('cands_by_name.json')); LM={}
 for l in open('cands.jsonl'):
     r=json.loads(l)
-    if r['split']=='held': LM[r['name']]=r['lm']
+    LM[r['name']]=r['lm']
 items=[dict(name=str(R['N'][i]),W=C[str(R['N'][i])]['W'],H=C[str(R['N'][i])]['H'],hands=R['H'][i].tolist(),torso=float(R['T'][i]),lm=LM[str(R['N'][i])]) for i in idx]
 json.dump(items,open('/tmp/items.json','w'))
 subprocess.run(['node','classical.mjs','/tmp/items.json','/tmp/cls.json'],check=True,cwd='/workspace/hema/rb')

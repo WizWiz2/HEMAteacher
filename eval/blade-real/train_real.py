@@ -8,7 +8,7 @@ src=open('/workspace/hema/kp/train.py').read()
 exec(src[src.index('S=96'):src.index('net=Net()')].replace("rng.random()<.5: img=img[:,::-1]","False and rng.random()<.5: img=img[:,::-1]"))  # augment (flip handled below), Net, prep, loss_fn
 RAD=1.4
 d=np.load("/workspace/hema/kp/train_crops.npz"); XS,YS,LS=d['X'],d['Y'],d['L']
-R=np.load('real_crops.npz'); C=json.load(open('cands_by_name.json'))
+R=dict(np.load('real_crops.npz')); C=json.load(open('cands_by_name.json'))
 VALCH=set(sys.argv[1].split(',')) if len(sys.argv)>1 and sys.argv[1] else set()
 EP=int(sys.argv[2]) if len(sys.argv)>2 else 14; REALW=float(sys.argv[3]) if len(sys.argv)>3 else 3; OUT=sys.argv[4] if len(sys.argv)>4 else 'net_real.pt'
 tr_real=[i for i in range(len(R['X'])) if R['S'][i]=='train' and R['C'][i] not in VALCH]

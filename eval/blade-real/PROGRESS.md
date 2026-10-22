@@ -10,3 +10,6 @@ Drey Wunder, Laurel City, strîtschar, Sword Carolina, Ukolov, VCU). Never train
 5. venv python eval_frames.py name=net.pt  (held-out frames: classical / old net / new net / hybrid)
 6. export_real.py net.pt weights.json parity.json; WEIGHTS=.. OUT=det.json node run_real.mjs (30 clips); ./eval_e2e.sh tag /abs/det.json
 Baselines e2e (30 real clips, own / wrong-of-240): blade off 3/30 · 3; old hybrid 2/30 · 4; track only 2/30 · 3.
+- 13:15 interim net_i1 (realW 3, ~700 labels): val (3 train channels) <15° 38%, median 31°. Trying realW 10 (net_i2).
+- 13:45 net_i2 (realW 10) worse: val <15° 27%. Val (3 train channels, 101 frames): classical conf>=3 cov 12% @67%; old net 15% correct;
+  i1 39% correct (axis 54%, 16% flipped); hybrid cls+i1 44%. Net confidence (vector norm) barely separates right/wrong.
