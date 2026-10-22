@@ -36,3 +36,9 @@ Baselines e2e (30 real clips, own / wrong-of-240): blade off 3/30 · 3; old hybr
   Filter hurts. Neither beats i1 (38% on its old val) -> NO e2e, nothing to main. Held-out eval i5/i6 running -> eval_i56.log.
   Conclusion: pseudo-label tip/pommel noise + tiny real set cap the net; classical (71% correct on held, med 4°) is the strong component.
   Next idea: use the net only for axis (fold direction) + classical/hands for sign, or train on classical-confirmed labels.
+- 15:05 eval_i56 held: i5 22.0% <15°, hybrid 49.3%; i6 23.7%, hybrid 52.1%. Net path DROPPED. label.py jobs killed.
+- 15:06 run_real.mjs: WEIGHTS optional, HIGH env (track high=HIGH, low=min(HIGH,1.1)). det_c1.1.json / det_c2.json, classical ~2.2 ms/frame (node).
+  e2e running: e2e_c11.log, e2e_c2.log. NB: all 30 e2e clips are held-out channels -> no non-held e2e set to pick threshold; both reported.
+- 15:12 e2e 30 real clips (own / wrong-of-240): classical conf 1.1 -> 2/30 · 3 ; conf 2 -> 2/30 · 4 ; baseline off 3/30 · 3.
+  Blade ON does NOT beat OFF (strikes 0/16 in all). Frame-level blade accuracy is fine (71% <15° held) but classifier
+  (trained on render blade features) does not convert it. Not merged; PR #20 stays draft. Next lever = classifier side, not detector.
