@@ -1,6 +1,9 @@
 import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 import { LANDMARK_NAMES, type RawPose, type Vec3 } from "./landmarks";
 
+/** Which MediaPipe delegate the live pose detector actually runs on (GPU falls back to CPU silently otherwise). */
+export let activePoseDelegate: "GPU" | "CPU" | null = null;
+
 export interface LivePoseDetector {
   start(video: HTMLVideoElement): Promise<void>;
   stop(): void;
@@ -29,23 +32,26 @@ export class MediaPipeLivePose implements LivePoseDetector {
   async initialize(): Promise<void> {
     if (!this.landmarker) {
       const vision = await FilesetResolver.forVisionTasks(`${import.meta.env.BASE_URL}wasm`);
+      // Without WebGL2 MediaPipe's GPU delegate cannot run (it may still "succeed" and compute on the CPU).
+      const webgl2 = typeof document !== "undefined" && !!document.createElement("canvas").getContext("webgl2");
       this.landmarker = await PoseLandmarker.createFromOptions(vision, {
         baseOptions: {
           modelAssetPath: `${import.meta.env.BASE_URL}models/pose_landmarker_lite.task`,
-          delegate: "GPU",
+          delegate: webgl2 ? "GPU" : "CPU",
         },
         runningMode: "VIDEO",
         numPoses: 1,
-      }).catch(async () =>
-        PoseLandmarker.createFromOptions(vision, {
+      }).then(l => { activePoseDelegate = webgl2 ? "GPU" : "CPU"; return l; }).catch(async () => {
+        activePoseDelegate = "CPU";
+        return PoseLandmarker.createFromOptions(vision, {
           baseOptions: {
             modelAssetPath: `${import.meta.env.BASE_URL}models/pose_landmarker_lite.task`,
             delegate: "CPU",
           },
           runningMode: "VIDEO",
           numPoses: 1,
-        }),
-      );
+        });
+      });
     }
   }
 

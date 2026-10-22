@@ -24,3 +24,7 @@ export function withBlade(fx, minConfidence) {
   const det = loadBladeDetections().clips;
   return {...fx, clips: fx.clips.map(c => det[c.id] ? {...c, b: det[c.id].map(r => r.length && r[4] >= minConfidence * 100 ? r.slice(0, 4).map(v => v / 1e4) : null)} : c)};
 }
+/** Pose samples recorded from the app's live pipeline (fake webcam playing a rendered clip on loop). */
+export function loadFollowRecording(name) {
+  return JSON.parse(gunzipSync(readFileSync(fileURLToPath(new URL(`./${name}.json.gz`, import.meta.url)))).toString());
+}

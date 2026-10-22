@@ -4,3 +4,4 @@ export function loadMotionFixture(): Fixture;
 export function loadDrills(): Drill[];
 export function loadBladeDetections(): { version: number; source: string; clips: Record<string, number[][]> };
 export function withBlade(fx: Fixture, minConfidence: number): Fixture;
+export function loadFollowRecording(name: string): { timeMs: number; features: Record<string, number | null> | null }[];

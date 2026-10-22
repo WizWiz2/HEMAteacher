@@ -188,10 +188,12 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
 
 async function openCameraStream(camera: PhysicalCamera): Promise<MediaStream> {
   const base = {
+    // The pose model works on a 256 px input, so 640x480 loses nothing for tracking and halves the frame copies
+    // on phones compared with 720p.
     audio: false as const,
     video: {
-      width: { ideal: 1280 },
-      height: { ideal: 720 },
+      width: { ideal: 640 },
+      height: { ideal: 480 },
     },
   };
 

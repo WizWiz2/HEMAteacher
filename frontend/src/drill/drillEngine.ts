@@ -23,8 +23,7 @@ export function stepDrill(runtime: DrillRuntime, drill: Drill, event: DrillEvent
   }
   if (runtime.state === "completed" || runtime.state === "failed" || event.type !== "sample") return runtime;
   if (motionPatternFor(drill.id) && event.mode !== "poses") {
-    if (event.cameraView === "front") return { ...runtime, motion: { phase: "position", message: "Для распознавания движения повернись боком", samples: [] } };
-    return stepContinuous(runtime, drill.id, event.timeMs, event.features, event.enoughSamples, drill.checkpoints.length);
+    return stepContinuous(runtime, drill.id, event.timeMs, event.features, event.enoughSamples, drill.checkpoints.length, event.cameraView === "front" ? "front" : "side");
   }
   const checkpoint = drill.checkpoints[runtime.checkpointIndex];
   if (!checkpoint) return runtime;

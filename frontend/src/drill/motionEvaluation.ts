@@ -6,7 +6,7 @@ import { createDrillRuntime, stepDrill } from "./drillEngine";
 import { personalizeDrill } from "./personalize";
 import { adaptDrillForCameraView } from "./cameraView";
 import { motionPatternFor, recognitionModel, setRecognitionModel } from "./continuousMotion";
-import { buildModel, CONTINUOUS_DRILLS, isTrainClip, rawFrames, type Fixture, type FixtureClip } from "./motionTraining";
+import { buildModel, clipView, CONTINUOUS_DRILLS, isFrontTestClip, isFrontTrainClip, isTrainClip, rawFrames, type Fixture, type FixtureClip } from "./motionTraining";
 import type { RecognitionModel } from "./motionRecognition";
 import type { Drill } from "./types";
 
@@ -22,12 +22,12 @@ export function streamClip(clip: FixtureClip, names: string[], base: Drill, retr
   const processor = new LiveSampleProcessor(), calibration = new CalibrationGate();
   const mode = base.trackingMode ?? "full_body";
   let drill = base, runtime = createDrillRuntime();
-  const failures: string[] = [];
+  const failures: string[] = [], view = clipView(clip);
   for (const raw of rawFrames(clip, names)) {
-    const sample = processor.process(raw, "right", mode, "side");
+    const sample = processor.process(raw, "right", mode, view);
     const ready = calibration.push(sample, mode);
     if (runtime.state === "calibrating" && ready) {
-      drill = adaptDrillForCameraView(personalizeDrill(base, calibration.profile) ?? base, "side") ?? base;
+      drill = adaptDrillForCameraView(personalizeDrill(base, calibration.profile) ?? base, view) ?? base;
       runtime = stepDrill(runtime, drill, { type: "quality", ok: true });
     }
     if (runtime.state === "failed" && !retry) break;
@@ -36,7 +36,7 @@ export function streamClip(clip: FixtureClip, names: string[], base: Drill, retr
     if (runtime.state === "ready" || runtime.state === "running")
       runtime = stepDrill(runtime, drill, { type: "sample", timeMs: sample.timeMs,
         features: continuous ? sample.features : sample.smoothed, enoughSamples: continuous ? sample.motionUsable : sample.enough,
-        cameraView: "side", mode: "motion" });
+        cameraView: view, mode: "motion" });
     if (runtime.state === "completed") break;
   }
   if (runtime.state === "failed") failures.push(runtime.motion?.message ?? "failed");
@@ -47,7 +47,7 @@ export function streamClip(clip: FixtureClip, names: string[], base: Drill, retr
 }
 
 export interface EvalRow {
-  protocol: "lobo" | "before" | "test"; clip: string; source: string; variant: string; body: string; level: string;
+  protocol: "lobo" | "before" | "test" | "front-lobo" | "front-test"; clip: string; source: string; variant: string; body: string; level: string;
   azimuth: number; selected: string; completed: boolean; completedWithRetry: boolean; similarity?: number; tempo?: number;
   message?: string; lookedLike?: string; feedback?: string[];
 }
@@ -77,9 +77,9 @@ export async function evaluateProtocolsAsync(fx: Fixture, drills: Drill[], proto
 }
 
 function* evaluationSteps(fx: Fixture, drills: Drill[], protocols: EvalRow["protocol"][], rows: EvalRow[]): Generator<void> {
-  const previous = recognitionModel();
+  const previous = recognitionModel(), previousFront = recognitionModel("front");
   function* run(protocol: EvalRow["protocol"], model: RecognitionModel, tests: FixtureClip[]) {
-    setRecognitionModel(model);
+    setRecognitionModel(model, protocol.startsWith("front") ? "front" : "side");
     for (const c of tests) { for (const d of CONTINUOUS_DRILLS) {
       const base = drills.find(x => x.id === d)!, r = streamClip(c, fx.names, base);
       const retried = d === c.drill && !r.completed ? streamClip(c, fx.names, base, true) : r;
@@ -96,7 +96,14 @@ function* evaluationSteps(fx: Fixture, drills: Drill[], protocols: EvalRow["prot
         yield* run("lobo", buildModel(fx.clips.filter(c => isTrainClip(c) && c.body !== body), fx.names), trainPool.filter(c => c.body === body));
     if (protocols.includes("before")) yield* run("before", buildModel(fx.clips.filter(isLegacyTrainClip), fx.names), tests);
     if (protocols.includes("test")) yield* run("test", buildModel(fx.clips.filter(isTrainClip), fx.names), tests);
-  } finally { setRecognitionModel(previous); }
+    // Front camera: leave-one-body-out over the frontal train renders and the real frontal people, and the reserved
+    // frontal test bodies with the shipped front split.
+    const frontPool = fx.clips.filter(c => (c.variant === "front:train" || c.variant === "real:front") && CONTINUOUS_DRILLS.includes(c.drill));
+    if (protocols.includes("front-lobo"))
+      for (const body of [...new Set(frontPool.map(c => c.body))])
+        yield* run("front-lobo", buildModel(fx.clips.filter(c => isFrontTrainClip(c) && c.body !== body), fx.names), frontPool.filter(c => c.body === body));
+    if (protocols.includes("front-test")) yield* run("front-test", buildModel(fx.clips.filter(isFrontTrainClip), fx.names), fx.clips.filter(isFrontTestClip));
+  } finally { setRecognitionModel(previous); setRecognitionModel(previousFront, "front"); }
 }
 
 export function confusion(rows: EvalRow[]) {

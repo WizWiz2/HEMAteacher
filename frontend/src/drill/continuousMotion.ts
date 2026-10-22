@@ -1,5 +1,7 @@
 import patternsData from './motionPatterns.json';
 import modelData from './motionModel.json';
+import frontPatternsData from './motionPatterns.front.json';
+import frontModelData from './motionModel.front.json';
 import type { DrillRuntime } from './types';
 import { BLADE, CHANNELS, decide, type RecognitionModel, type TimedFeatures } from './motionRecognition';
 
@@ -26,13 +28,16 @@ export interface MotionAttempt {
    *  of a later acceptance is measured up to here, so the continuation (e.g. the return) does not count as slowness. */
   completeAt?: number;
 }
-const patterns: Record<string, Pattern> = patternsData;
-export const motionPatternFor = (id: string) => patterns[id];
-let model = modelData as unknown as RecognitionModel;
+export type MotionView = 'side' | 'front';
+// Side and front camera views have separate trigger patterns and recognition models: the front view uses image-plane
+// features only (lateral x, vertical y, apparent size for fore/aft), trained on frontal renders and real frontal reps.
+const patternsByView: Record<MotionView, Record<string, Pattern>> = { side: patternsData, front: frontPatternsData as Record<string, Pattern> };
+export const motionPatternFor = (id: string, view: MotionView = 'side') => patternsByView[view][id] ?? (view === 'front' ? patternsByView.side[id] : undefined);
+const models: Record<MotionView, RecognitionModel> = { side: modelData as unknown as RecognitionModel, front: frontModelData as unknown as RecognitionModel };
 /** Swap the recognition model (template evaluation and tests). */
 /** Also syncs the blade-channel flag: a model built with blade channels turns them on. */
-export function setRecognitionModel(next: RecognitionModel) { model = next; BLADE.enabled = next.channels.length > CHANNELS.length; }
-export function recognitionModel() { return model; }
+export function setRecognitionModel(next: RecognitionModel, view: MotionView = 'side') { models[view] = next; BLADE.enabled = next.channels.length > CHANNELS.length; }
+export function recognitionModel(view: MotionView = 'side') { return models[view]; }
 export const DRILL_NAMES: Record<string, string> = {
   zornhau: 'Zornhau', scheitelhau: 'Scheitelhau', krumphau: 'Krumphau', zwerchhau: 'Zwerchhau', schielhau: 'Schielhau',
   advance: 'шаг вперёд', retreat: 'шаг назад', 'passing-step-forward': 'проходной шаг вперёд', 'passing-step-backward': 'проходной шаг назад',
@@ -66,8 +71,8 @@ export function trajectoryError(samples: MotionSample[], reference: number[][]):
 }
 
 export function stepContinuous(runtime: DrillRuntime, id: string, timeMs: number,
-  features: Record<string,number> | null, enough: boolean, count: number): DrillRuntime {
-  const pattern=patterns[id];
+  features: Record<string,number> | null, enough: boolean, count: number, view: MotionView = 'side'): DrillRuntime {
+  const pattern=motionPatternFor(id,view)!, model=models[view];
   let attempt=runtime.motion ?? {phase:'position' as const,message:'Прими исходную позицию',samples:[]};
   if(attempt.phase==='failed' || attempt.phase==='passed')return runtime;
   const fail=(message:string):DrillRuntime=>({...runtime,state:'failed',finishedAt:timeMs,match:null,validSince:null,
@@ -112,7 +117,10 @@ export function stepContinuous(runtime: DrillRuntime, id: string, timeMs: number
   // Excursion prevents a frozen pose or an almost stationary wobble from being judged at all.
   const excursion=Math.max(...samples.map(s=>distance(s.vector,attempt.baseline!)));
   const movingFrames=samples.filter((s,i)=>i>0 && distance(s.vector,samples[i-1].vector)>.015).length;
-  const crossed=!id.startsWith('passing') || (attempt.baseline![0]-attempt.baseline![1])*(vector[0]-vector[1])<0 && Math.abs(vector[0]-vector[1])>.2;
+  // Passing steps must swap the feet: in profile their fore/aft order (ankle x), facing the camera their image height
+  // (the foot nearer the camera is lower in the image; ankle y).
+  const [ca,cb]=view==='front'?[2,3]:[0,1];
+  const crossed=!id.startsWith('passing') || (attempt.baseline![ca]-attempt.baseline![cb])*(vector[ca]-vector[cb])<0 && Math.abs(vector[ca]-vector[cb])>.2;
   const awaitMove=attempt.awaitMove===true && speed<1;
   const canFinish=!awaitMove && crossed && movingFrames>=4 && excursion>Math.max(.08,extent*.45);
   const settledSince=canFinish&&speed<.65?(attempt.settledSince??timeMs):undefined;

@@ -42,11 +42,14 @@ export function rawFrames(clip: FixtureClip, names: string[]): RawPose[] {
   });
 }
 
-/** Live features exactly as the app computes them (side view, facing right). */
+/** Camera view a fixture clip is processed in: frontal renders ("front:*") and real frontal reps ("real:front"). */
+export const clipView = (c: FixtureClip): "side" | "front" => (c.variant.startsWith("front:") || c.variant === "real:front" ? "front" : "side");
+
+/** Live features exactly as the app computes them (side view facing right, or the front view for frontal clips). */
 export function clipFeatures(clip: FixtureClip, names: string[]): TimedFeatures[] {
-  const processor = new LiveSampleProcessor();
+  const processor = new LiveSampleProcessor(), view = clipView(clip);
   return rawFrames(clip, names).map(raw => {
-    const s = processor.process(raw, "right", "full_body", "side");
+    const s = processor.process(raw, "right", "full_body", view);
     return { timeMs: s.timeMs, features: s.features ?? undefined };
   });
 }
@@ -155,3 +158,8 @@ export function buildModel(train: FixtureClip[], names: string[]): RecognitionMo
 /** Training split of the shipped model: main mock clips and the bodies/angles TRAIN renders (docs/bodies-angles-split.md),
  *  master and experienced performers only. Reserved TEST bodies and angles are never used. */
 export const isTrainClip = (c: FixtureClip) => (c.variant === "main" || c.variant === "ba:train") && (c.level === "master" || c.level === "experienced") && CONTINUOUS_DRILLS.includes(c.drill);
+/** Training split of the front-camera model: frontal renders of the TRAIN bodies (azimuth 60-90 deg) and single reps of
+ *  real people filmed from the front (eval/real-harvest; held-out people never added), master/experienced only. */
+export const isFrontTrainClip = (c: FixtureClip) => (c.variant === "front:train" || c.variant === "real:front") && (c.level === "master" || c.level === "experienced") && CONTINUOUS_DRILLS.includes(c.drill);
+/** Reserved frontal renders of the TEST bodies (never used for training or tuning). */
+export const isFrontTestClip = (c: FixtureClip) => c.variant === "front:test" && CONTINUOUS_DRILLS.includes(c.drill);

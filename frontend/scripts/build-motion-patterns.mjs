@@ -9,9 +9,13 @@
 import {createServer} from 'vite';import {writeFileSync,readFileSync} from 'node:fs';import {gunzipSync} from 'node:zlib';
 const v=await createServer({root:'frontend',server:{middlewareMode:true},optimizeDeps:{noDiscovery:true,include:[]},logLevel:'error'});
 try {
- const {buildModel,clipFeatures,CONTINUOUS_DRILLS,isTrainClip,TRAINING}=await v.ssrLoadModule('/src/drill/motionTraining.ts');
+ const {buildModel,clipFeatures,CONTINUOUS_DRILLS,isTrainClip,isFrontTrainClip,TRAINING}=await v.ssrLoadModule('/src/drill/motionTraining.ts');
  const fixture=JSON.parse(gunzipSync(readFileSync('frontend/test-fixtures/motion-poses.json.gz')).toString());
- const train=fixture.clips.filter(isTrainClip);
+ // Front camera (image-plane features): frontal renders + real frontal reps (isFrontTrainClip). Until frontal training
+ // clips exist the front files are the side ones.
+ const build=(split)=>{
+ const train=fixture.clips.filter(split);
+ if(!train.length)return null;
  const model=buildModel(train,fixture.names);
  // Trigger patterns (armed-state detection, extent and coaching feedback): 25 frames over the labelled movement of the
  // training master clips, in MediaPipe features (not ground truth).
@@ -29,18 +33,22 @@ try {
   patterns[c.drill]??={features,maxMs:10000,minMs:180,templates:[]};
   patterns[c.drill].templates.push({body:c.body,frames});
  }
+ return {model,patterns,train};
+ };
+ const side=build(isTrainClip), front=build(isFrontTrainClip)??side;
+ const outputs=[['frontend/src/drill/motionPatterns.json',JSON.stringify(side.patterns,null,2)+'\n'],['frontend/src/drill/motionModel.json',JSON.stringify(side.model)+'\n'],
+  ['frontend/src/drill/motionPatterns.front.json',JSON.stringify(front.patterns,null,2)+'\n'],['frontend/src/drill/motionModel.front.json',JSON.stringify(front.model)+'\n']];
  const {BLADE}=await v.ssrLoadModule('/src/drill/motionRecognition.ts');
  const {BLADE_MIN_CONFIDENCE}=await v.ssrLoadModule('/src/live/bladeTracking.ts');
  const {withBlade}=await import('../test-fixtures/loadFixture.mjs');
- // Blade model: footwork templates carry no blade channels (bladeStrikesOnly; chosen on train LOBO, docs/blade-tracking.md).
+ // Blade model (side view): footwork templates carry no blade channels (bladeStrikesOnly; chosen on train LOBO, docs/blade-tracking.md).
  BLADE.enabled=true; TRAINING.bladeStrikesOnly=true;
  const bladeModel=buildModel(withBlade(fixture,BLADE_MIN_CONFIDENCE).clips.filter(isTrainClip),fixture.names);
  BLADE.enabled=false; TRAINING.bladeStrikesOnly=false;
- const outputs=[['frontend/src/drill/motionPatterns.json',JSON.stringify(patterns,null,2)+'\n'],['frontend/src/drill/motionModel.json',JSON.stringify(model)+'\n'],
-  ['frontend/src/drill/motionModelBlade.json',JSON.stringify(bladeModel)+'\n']];
+ outputs.push(['frontend/src/drill/motionModelBlade.json',JSON.stringify(bladeModel)+'\n']);
  for(const [file,text] of outputs) {
   if(process.argv.includes('--check')) {if(readFileSync(file,'utf8')!==text)throw new Error(`${file} is stale: rerun build-motion-patterns.mjs`);}
   else writeFileSync(file,text);
  }
- console.log(`model: ${model.templates.length} templates from ${train.length} training clips, acceptDistance ${model.acceptDistance}`);
+ for(const [n,b] of [['side',side],['front',front]])console.log(`${n} model: ${b.model.templates.length} templates from ${b.train.length} training clips, acceptDistance ${b.model.acceptDistance}`);
 }finally{await v.close();}

@@ -1,0 +1,46 @@
+.meyer-heading {padding: 20px 24px;}
+.meyer-heading p {margin: 8px 0 12px;}
+.meyer-modes {display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;}
+.meyer-description {margin: 0; min-height: 2.8em; color: var(--ink-soft);}
+.meyer-stage {padding: 16px; display: grid; justify-items: center; gap: 12px;}
+.meyer-stage-top {display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 8px;}
+.meyer-square {width: min(100%, 540px); aspect-ratio: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; position: relative; border: 4px solid #503724; gap: 4px; background: #503724;}
+.meyer-sector {position: relative; display: flex; align-items: center; justify-content: center; flex-direction: column; background: #e8d5af; color: #695337; padding: 16px; transition: background-color .1s; gap: 8px;}
+.meyer-sector-arrow {font-family: system-ui, sans-serif; font-size: clamp(2.4rem, 9vw, 5rem); line-height: 1; opacity: .38;}
+.meyer-sector-label {font: 600 clamp(.7rem, 2.2vw, 1rem)/1.3 Georgia, serif; text-align: center;}
+.meyer-lit {background: #8f251d; color: #fff3cd; box-shadow: inset 0 0 0 4px #f1c97a;}
+.meyer-lit .meyer-sector-arrow {opacity: 1;}
+.meyer-next {box-shadow: inset 0 0 0 4px #96632d;}
+.meyer-number {position: absolute; top: 10px; left: 14px; font: 700 1.6rem Georgia, serif;}
+.meyer-sector-tag {position: absolute; bottom: 10px; font: 700 .78rem Georgia, serif; letter-spacing: .05em; text-transform: uppercase;}
+.meyer-next .meyer-sector-arrow {opacity: .65;}
+.meyer-countdown {position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 110px; aspect-ratio: 1; display: grid; place-items: center; border: 3px solid #503724; background: #f5e8ca; color: #8f251d; border-radius: 50%; font: 700 4rem Georgia, serif;}
+.meyer-paused .meyer-sector {opacity: .5;}
+.meyer-beat {position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: #f5e8ca; color: #8f251d; border: 2px solid #503724; font-size: 2rem; animation: meyer-beat .3s ease-out;}
+@keyframes meyer-beat {from {box-shadow: 0 0 0 18px #8f251d66;} to {box-shadow: 0 0 0 0 #8f251d00;}}
+@media (prefers-reduced-motion: reduce) {.meyer-beat {animation: none;} .meyer-sector {transition: none;}}
+.meyer-status {font: 700 clamp(1.1rem, 4vw, 1.7rem)/1.3 Georgia, serif; color: var(--rubric-dark); text-align: center;}
+.meyer-controls {display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;}
+.meyer-feedback {margin: 0; text-align: center;}
+.meyer-settings {padding: 18px; display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap;}
+.meyer-settings label:not(.toggle-control) {display: grid; gap: 8px; font-size: .9rem;}
+.meyer-settings select {padding: 6px 10px; border: 1px solid var(--line); color: var(--ink); background: var(--paper); font: inherit;}
+.meyer-settings input[type="range"] {width: 180px; accent-color: #8f251d;}
+.meyer-result {display: grid; gap: 6px; padding: 16px; width: 100%; background: #d9e0be; color: #304129; text-align: center;}
+.meyer-camera-section {display: grid; grid-template-columns: 1fr 1fr; padding: 20px; gap: 20px;}
+.meyer-camera .camera-pane {min-height: 180px; aspect-ratio: 4 / 3;}
+.meyer-camera .meyer-controls {margin-top: 10px;}
+.meyer-camera p {font-size: .85rem; text-align: center;}
+.meyer-about {color: var(--ink-soft); padding: 8px;}
+.meyer-about summary {cursor: pointer;}
+.meyer-stage:fullscreen {overflow: auto; background: #f0e0bd; color: #503724; border: 0; width: 100%; height: 100%; align-content: start;}
+.meyer-stage:fullscreen .meyer-square {width: min(70vh, 90vw, 740px);}
+@media (max-width: 600px) {
+  .meyer-modes {grid-template-columns: 1fr 1fr;}
+  .meyer-stage {padding: 10px;}
+  .meyer-sector {padding: 8px;}
+  .meyer-sector-label {margin-bottom: 10px;}
+  .meyer-number {font-size: 1.25rem; top: 8px; left: 8px;}
+  .meyer-sector-tag {bottom: 6px; font-size: .65rem;}
+  .meyer-camera-section {grid-template-columns: 1fr;}
+}
