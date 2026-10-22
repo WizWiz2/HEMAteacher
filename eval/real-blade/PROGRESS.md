@@ -32,3 +32,7 @@ Baselines e2e (30 real clips, own / wrong-of-240): blade off 3/30 · 3; old hybr
   forearms cross/point across the hilt, not along blade; high guards point opposite). Forearm rule REJECTED; labels left as-is (far end from hands).
 - 15:00 rebuilt: rc_nofilt.npz 1548 (1112 train/436 held), rc_filt.npz 1258. Training full-direction loss (AXONLY=0), same val:
   i5 = nofilt (=i1 recipe) train_i5.log; i6 = filt train_i6.log.
+- 15:15 val (3 train ch): i5 nofilt (i1 recipe, all 3210-ish labels) <15° 29%, <30° 49%, med 31° (n=115); i6 filt <15° 21%, <30° 41%, med 39° (n=108).
+  Filter hurts. Neither beats i1 (38% on its old val) -> NO e2e, nothing to main. Held-out eval i5/i6 running -> eval_i56.log.
+  Conclusion: pseudo-label tip/pommel noise + tiny real set cap the net; classical (71% correct on held, med 4°) is the strong component.
+  Next idea: use the net only for axis (fold direction) + classical/hands for sign, or train on classical-confirmed labels.
