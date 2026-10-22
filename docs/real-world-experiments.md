@@ -26,3 +26,32 @@ LOBO/test. Real frontal own is 2/6 with 8 % wrong, and held-out real frontal is 
 Common conclusion: real people start from lower guards, cut more horizontally and move 3–4× slower than the renders.
 Public videos give only 1–5 clean people per drill. The next useful input is real recordings of the target user,
 filmed from the front.
+
+## Blade tracking (closed, Oct 2026)
+
+What was tried:
+- Synthetic upper bound: feeding the true blade direction from renders raised strike accuracy from 65 to 82 of 84.
+- Classical in-browser detector: a line scan from the hands plus temporal tracking, about 2 ms per frame.
+- A tiny CNN trained on renders only, then fine-tuned on real pseudo-labels. The labels came from OWLv2 and SAM
+  on frames of 107 public videos, about 80 % correct by eye; the main error is swapping tip and pommel.
+- A rule that picks the tip from the forearm direction. Rejected by eye: with a two-handed grip the forearms
+  cross the hilt, so the rule made most of its flips wrong.
+
+Held-out real frames (359 frames, 9 channels never used in training):
+- Classical detector: 71 % of frames within 15°, median error 4°, 93 % coverage.
+- Nets: 22–25 % within 15°. The net trained on renders only: 13 %.
+
+End-to-end on 30 real clips (own drill recognised / wrong accepts of 240):
+
+| Blade input | Own | Wrong |
+|---|---|---|
+| Off | 3/30 | 3 |
+| Classical | 2/30 | 3–4 |
+
+With every blade input tried, 0 of 16 strikes were recognised.
+
+Conclusion: the strike classifier was trained on blade features from renders and does not transfer to real
+people, even when the blade itself is found well. Making blade input useful needs real labelled strikes.
+
+The code is kept on the branch `feat/blade-tracking-prototype` (PR #20, closed; https://github.com/WizWiz2/HEMAteacher/pull/20),
+in `eval/real-blade/`, last commit 7f8f07e.
