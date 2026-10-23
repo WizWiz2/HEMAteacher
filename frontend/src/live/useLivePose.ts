@@ -9,6 +9,8 @@ import { MediaPipeLivePose } from "./poseLandmarker";
 import { LiveSampleProcessor } from "./sampleProcessor";
 import { detectWeaponMarkers } from "./weaponMarkers";
 import { projectTargetGhost } from "./targetGhost";
+import { cameraErrorName, listCameras, openCameraStream, type PhysicalCamera } from "./cameraStream";
+export type { PhysicalCamera } from "./cameraStream";
 
 export interface LiveSample {
   cameraView?: CameraView;
@@ -24,8 +26,6 @@ export interface LiveSample {
   motionFraming?: FramingAssessment;
   weapon: WeaponMarkers | null;
 }
-
-export type PhysicalCamera = "environment" | "user";
 
 export interface LivePoseOptions {
   smoothingMs?: number;
@@ -47,17 +47,27 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
   const [phase, setPhase] = useState<"idle" | "requesting" | "loading" | "ready">("idle");
   const [cameraFacingMode, setCameraFacingMode] = useState<string | null>(null);
   const [requestedCamera, setRequestedCamera] = useState<PhysicalCamera>("environment");
+  const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedCameraId, setSelectedCameraId] = useState("");
   const requestedCameraRef = useRef<PhysicalCamera>("environment");
+  const selectedCameraIdRef = useRef("");
   const actualCameraRef = useRef<string | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const detectorRef = useRef<MediaPipeLivePose | null>(null);
   const requestId = useRef(0);
   const busy = useRef(false);
+  const mounted = useRef(true);
   onSampleRef.current = onSample;
   facingRef.current = facing;
   optionsRef.current = options;
 
-  const start = useCallback(async (camera: PhysicalCamera = requestedCameraRef.current) => {
+  const refreshCameras = useCallback(async () => {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
+    const devices = await listCameras(navigator.mediaDevices);
+    if (mounted.current) setCameraDevices(devices);
+  }, []);
+
+  const start = useCallback(async (camera: PhysicalCamera = requestedCameraRef.current, deviceId = selectedCameraIdRef.current) => {
     if (busy.current) return;
     busy.current = true;
     const currentRequest = ++requestId.current;
@@ -109,34 +119,49 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
       onSampleRef.current({...sample, weapon});
     });
 
+    let stage: "camera" | "playback" | "detector" = "camera";
     try {
-      const stream = await openCameraStream(camera);
+      const stream = await openCameraStream(camera, deviceId, navigator.mediaDevices, () => currentRequest === requestId.current);
       if (currentRequest !== requestId.current) { stream.getTracks().forEach(track => track.stop()); return; }
       streamRef.current = stream;
+      setSelectedCameraId(stream.getVideoTracks()[0]?.getSettings().deviceId ?? deviceId);
       const actualFacing = stream.getVideoTracks()[0]?.getSettings().facingMode ?? null;
       actualCameraRef.current = actualFacing;
       setCameraFacingMode(actualFacing);
       video.srcObject = stream;
+      stage = "playback";
       await video.play();
       if (currentRequest !== requestId.current) return;
       setLive(true);
       setPhase("loading");
+      stage = "detector";
       await detector.start(video);
       if (currentRequest !== requestId.current) return;
       setPhase("ready");
+      void refreshCameras();
     } catch (reason) {
       if (currentRequest !== requestId.current) return;
-      setError(cameraError(reason));
+      setError(stage === "detector"
+        ? `Камера открылась, но распознавание не загрузилось: ${reason instanceof Error ? reason.message : cameraErrorName(reason)}. Попробуй ещё раз.`
+        : cameraError(reason));
       setLive(false);
       setPhase("idle");
       detector.stop();
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
       video.srcObject = null;
+      void refreshCameras();
     } finally {
       if (currentRequest === requestId.current) busy.current = false;
     }
-  }, []);
+  }, [refreshCameras]);
+
+  const selectCamera = useCallback(async (deviceId: string) => {
+    if (busy.current) return;
+    selectedCameraIdRef.current = deviceId;
+    setSelectedCameraId(deviceId);
+    await start(requestedCameraRef.current, deviceId);
+  }, [start]);
 
   const switchCamera = useCallback(async () => {
     if (busy.current) return;
@@ -145,6 +170,7 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
       ? actual
       : requestedCameraRef.current;
     const next: PhysicalCamera = current === "user" ? "environment" : "user";
+    selectedCameraIdRef.current = "";
 
     requestId.current++;
     detectorRef.current?.stop();
@@ -160,12 +186,19 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     await start(next);
   }, [start]);
 
-  useEffect(() => () => {
-    requestId.current++;
-    detectorRef.current?.stop();
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
-  }, []);
+  useEffect(() => {
+    mounted.current = true;
+    void refreshCameras();
+    navigator.mediaDevices?.addEventListener?.("devicechange", refreshCameras);
+    return () => {
+      mounted.current = false;
+      requestId.current++;
+      detectorRef.current?.stop();
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      navigator.mediaDevices?.removeEventListener?.("devicechange", refreshCameras);
+    };
+  }, [refreshCameras]);
 
   return {
     videoRef,
@@ -177,51 +210,22 @@ export function useLivePose(facing: Facing, onSample: (sample: LiveSample) => vo
     switchCamera,
     cameraFacingMode,
     requestedCamera,
+    cameraDevices,
+    selectedCameraId,
+    selectCamera,
   };
 }
 
-
-async function openCameraStream(camera: PhysicalCamera): Promise<MediaStream> {
-  const base = {
-    // The pose model works on a 256 px input, so 640x480 loses nothing for tracking and halves the frame copies
-    // on phones compared with 720p.
-    audio: false as const,
-    video: {
-      width: { ideal: 640 },
-      height: { ideal: 480 },
-    },
-  };
-
-  try {
-    return await navigator.mediaDevices.getUserMedia({
-      ...base,
-      video: {
-        ...base.video,
-        facingMode: { exact: camera },
-      },
-    });
-  } catch (reason) {
-    if (!(reason instanceof DOMException) || (reason.name !== "OverconstrainedError" && reason.name !== "NotFoundError")) {
-      throw reason;
-    }
-    return navigator.mediaDevices.getUserMedia({
-      ...base,
-      video: {
-        ...base.video,
-        facingMode: { ideal: camera },
-      },
-    });
-  }
-}
 
 function cameraError(reason: unknown): string {
-  if (reason instanceof DOMException) {
-    if (reason.name === "NotAllowedError" || reason.name === "SecurityError")
+  if (reason && typeof reason === "object") {
+    const name = cameraErrorName(reason);
+    if (name === "NotAllowedError" || name === "SecurityError")
       return "Доступ к камере запрещён. Разреши камеру для этого сайта в настройках браузера и открой его напрямую, если сейчас он внутри ChatGPT.";
-    if (reason.name === "NotFoundError" || reason.name === "OverconstrainedError")
+    if (name === "NotFoundError" || name === "OverconstrainedError")
       return "Камера не найдена. Проверь, что устройство позволяет её использовать.";
-    if (reason.name === "NotReadableError" || reason.name === "AbortError")
-      return "Камера занята другим приложением или не отвечает. Закрой его и попробуй ещё раз.";
+    if (name === "NotReadableError" || name === "AbortError")
+      return `Браузер не смог запустить камеру (${name}). Выбери другое устройство ниже; если оно используется в другом приложении или вкладке, закрой его и повтори запуск.`;
   }
   return `Камера или распознавание позы не запустились: ${reason instanceof Error ? reason.message : "неизвестная ошибка"}`;
 }

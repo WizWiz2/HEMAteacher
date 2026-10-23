@@ -24,6 +24,7 @@ export class MediaPipeLivePose implements LivePoseDetector {
   private lastVideoTime = -1;
   private lastTimestamp = -1;
   private video: FrameVideo | null = null;
+  private generation = 0;
 
   onPose(callback: (frame: RawPose) => void): void {
     this.callback = callback;
@@ -31,10 +32,11 @@ export class MediaPipeLivePose implements LivePoseDetector {
 
   async initialize(): Promise<void> {
     if (!this.landmarker) {
+      const generation = this.generation;
       const vision = await FilesetResolver.forVisionTasks(`${import.meta.env.BASE_URL}wasm`);
       // Without WebGL2 MediaPipe's GPU delegate cannot run (it may still "succeed" and compute on the CPU).
       const webgl2 = typeof document !== "undefined" && !!document.createElement("canvas").getContext("webgl2");
-      this.landmarker = await PoseLandmarker.createFromOptions(vision, {
+      const landmarker = await PoseLandmarker.createFromOptions(vision, {
         baseOptions: {
           modelAssetPath: `${import.meta.env.BASE_URL}models/pose_landmarker_lite.task`,
           delegate: webgl2 ? "GPU" : "CPU",
@@ -52,11 +54,15 @@ export class MediaPipeLivePose implements LivePoseDetector {
           numPoses: 1,
         });
       });
+      if (generation !== this.generation) {landmarker.close(); return;}
+      this.landmarker = landmarker;
     }
   }
 
   async start(video: HTMLVideoElement): Promise<void> {
+    const generation = this.generation;
     await this.initialize();
+    if (generation !== this.generation) return;
     this.running = true;
     this.lastVideoTime = -1;
     this.video = video as FrameVideo;
@@ -64,6 +70,7 @@ export class MediaPipeLivePose implements LivePoseDetector {
   }
 
   stop(): void {
+    this.generation++;
     this.running = false;
     cancelAnimationFrame(this.raf);
     if (this.video?.cancelVideoFrameCallback && this.videoCallback) {

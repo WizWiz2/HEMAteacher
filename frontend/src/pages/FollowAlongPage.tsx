@@ -173,6 +173,11 @@ export function FollowAlongPage() {
     setSummary(summarize(reps));
     setSession("done");
   }
+  function resetCameraSession() {
+    counter.current.reset();
+    lastRaw.current = null; anchor.current = null; lastFraming.current = null; sampleTimes.current = [];
+    setReps([]); setSummary(null); setCheck([]); setPhase("waiting"); setSession("idle");
+  }
 
   const last = reps.at(-1);
   const status = session === "done" ? "Подход завершён"
@@ -201,10 +206,11 @@ export function FollowAlongPage() {
     <section className="follow-stage">
       <figure className="manuscript-panel follow-reference">
         <div className="follow-pane-top"><span className="rubric">Эталон · {drillName(drill)}</span><span className="badge">{TEMPOS.find(t => t.value === tempo)?.label}</span></div>
-        <canvas ref={refCanvas} className={`follow-reference-canvas ${mirrored ? "follow-mirrored" : ""}`} aria-label={`Анимация эталона: ${drillName(drill)}`} role="img" />
+        <div className="follow-reference-viewport"><canvas ref={refCanvas} className={`follow-reference-canvas ${mirrored ? "follow-mirrored" : ""}`} aria-label={`Анимация эталона: ${drillName(drill)}`} role="img" /></div>
         <figcaption>{refs ? clip ? "Петля: стойка → движение → возврат" : "Для этого вида нет эталона" : "Загружаю эталон…"}</figcaption>
       </figure>
-      <div className="follow-camera">
+      <div className="manuscript-panel follow-camera">
+        <div className="follow-pane-top"><span className="rubric">Твоя камера</span><span className="badge">{live.phase === "ready" ? "Камера работает" : "Ожидает запуска"}</span></div>
         <div className="camera-pane">
           <div className={`video-wrap live-frame ${mirrored ? "preview-mirrored" : ""}`}>
             <video ref={live.videoRef} playsInline muted autoPlay />
@@ -214,9 +220,16 @@ export function FollowAlongPage() {
           {live.live && ghost && <div className="ghost-legend"><span><i className="ghost-swatch live" />ты</span><span><i className="ghost-swatch target" />эталон</span></div>}
           {flash > 0 && last && <div key={flash} className="follow-rep-flash" aria-hidden="true">{last.index}</div>}
         </div>
+        {live.cameraDevices.length > 0 && <label className="follow-device-picker">Устройство камеры
+          <select aria-label="Устройство камеры" value={live.selectedCameraId} disabled={live.phase === "requesting" || live.phase === "loading"}
+            onChange={e => {resetCameraSession(); void live.selectCamera(e.target.value);}}>
+            <option value="">Автоматически</option>
+            {live.cameraDevices.map((device, index) => <option key={device.deviceId || index} value={device.deviceId}>{device.label || `Камера ${index + 1}`}</option>)}
+          </select>
+        </label>}
         <div className="follow-camera-controls">
-          {!live.live ? <button type="button" disabled={live.phase !== "idle"} onClick={() => void live.start("user")}>{live.phase === "requesting" ? "Разреши доступ…" : "Включить камеру"}</button>
-            : <button type="button" className="ghost" disabled={live.phase !== "ready"} onClick={() => void live.switchCamera()}>Переключить камеру</button>}
+          {!live.live ? <button type="button" disabled={live.phase !== "idle"} onClick={() => void live.start("user")}>{live.phase === "requesting" ? "Подключаю камеру…" : "Включить камеру"}</button>
+            : <button type="button" className="ghost" disabled={live.phase !== "ready"} onClick={() => {resetCameraSession(); void live.switchCamera();}}>Переключить камеру</button>}
           <span className="follow-framing" role="status">{live.error || (live.live && live.phase === "ready" ? framing : "")}</span>
         </div>
         {live.live && session !== "running" && check.length > 0 && <ul className="frame-check" aria-label="Проверка кадра">
@@ -271,7 +284,7 @@ export function FollowAlongPage() {
 
 function prepare(canvas: HTMLCanvasElement) {
   const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
   const w = Math.max(1, rect.width), h = Math.max(1, rect.height);
   if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);}
   const ctx = canvas.getContext("2d");

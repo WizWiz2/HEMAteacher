@@ -4,14 +4,19 @@
 .follow-picker .control-label {display: block; margin-bottom: 6px;}
 .follow-drills {display: flex; flex-wrap: wrap; gap: 8px;}
 .follow-drills button {flex: 1 1 auto; padding: 0 12px;}
-.follow-stage {display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 16px; align-items: stretch;}
-.follow-reference {margin: 0; padding: 12px; display: grid; grid-template-rows: auto 1fr auto; gap: 8px; min-height: 340px;}
+.follow-stage {--follow-height: clamp(280px, 54vh, 520px); display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 16px; align-items: start;}
+.follow-reference {margin: 0; padding: 12px; display: grid; grid-template-rows: auto var(--follow-height) auto; gap: 8px; min-width: 0; min-height: 0;}
 .follow-pane-top {display: flex; justify-content: space-between; align-items: center; gap: 8px;}
-.follow-reference-canvas {width: 100%; height: 100%; min-height: 280px; display: block; background: radial-gradient(ellipse at 50% 45%, #f3e3c0 0%, #e8d5af 70%); border: 1px solid #98795655;}
+.follow-reference-viewport {position: relative; min-width: 0; min-height: 0; overflow: hidden; contain: size; background: radial-gradient(ellipse at 50% 45%, #f3e3c0 0%, #e8d5af 70%); border: 1px solid #98795655;}
+.follow-reference-canvas {position: absolute; inset: 0; width: 100%; height: 100%; display: block;}
 .follow-mirrored {transform: scaleX(-1);}
 .follow-reference figcaption {font-size: .85rem; color: var(--ink-soft); text-align: center;}
-.follow-camera {display: grid; gap: 8px; align-content: start;}
-.follow-camera .camera-pane {min-height: 240px;}
+.follow-camera {display: grid; gap: 8px; align-content: start; padding: 12px; min-width: 0;}
+.follow-camera .camera-pane {height: var(--follow-height); min-height: 0; overflow: hidden; aspect-ratio: auto;}
+.follow-camera .video-wrap.live-frame {position: absolute; inset: 0; width: 100%; height: 100%; display: block;}
+.follow-camera .live-frame video {width: 100%; height: 100%; max-height: none; object-fit: contain;}
+.follow-device-picker {display: grid; gap: 5px; font-size: .85rem; color: var(--ink-soft);}
+.follow-device-picker select {width: 100%; min-width: 0; max-width: 100%; padding: 8px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); font: inherit;}
 .follow-camera-controls {display: flex; align-items: center; gap: 12px; flex-wrap: wrap;}
 .follow-framing {font-size: .85rem; color: var(--ink-soft);}
 .follow-rep-flash {position: absolute; right: 14px; top: 12px; z-index: 9; width: 64px; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; background: #f5e8ca; color: #8f251d; border: 3px solid #503724; font: 700 2rem Georgia, serif; animation: follow-pop .6s ease-out both;}
@@ -39,7 +44,7 @@
 .follow-toggle-group {display: flex; align-items: center; gap: 8px; flex-wrap: wrap;}
 @media (max-width: 760px) {
   .follow-picker, .follow-stage {grid-template-columns: 1fr;}
-  .follow-reference {min-height: 260px;}
+  .follow-stage {--follow-height: clamp(240px, 48svh, 380px);}
   .follow-board {grid-template-columns: auto 1fr;}
   .follow-actions {grid-column: 1 / -1;}
 }
