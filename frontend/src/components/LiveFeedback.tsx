@@ -9,6 +9,7 @@ export function LiveFeedback({
   weapon,
   completed = false,
   motion,
+  onRetry,
 }: {
   match: CheckpointMatch | null;
   enough: boolean;
@@ -17,6 +18,7 @@ export function LiveFeedback({
   weapon?: WeaponMatch | null;
   completed?: boolean;
   motion?: import("../drill/continuousMotion").MotionAttempt;
+  onRetry?: () => void;
 }) {
   if (completed) {
     return (
@@ -26,7 +28,13 @@ export function LiveFeedback({
       </div>
     );
   }
-  if (motion && !calibrating) return <div className={`coach-overlay ${motion.phase === "armed" ? "good" : motion.phase === "failed" ? "adjust" : "wait"}`}><span className="coach-primary">{motion.message}</span></div>;
+  if (motion && !calibrating) return <div className={`coach-overlay ${motion.phase === "armed" ? "good" : motion.phase === "failed" ? "adjust" : "wait"}`}>
+    <span className="coach-primary">{motion.message}</span>
+    {motion.phase === "failed" && <>
+      <span className="coach-score">Новая попытка через 3 секунды</span>
+      {onRetry && <button type="button" onClick={onRetry}>Повторить сейчас</button>}
+    </>}
+  </div>;
   const hasMeasurement = match != null && Object.values(match.features).some((feature) => Number.isFinite(feature.value));
   if (calibrating || !enough || !match || !hasMeasurement) {
     return <div className="coach-overlay wait"><span>{framingMessage ?? "ВСТАНЬ В КАДР"}</span></div>;

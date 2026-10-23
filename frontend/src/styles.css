@@ -824,6 +824,7 @@ button.active {
   pointer-events: none;
 }
 .coach-overlay.good { border-color: #315535; color: #284c2d; }
+.coach-overlay button { pointer-events: auto; align-self: center; }
 .coach-overlay.wait { color: #4f321e; }
 .coach-primary {
   width: 100%;

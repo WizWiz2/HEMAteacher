@@ -7,6 +7,7 @@ import { LiveFeedback } from "../components/LiveFeedback";
 import { LivePoseCanvas } from "../components/LivePoseCanvas";
 import { TargetPose } from "../components/TargetPose";
 import { createDrillRuntime, stepDrill } from "../drill/drillEngine";
+import { scheduleAttemptRetry } from "../drill/attemptRetry";
 import { primaryCue } from "../drill/feedback";
 import { targetPoseFor } from "../drill/posePresets";
 import { personalizeDrill } from "../drill/personalize";
@@ -81,6 +82,12 @@ export function DrillPage() {
     [personalizedDrill, cameraView],
   );
   drillRef.current = activeDrill;
+
+  useEffect(() => scheduleAttemptRetry(runtime.state, () => {
+    // A manual retry, recalibration or navigation must invalidate the old attempt.
+    if (runtimeRef.current.state !== "failed" || drillRef.current !== activeDrill) return;
+    retry();
+  }), [runtime.state, activeDrill, id]);
 
   const checkpoint = activeDrill?.checkpoints[runtime.checkpointIndex];
   const smoothingMs = checkpoint?.smoothingMs ?? 100;
@@ -366,6 +373,7 @@ export function DrillPage() {
                 weapon={weaponMatch}
                 completed={runtime.state === "completed"}
                 motion={continuous ? runtime.motion : undefined}
+                onRetry={retry}
               />
               <div className="camera-status">
                 <span>
@@ -401,7 +409,7 @@ export function DrillPage() {
           </section>
 
           {runtime.state === "completed" && <DrillResultPage elapsedMs={elapsed} onRetry={retry} continuous={continuous} feedback={runtime.motion?.feedback} />}
-          {runtime.state === "failed" && <div className="result-banner"><h2>{runtime.motion?.outcome === "tracking_lost" ? "Не удалось отследить движение" : "Попытка не распознана"}</h2><p>{runtime.motion?.message}</p><button type="button" onClick={retry}>Повторить</button></div>}
+          {runtime.state === "failed" && <div className="result-banner"><h2>{runtime.motion?.outcome === "tracking_lost" ? "Не удалось отследить движение" : "Попытка не распознана"}</h2><p>{runtime.motion?.message}</p><p>Новая попытка через 3 секунды</p><button type="button" onClick={retry}>Повторить сейчас</button></div>}
           <Link className="muted back-link" to="/">← К упражнениям</Link>
         </>
       )}
