@@ -8,7 +8,7 @@ import { useLivePose, type LiveSample } from "../live/useLivePose";
 import type { RawPose } from "../live/landmarks";
 import type { Facing } from "../live/normalize";
 import { RepCounter, summarize, type CounterPhase, type FollowRep, type FollowSummary } from "../follow/repCounter";
-import { REFERENCE_STYLE, drawSkeleton, loadReferences, loopProgress, placePose, poseAt, referenceKey, type ReferenceClip, type ReferenceSet } from "../follow/reference";
+import { REFERENCE_STYLE, drawSkeleton, loadReferences, loopProgress, placePose, poseAt, referenceBounds, referenceKey, type ReferenceClip, type ReferenceSet } from "../follow/reference";
 import { bodyAnchor, containBox, followAnchor, placeGhost, type GhostAnchor } from "../follow/ghostAlign";
 import "../follow/follow.css";
 
@@ -35,6 +35,7 @@ export function FollowAlongPage() {
   const [facing, setFacing] = useState<Facing>("right");
   const [tempo, setTempo] = useState(0.75);
   const [ghost, setGhost] = useState(true);
+  const [cameraExpanded, setCameraExpanded] = useState(false);
   const [sound, setSound] = useState(true);
   const [refs, setRefs] = useState<ReferenceSet | null>(null);
   const [session, setSession] = useState<"idle" | "running" | "done">("idle");
@@ -71,14 +72,17 @@ export function FollowAlongPage() {
   // Fit the whole loop (steps travel) into the reference panel.
   const bounds = useMemo(() => {
     if (!clip || !refs) return null;
-    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
-    for (const f of clip.frames) for (let k = 0; k < refs.joints.length; k++) {
-      const x = f[2 * k], y = f[2 * k + 1];
-      if (x === null || y === null) continue;
-      x0 = Math.min(x0, x / 1000); x1 = Math.max(x1, x / 1000); y0 = Math.min(y0, y / 1000); y1 = Math.max(y1, y / 1000);
-    }
-    return {x0, x1, y0: y0 - 0.25, y1};
+    return referenceBounds(refs, clip);
   }, [clip, refs]);
+
+  useEffect(() => {
+    if (!cameraExpanded) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") setCameraExpanded(false); };
+    window.addEventListener("keydown", escape);
+    return () => { document.body.style.overflow = previous; window.removeEventListener("keydown", escape); };
+  }, [cameraExpanded]);
 
   const beep = useCallback(() => {
     if (!settings.current.sound || !audio.current) return;
@@ -207,11 +211,14 @@ export function FollowAlongPage() {
       <figure className="manuscript-panel follow-reference">
         <div className="follow-pane-top"><span className="rubric">Эталон · {drillName(drill)}</span><span className="badge">{TEMPOS.find(t => t.value === tempo)?.label}</span></div>
         <div className="follow-reference-viewport"><canvas ref={refCanvas} className={`follow-reference-canvas ${mirrored ? "follow-mirrored" : ""}`} aria-label={`Анимация эталона: ${drillName(drill)}`} role="img" /></div>
-        <figcaption>{refs ? clip ? "Петля: стойка → движение → возврат" : "Для этого вида нет эталона" : "Загружаю эталон…"}</figcaption>
+        <figcaption>{refs ? clip ? `Петля: стойка → движение → возврат${clip.weapon && view === "front" ? " · клинок схематично" : ""}` : "Для этого вида нет эталона" : "Загружаю эталон…"}</figcaption>
       </figure>
       <div className="manuscript-panel follow-camera">
         <div className="follow-pane-top"><span className="rubric">Твоя камера</span><span className="badge">{live.phase === "ready" ? "Камера работает" : "Ожидает запуска"}</span></div>
-        <div className="camera-pane">
+        <div className={`camera-pane ${cameraExpanded ? "camera-expanded" : ""}`}>
+          <button type="button" className="camera-expand-button" aria-expanded={cameraExpanded}
+            aria-label={cameraExpanded ? "Свернуть камеру" : "Развернуть камеру на весь экран"}
+            onClick={() => setCameraExpanded(value => !value)}>{cameraExpanded ? "✕ Свернуть" : "⛶ На весь экран"}</button>
           <div className={`video-wrap live-frame ${mirrored ? "preview-mirrored" : ""}`}>
             <video ref={live.videoRef} playsInline muted autoPlay />
             <canvas ref={ghostCanvas} className="overlay" />
@@ -219,6 +226,13 @@ export function FollowAlongPage() {
           </div>
           {live.live && ghost && <div className="ghost-legend"><span><i className="ghost-swatch live" />ты</span><span><i className="ghost-swatch target" />эталон</span></div>}
           {flash > 0 && last && <div key={flash} className="follow-rep-flash" aria-hidden="true">{last.index}</div>}
+          {cameraExpanded && <div className="follow-expanded-status">
+            <span role="status">{status}</span><strong>{repsLabel(reps.length)}</strong>
+            {!live.live ? <button type="button" disabled={live.phase !== "idle"} onClick={() => void live.start("user")}>{live.phase === "requesting" ? "Подключаю камеру…" : "Включить камеру"}</button>
+              : session === "running" ? <button type="button" onClick={finishSession}>Завершить подход</button>
+              : <button type="button" onClick={startSession} disabled={!live.live || live.phase !== "ready"}>Начать подход</button>}
+            {live.error && <span role="alert">{live.error}</span>}
+          </div>}
         </div>
         {live.cameraDevices.length > 0 && <label className="follow-device-picker">Устройство камеры
           <select aria-label="Устройство камеры" value={live.selectedCameraId} disabled={live.phase === "requesting" || live.phase === "loading"}
