@@ -282,7 +282,7 @@ export function zipStore(files: {name: string; data: Uint8Array}[], date = new D
     h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, 0, true);
     h.setUint16(10, dosTime, true); h.setUint16(12, dosDate, true); h.setUint32(14, crc, true);
     h.setUint32(18, size, true); h.setUint32(22, size, true); h.setUint16(26, name.length, true); h.setUint16(28, 0, true);
-    parts.push(h.buffer, name, f.data);
+    parts.push(h.buffer, name as BlobPart, f.data as BlobPart);
     const c = new DataView(new ArrayBuffer(46));
     c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true);
     c.setUint16(10, 0, true); c.setUint16(12, dosTime, true); c.setUint16(14, dosDate, true); c.setUint32(16, crc, true);
@@ -296,7 +296,7 @@ export function zipStore(files: {name: string; data: Uint8Array}[], date = new D
   const end = new DataView(new ArrayBuffer(22));
   end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
   end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
-  return new Blob([...parts, ...central, end.buffer], {type: "application/zip"});
+  return new Blob([...parts, ...(central as BlobPart[]), end.buffer], {type: "application/zip"});
 }
 
 export function downloadBlob(blob: Blob, filename: string) {

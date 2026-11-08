@@ -56,3 +56,7 @@
 .frame-check li.ok span {color: #3d6b2f; font-weight: 700;}
 .frame-check li.bad {color: #8b1e1e;}
 .frame-check li.bad span {font-weight: 700;}
+.follow-rec-toggle {font-size: .9rem;}
+.follow-rec-live {color: #a1231a; font-weight: 700;}
+.follow-rec-notice {color: #841e18; font-weight: 600; margin: 0;}
+.follow-rec-result {display: grid; gap: 6px;}
