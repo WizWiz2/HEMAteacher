@@ -10,6 +10,7 @@ import type { Facing } from "../live/normalize";
 import { RepCounter, summarize, type CounterPhase, type FollowRep, type FollowSummary } from "../follow/repCounter";
 import { REFERENCE_STYLE, drawSkeleton, loadReferences, loopProgress, placePose, poseAt, referenceBounds, referenceKey, type ReferenceClip, type ReferenceSet } from "../follow/reference";
 import { bodyAnchor, containBox, followAnchor, placeGhost, type GhostAnchor } from "../follow/ghostAlign";
+import { SetRecorder, STOP_REASON_TEXT, buildRecordingZip, downloadBlob, recordingSupport, safeFilename, type RecordingResult, type StopReason } from "../follow/setRecording";
 import "../follow/follow.css";
 
 const STRIKES = ["zornhau", "zwerchhau", "schielhau", "scheitelhau", "krumphau"];
@@ -57,16 +58,38 @@ export function FollowAlongPage() {
   const ghostCanvas = useRef<HTMLCanvasElement>(null);
   const startedAt = useRef(performance.now());
   const anchor = useRef<GhostAnchor | null>(null);
+  // Optional set recording: off by default, only while a set runs, never in the background.
+  const support = useMemo(() => recordingSupport(), []);
+  const [recordOn, setRecordOn] = useState(false);
+  const recorder = useRef<SetRecorder | null>(null);
+  const [recLive, setRecLive] = useState<{ms: number; bytes: number} | null>(null);
+  const [recResult, setRecResult] = useState<RecordingResult | null>(null);
+  const [recSaved, setRecSaved] = useState(false);
+  const [recNotice, setRecNotice] = useState("");
+  const [recBusy, setRecBusy] = useState(false);
+  const recUnsaved = !!recResult && !recSaved;
+  const stopRecording = useCallback((reason: StopReason) => {
+    const r = recorder.current;
+    if (!r) return;
+    recorder.current = null;
+    setRecLive(null);
+    void r.stop(reason).then(res => {
+      setRecResult(res); setRecSaved(false);
+      const why = STOP_REASON_TEXT[res.stopReason];
+      setRecNotice(why ? `${why} Запись не сохранится, пока ты её не скачаешь.` : "");
+    });
+  }, []);
   const settings = useRef({drill, view, tempo, ghost, facing, sound});
   settings.current = {drill, view, tempo, ghost, facing, sound};
 
   useEffect(() => {void loadReferences().then(setRefs);}, []);
   useEffect(() => {
+    stopRecording("drill-changed");
     counter.current = new RepCounter(drill, view);
     startedAt.current = performance.now();
     setReps([]); setSummary(null); setPhase("waiting");
     setSession(s => (s === "running" ? "running" : "idle"));
-  }, [drill, view]);
+  }, [drill, view, stopRecording]);
 
   const clip: ReferenceClip | null = refs?.clips[referenceKey(view, drill)] ?? null;
   // Fit the whole loop (steps travel) into the reference panel.
@@ -104,6 +127,11 @@ export function FollowAlongPage() {
     setFraming(prev => (prev === f.message ? prev : f.message));
     const usable = sample.motionUsable ?? sample.usable;
     const rep = counter.current.push({timeMs: sample.timeMs, features: usable ? sample.features : null});
+    const rec = recorder.current;
+    if (rec) {
+      rec.addPose({sampleTimeMs: sample.timeMs, usable, width: sample.raw.width, height: sample.raw.height, landmarks: sample.raw.landmarks});
+      if (rep) rec.setReps(counter.current.reps);
+    }
     setPhase(prev => (prev === counter.current.phase ? prev : counter.current.phase));
     if (rep && sessionRef.current === "running") {
       setReps([...counter.current.reps]);
@@ -123,6 +151,29 @@ export function FollowAlongPage() {
     }, 500);
     return () => clearInterval(id);
   }, [live.live, session]);
+
+  // Camera gone (stopped, lost, recovered with a new stream): end the recording visibly.
+  useEffect(() => { if (!live.live) stopRecording("camera-stopped"); }, [live.live, stopRecording]);
+  useEffect(() => {
+    if (!recLive && !recorder.current) return;
+    const id = setInterval(() => { const r = recorder.current; if (r) setRecLive({ms: r.elapsedMs, bytes: r.sizeBytes}); }, 500);
+    return () => clearInterval(id);
+  }, [recLive]);
+  // Leaving the page while recording or with an undownloaded recording asks first.
+  useEffect(() => {
+    if (!recLive && !recUnsaved) return;
+    const text = recLive ? "Идёт запись подхода. Уйти и потерять её?" : "Запись подхода не скачана. Уйти и потерять её?";
+    const unload = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = text; };
+    const click = (e: MouseEvent) => {
+      const a = (e.target as Element | null)?.closest?.("a[href]");
+      if (!a || a.getAttribute("download") !== null) return;
+      if (!window.confirm(text)) { e.preventDefault(); e.stopPropagation(); }
+    };
+    window.addEventListener("beforeunload", unload);
+    document.addEventListener("click", click, true);
+    return () => { window.removeEventListener("beforeunload", unload); document.removeEventListener("click", click, true); };
+  }, [recLive, recUnsaved]);
+  useEffect(() => () => { void recorder.current?.stop("page-left"); recorder.current = null; }, []);
 
   const mirrored = live.live && (live.cameraFacingMode ?? live.requestedCamera) === "user";
   const mirroredRef = useRef(mirrored);
@@ -169,15 +220,31 @@ export function FollowAlongPage() {
   }, [refs, clip, bounds, live.videoRef]);
 
   function startSession() {
+    if (recUnsaved && !window.confirm("Прошлая запись подхода не скачана. Удалить её и начать новый подход?")) return;
+    setRecResult(null); setRecNotice("");
+    if (recordOn && support.ok) {
+      const stream = live.videoRef.current?.srcObject;
+      try {
+        if (!(stream instanceof MediaStream) || !stream.getVideoTracks().some(t => t.readyState === "live")) throw new Error("нет активной камеры");
+        recorder.current = new SetRecorder(stream, {drill, drillName: drillName(drill), view, facing: view === "front" ? "front" : facing, tempo, mirroredPreview: mirrored},
+          {onAutoStop: reason => stopRecording(reason)});
+        setRecLive({ms: 0, bytes: 0});
+      } catch (e) {
+        recorder.current = null; setRecLive(null);
+        setRecNotice(`Запись не началась (${e instanceof Error ? e.message : "ошибка браузера"}). Подход идёт без записи.`);
+      }
+    }
     if (sound) {audio.current ??= new AudioContext(); void audio.current.resume();}
     counter.current.reset();
     setReps([]); setSummary(null); setSession("running");
   }
   function finishSession() {
+    stopRecording("user");
     setSummary(summarize(reps));
     setSession("done");
   }
   function resetCameraSession() {
+    stopRecording("camera-changed");
     counter.current.reset();
     lastRaw.current = null; anchor.current = null; lastFraming.current = null; sampleTimes.current = [];
     setReps([]); setSummary(null); setCheck([]); setPhase("waiting"); setSession("idle");
@@ -191,6 +258,18 @@ export function FollowAlongPage() {
     : phase === "moving" ? "Движение…"
     : session === "running" ? "Повторяй за эталоном" : "Готов. Нажми «Начать подход»";
   const drillName = (id: string) => capital(DRILL_NAMES[id] ?? id);
+  async function downloadRecording() {
+    if (!recResult) return;
+    setRecBusy(true);
+    try {
+      const zip = await buildRecordingZip(recResult);
+      downloadBlob(zip, safeFilename(recResult.meta.drill, recResult.meta.view, new Date(recResult.startedAtIso)));
+      setRecSaved(true);
+    } catch (e) {
+      setRecNotice(`Не удалось собрать архив: ${e instanceof Error ? e.message : "ошибка"}. Запись пока в памяти, попробуй ещё раз.`);
+    } finally { setRecBusy(false); }
+  }
+  const recBadge = recLive && <span className="follow-rec-live" role="status">● Запись {fmtTime(recLive.ms)} · {fmtMb(recLive.bytes)}</span>;
 
   return <main className="stack follow-page">
     <section className="manuscript-panel follow-heading">
@@ -231,6 +310,7 @@ export function FollowAlongPage() {
             {!live.live ? <button type="button" disabled={live.phase !== "idle"} onClick={() => void live.start("user")}>{live.phase === "requesting" ? "Подключаю камеру…" : "Включить камеру"}</button>
               : session === "running" ? <button type="button" onClick={finishSession}>Завершить подход</button>
               : <button type="button" onClick={startSession} disabled={!live.live || live.phase !== "ready"}>Начать подход</button>}
+            {recBadge}
             {live.error && <span role="alert">{live.error}</span>}
           </div>}
         </div>
@@ -267,6 +347,16 @@ export function FollowAlongPage() {
       <div className="follow-actions">
         {session !== "running" ? <button type="button" onClick={startSession} disabled={!live.live || live.phase !== "ready"}>{session === "done" ? "Ещё подход" : "Начать подход"}</button>
           : <button type="button" onClick={finishSession}>Завершить подход</button>}
+        {support.ok ? <label className="toggle-control follow-rec-toggle"><input type="checkbox" checked={recordOn} disabled={session === "running"}
+          onChange={e => setRecordOn(e.target.checked)} /> Записывать подход: видео без звука и позы, только на этом устройстве</label>
+          : <p className="follow-hint">{support.reason}</p>}
+        {recBadge}
+        {recNotice && <p className="follow-rec-notice" role="alert">{recNotice}</p>}
+        {recResult && <div className="follow-rec-result">
+          <span>Запись: {recResult.meta.drillName}, {fmtTime(recResult.durationMs)}, {fmtMb(recResult.video.size)}, повторов {recResult.reps.length}{recSaved ? " · скачана" : ""}</span>
+          <button type="button" disabled={recBusy} onClick={() => void downloadRecording()}>{recBusy ? "Собираю архив…" : "Скачать запись (.zip)"}</button>
+          <button type="button" className="ghost" onClick={() => { if (recSaved || window.confirm("Удалить запись без скачивания?")) { setRecResult(null); setRecNotice(""); } }}>Удалить</button>
+        </div>}
       </div>
       {session === "done" && summary && <div className="meyer-result follow-summary">
         <strong>{summary.reps ? `${drillName(drill)}: ${repsLabel(summary.reps)}` : "Повторов не засчитано"}</strong>
@@ -295,6 +385,12 @@ export function FollowAlongPage() {
     </details>
   </main>;
 }
+
+function fmtTime(ms: number) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+function fmtMb(bytes: number) { return `${(bytes / 1048576).toFixed(1)} МБ`; }
 
 function prepare(canvas: HTMLCanvasElement) {
   const rect = canvas.getBoundingClientRect();
